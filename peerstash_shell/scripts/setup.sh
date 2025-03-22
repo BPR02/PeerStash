@@ -45,10 +45,20 @@ socat TCP-LISTEN:$API_PORT,fork EXEC:"/peerstash/scripts/api_handler.sh" &
 
 # Wait for the web app to send its public key before continuing
 echo "Waiting for the web app public key..."
-while [ ! -s "$WEB_APP_PUBKEY_PATH" ]; do
-    sleep 1  # Check every second
+COUNT=0
+ATTEMPTS=10
+until [ -s "$WEB_APP_PUBKEY_PATH" ] || [ $COUNT -eq $ATTEMPTS ]; do
+    COUNT=$((COUNT+1))
+    echo "$COUNT..."
+    sleep 1
 done
-echo "Web app public key received!"
+if [ $COUNT -eq $ATTEMPTS ]; then
+    echo "Web app public key not received, closing API (port $API_PORT)"
+    killall socat
+    sleep 2
+else
+    echo "Web app public key received!"
+fi
 
 # Start SSH server
 if [ ! -f /peerstash/config/ssh_host_rsa_key ]; then
