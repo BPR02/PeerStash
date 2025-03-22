@@ -27,11 +27,14 @@ if [ "$REQUEST_TYPE" = "AUTH_REQUEST" ]; then
     fi
 
     # Verify the request signature
-    echo -n "$PAYLOAD" | openssl dgst -sha256 -verify "$WEB_APP_PUBKEY_PATH" -signature <(echo "$SIGNATURE" | base64 -d)
-    if [ $? -ne 0 ]; then
+    sig="$(mktemp)"
+    echo "$SIGNATURE" | base64 -d > "$sig"
+    if ! echo "$PAYLOAD" | openssl dgst -sha256 -verify "$WEB_APP_PUBKEY_PATH" -signature "$sig"; then
         echo "Signature verification failed. Unauthorized request." >&2
+        rm "$sig"
         exit 1
     fi
+    rm "$sig"
 
     echo "Authentication successful."
     exit 0

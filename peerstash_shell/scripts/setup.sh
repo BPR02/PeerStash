@@ -12,7 +12,7 @@ create_users_from_db() {
             echo "User $username already exists, skipping..."
         else
             echo "Creating user $username..."
-            adduser -D -h /peerstash/backups/$username "$username"
+            adduser -D -h /peerstash/backups/"$username" "$username"
             echo "$username:$password_hash" | chpasswd -e
         fi
     done

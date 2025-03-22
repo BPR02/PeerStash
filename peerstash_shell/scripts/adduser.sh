@@ -4,7 +4,7 @@ ORIGINAL_ADDUSER="/usr/sbin/adduser"
 DB_PATH="/peerstash/config/users.db"
 
 # get username
-if [[ "$1" =~ [-] ]] || [ "$#" -ne 1 ]; then
+if expr "X$1" : 'X.*[-]\{1,\}' >/dev/null || [ "$#" -ne 1 ]; then
     echo "Modified version of adduser for peerstash"
     echo "usage: adduser USERNAME (consisting of [0-9a-z_])" >&2
     exit 1
@@ -12,7 +12,7 @@ fi
 USERNAME=$1
 
 # verify username
-if [[ "$USERNAME" =~ [^a-z0-90-9_] ]]; then
+if expr "X$USERNAME" : 'X.*[^a-z0-90-9_]\{1,\}' >/dev/null; then
     echo "username must consist of [0-9a-z_]"
     exit 1
 fi
@@ -22,13 +22,13 @@ if [ ${#USERNAME} -le 2 ] || [ ${#USERNAME} -ge 32 ]; then
 fi
 
 # create user
-$ORIGINAL_ADDUSER -D -h /peerstash/backups/$USERNAME "$USERNAME"
+$ORIGINAL_ADDUSER -D -h /peerstash/backups/"$USERNAME" "$USERNAME"
 
 # generate random password
 PASSWORD=$(head -c 16 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9')
 
 # save hashed password into database
-PASSWORD_HASH=$(openssl passwd -6 $PASSWORD)
+PASSWORD_HASH=$(openssl passwd -6 "$PASSWORD")
 sqlite3 "$DB_PATH" "INSERT INTO users (username, password_hash) VALUES ('$USERNAME','$PASSWORD_HASH');"
 
 # update password
