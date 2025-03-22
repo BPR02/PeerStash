@@ -28,6 +28,7 @@ else
 fi
 
 # Replace passwd binary with custom wrapper
+echo "Updating passwd binary..."
 apk add build-base
 gcc -o /usr/local/bin/passwd /peerstash/scripts/passwd.c
 chown root /usr/local/bin/passwd
@@ -35,6 +36,7 @@ chmod 4755 /usr/local/bin/passwd
 apk del build-base
 
 # Replace adduser with custom version
+echo "Updating adduser binary..."
 cp /peerstash/scripts/adduser.sh /usr/local/bin/adduser
 chown root /usr/local/bin/adduser
 chmod -R 744 /usr/local/bin/adduser
