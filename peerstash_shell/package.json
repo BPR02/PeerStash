@@ -1,0 +1,10 @@
+{
+  "name": "peerstash_shell",
+  "version": "0.0.1",
+  "description": "Peer-to-peer (p2p) backups between NAS machines owned by a group of friends (shell)",
+  "license": "MIT",
+  "author": "bpr02",
+  "devDependencies": {
+    "shellcheck": "^3.1.0"
+  }
+}
