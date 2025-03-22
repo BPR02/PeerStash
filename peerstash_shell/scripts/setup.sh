@@ -2,7 +2,7 @@
 
 DB_PATH="/peerstash/config/users.db"
 API_PORT=20461
-WEB_APP_PUBKEY_PATH="/peerstash/web_app_public.pem"
+WEB_APP_PUBKEY_PATH="/peerstash/config/web_app_public.pem"
 
 # Function to create users from the database
 create_users_from_db() {
