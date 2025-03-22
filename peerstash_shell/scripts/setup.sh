@@ -52,12 +52,12 @@ echo "Web app public key received!"
 
 # Start SSH server
 if [ ! -f /peerstash/config/ssh_host_rsa_key ]; then
-  echo "Generating SSH host keys..."
-  ssh-keygen -A
-  cp /etc/ssh/ssh_host_* /peerstash/config/
+    echo "Generating SSH host keys..."
+    ssh-keygen -A
+    cp /etc/ssh/ssh_host_* /peerstash/config/
 else
-  echo "Using existing SSH host keys..."
-  cp /peerstash/config/ssh_host_* /etc/ssh/
+    echo "Using existing SSH host keys..."
+    cp /peerstash/config/ssh_host_* /etc/ssh/
 fi
 echo "Starting SSH service for remote machines..."
 /usr/sbin/sshd -D

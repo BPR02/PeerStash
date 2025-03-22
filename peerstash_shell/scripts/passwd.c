@@ -4,7 +4,7 @@
 #include <unistd.h>
 
 int main(int argc, char ** const argv) {
-	setuid(0);
-	system("/peerstash/scripts/passwd.sh");
-	return 0;
+    setuid(0);
+    system("/peerstash/scripts/passwd.sh");
+    return 0;
 }
