@@ -1,0 +1,36 @@
+{
+  "branches": [
+    "main"
+  ],
+  "tagFormat": "peerstash-shell-v${version}",
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "angular",
+        "parserOpts": {
+          "noteKeywords": [
+            "BREAKING CHANGE",
+            "BREAKING CHANGES",
+            "BREAKING"
+          ]
+        },
+        "releaseRules": [
+          {
+            "scope": "!*shell*",
+            "release": false
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/npm"
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "publishCmd": "echo ${process.env.GITHUB_TOKEN} | docker login --username ${process.env.REPO_OWNER} --password-stdin ghcr.io && docker build -t ghcr.io/${process.env.REPO_OWNER}/peerstash-shell:${nextRelease.version} . && docker push ghcr.io/${process.env.REPO_OWNER}/peerstash-shell:${nextRelease.version}"
+      }
+    ]
+  ]
+}

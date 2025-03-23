@@ -1,0 +1,51 @@
+{
+  "branches": [
+    "main"
+  ],
+  "tagFormat": "peerstash-compose-v${version}",
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "angular",
+        "parserOpts": {
+          "noteKeywords": [
+            "BREAKING CHANGE",
+            "BREAKING CHANGES",
+            "BREAKING"
+          ]
+        },
+        "releaseRules": [
+          {
+            "scope": "!*compose*",
+            "release": false
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/npm"
+    ],
+    [
+      "semantic-release-replace-plugin",
+      {
+        "replacements": [
+          {
+            "files": ["docker-compose.yml"],
+            "from": "version: \".*\"",
+            "to": "version: \"${nextRelease.version}\"",
+            "results": [
+              {
+                "file": "docker-compose.yml",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          }
+        ]
+      }
+    ]
+  ]
+}

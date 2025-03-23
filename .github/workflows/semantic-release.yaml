@@ -1,0 +1,89 @@
+name: Semantic Release
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  REPO_OWNER: bpr02
+      
+jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      shell: ${{ steps.filter.outputs.shell }}
+      web: ${{ steps.filter.outputs.web }}
+      compose: ${{ steps.filter.outputs.compose }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes
+        id: filter
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q '^peerstash-shell/'; then
+            echo "shell=true" >> $GITHUB_OUTPUT
+          fi
+          if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q '^peerstash-web/'; then
+            echo "web=true" >> $GITHUB_OUTPUT
+          fi
+          if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q '^peerstash-compose/'; then
+            echo "compose=true" >> $GITHUB_OUTPUT
+          fi
+
+  release:
+    needs: check_changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies for shell
+        if: needs.check_changes.outputs.shell == 'true'
+        run: npm install
+        working-directory: peerstash-shell
+
+      - name: Run Semantic Release for shell
+        if: needs.check_changes.outputs.shell == 'true'
+        run: npx semantic-release
+        working-directory: peerstash-shell
+
+      - name: Install dependencies for web app
+        if: needs.check_changes.outputs.web == 'true'
+        run: npm install
+        working-directory: peerstash-web
+
+      - name: Run Semantic Release for web app
+        if: needs.check_changes.outputs.web == 'true'
+        run: npx semantic-release
+        working-directory: peerstash-web
+
+      - name: Install dependencies docker compose
+        if: needs.check_changes.outputs.web == 'true'
+        run: npm install
+        working-directory: peerstash-compose
+
+      - name: Run Semantic Release for docker compose
+        run: npx semantic-release
+        working-directory: peerstash-compose
+
+      - name: Install dependencies for root folder
+        if: needs.check_changes.outputs.shell == 'true' || needs.check_changes.outputs.web == 'true' || needs.check_changes.outputs.compose == 'true'
+        run: npm install
+        working-directory: .
+
+      - name: Run Semantic Release for root folder
+        if: needs.check_changes.outputs.shell == 'true' || needs.check_changes.outputs.web == 'true' || needs.check_changes.outputs.compose == 'true'
+        run: npx semantic-release
+        working-directory: .
