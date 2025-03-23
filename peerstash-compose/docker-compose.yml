@@ -35,8 +35,7 @@ services:
     command: []
   peerstash_shell:
     container_name: peerstash_shell
-    image: peerstash_shell:dev
-    build: ../peerstash_shell
+    image: ghcr.io/bpr02/peerstash-shell:latest
     hostname: peerstash_shell
     depends_on:
       tailscale-peerstash:
