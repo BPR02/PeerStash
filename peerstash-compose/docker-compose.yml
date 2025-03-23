@@ -36,7 +36,7 @@ services:
   peerstash_shell:
     container_name: peerstash_shell
     image: peerstash_shell:dev
-    build: ./peerstash_shell
+    build: ../peerstash_shell
     hostname: peerstash_shell
     depends_on:
       tailscale-peerstash:
