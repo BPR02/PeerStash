@@ -70,7 +70,7 @@ jobs:
         working-directory: peerstash-web
 
       - name: Install dependencies docker compose
-        if: needs.check_changes.outputs.web == 'true'
+        if: needs.check_changes.outputs.compose == 'true'
         run: npm install
         working-directory: peerstash-compose
 
