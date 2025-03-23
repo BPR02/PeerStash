@@ -75,6 +75,7 @@ jobs:
         working-directory: peerstash-compose
 
       - name: Run Semantic Release for docker compose
+        if: needs.check_changes.outputs.compose == 'true'
         run: npx semantic-release
         working-directory: peerstash-compose
 
