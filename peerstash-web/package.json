@@ -1,0 +1,7 @@
+{
+  "name": "peerstash-web",
+  "version": "0.0.0",
+  "description": "Peer-to-peer (p2p) backups between NAS machines owned by a group of friends (web app)",
+  "license": "MIT",
+  "author": "bpr02"
+}
