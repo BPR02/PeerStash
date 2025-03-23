@@ -2,7 +2,7 @@
   "branches": [
     "main"
   ],
-  "tagFormat": "peerstash-${version}",
+  "tagFormat": "peerstash-v${version}",
   "plugins": [
     [
       "@semantic-release/commit-analyzer",
