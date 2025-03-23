@@ -1,0 +1,75 @@
+name: peerstash
+version: "0.1.1"
+services:
+  tailscale-peerstash:
+    container_name: tailscale-peerstash
+    image: tailscale/tailscale:latest
+    hostname: tailscale-peerstash
+    env_file:
+      - .env
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_EXTRA_ARGS=
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - target: ${SSH_PORT}
+        published: "${SSH_PORT}"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ${TAILSCALE_DATA}
+        target: /var/lib/tailscale
+    network_mode: host
+    cap_add:
+      - net_admin
+    privileged: false
+    cpu_shares: 90
+    deploy:
+      resources:
+        limits:
+          memory: 15841M
+    command: []
+  peerstash_shell:
+    container_name: peerstash_shell
+    image: ghcr.io/bpr02/peerstash-shell:latest
+    build: ../peerstash-shell
+    hostname: peerstash_shell
+    depends_on:
+      tailscale-peerstash:
+        condition: service_started
+        required: true
+    env_file:
+      - .env
+    ports:
+      - target: 22
+        published: "${SSH_PORT}"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: ${PEERSTASH_BACKUPS}
+        target: /peerstash/backups
+      - type: bind
+        source: ${PEERSTASH_CONFIG_SHELL}
+        target: /peerstash/config
+      - type: bind
+        source: ${PEERSTASH_ROOT_TARGET}
+        target: /peerstash/backup_root
+    networks:
+      - tailscale-peerstash
+    restart: unless-stopped
+    privileged: false
+    cpu_shares: 90
+    deploy:
+      resources:
+        limits:
+          memory: 15841M
+    command: []
+    devices: []
+    cap_add: []
+networks:
+  tailscale-peerstash:
+    name: tailscale-peerstash
