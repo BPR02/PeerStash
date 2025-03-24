@@ -11,6 +11,9 @@ services:
       - target: 22
         published: "${SSH_PORT}"
         protocol: tcp
+      - target: 40461
+        published: "${PUBLIC_API_PORT}"
+        protocol: tcp
     volumes:
       - type: bind
         source: ${PEERSTASH_BACKUPS}

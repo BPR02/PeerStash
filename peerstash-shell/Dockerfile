@@ -16,6 +16,6 @@ RUN chmod -R 744 /peerstash/scripts
 RUN mkdir -p "/peerstash/config"
 RUN mkdir -p "/peerstash/backups"
 
-EXPOSE 22 20461
+EXPOSE 22 20461 40461
 
 ENTRYPOINT ["/peerstash/scripts/setup.sh"]

@@ -1,9 +1,12 @@
 #!/bin/sh
 
 DB_PATH="/peerstash/config/users.db"
-API_PORT=20461
+WEB_API_PORT=20461
 WEB_APP_PUBKEY_PATH="/peerstash/config/web_app_public.pem"
 SSH_FOLDER="/peerstash/config/ssh"
+API_KEYS_FOLDER="/peerstash/config/api_keys"
+TAILNET_PUBLIC_API_PORT=40461
+TAILNET_AUTH_API_PORT=41461
 
 # Function to create users from the database
 create_users_from_db() {
@@ -43,8 +46,8 @@ chown root /usr/local/bin/adduser
 chmod -R 744 /usr/local/bin/adduser
 
 # Start the API endpoint before enabling SSH
-echo "Starting API on port $API_PORT"
-socat TCP-LISTEN:$API_PORT,fork EXEC:"/peerstash/scripts/api_handler.sh" &
+echo "Starting web app API on port $WEB_API_PORT"
+socat TCP-LISTEN:$WEB_API_PORT,fork EXEC:"/peerstash/scripts/api_handler.sh" &
 
 # Wait for the web app to send its public key before continuing
 echo "Waiting for the web app public key..."
@@ -56,12 +59,26 @@ until [ -s "$WEB_APP_PUBKEY_PATH" ] || [ $COUNT -eq $ATTEMPTS ]; do
     sleep 1
 done
 if [ $COUNT -eq $ATTEMPTS ]; then
-    echo "Web app public key not received, closing API (port $API_PORT)"
+    echo "Web app public key not received, closing web app API (port $WEB_API_PORT)"
     killall socat
     sleep 2
 else
     echo "Web app public key received!"
 fi
+
+# Generate tailnet API keys
+if [ ! -f $API_KEYS_FOLDER/tailnet_private.pem ]; then
+    echo "Generating tailnet API keys..."
+    mkdir -p $API_KEYS_FOLDER
+    openssl genpkey -algorithm RSA -out $API_KEYS_FOLDER/tailnet_private.pem -pkeyopt rsa_keygen_bits:4096
+    openssl rsa -pubout -in $API_KEYS_FOLDER/tailnet_private.pem -out $API_KEYS_FOLDER/tailnet_public.pem
+else
+    echo "Using existing tailnet API keys..."
+fi
+
+# Setup tailnet API
+echo "Starting tailnet public API on port $TAILNET_PUBLIC_API_PORT"
+socat TCP-LISTEN:$TAILNET_PUBLIC_API_PORT,fork EXEC:"cat /peerstash/config/api_keys/tailnet_public.pem" &
 
 # Generate SSH keys
 if [ ! -f "$SSH_FOLDER"/ssh_host_rsa_key ]; then
