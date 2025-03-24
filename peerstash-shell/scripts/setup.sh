@@ -3,6 +3,7 @@
 DB_PATH="/peerstash/config/users.db"
 API_PORT=20461
 WEB_APP_PUBKEY_PATH="/peerstash/config/web_app_public.pem"
+SSH_FOLDER="/peerstash/config/ssh"
 
 # Function to create users from the database
 create_users_from_db() {
@@ -62,14 +63,17 @@ else
     echo "Web app public key received!"
 fi
 
-# Start SSH server
-if [ ! -f /peerstash/config/ssh_host_rsa_key ]; then
+# Generate SSH keys
+if [ ! -f "$SSH_FOLDER"/ssh_host_rsa_key ]; then
     echo "Generating SSH host keys..."
     ssh-keygen -A
-    cp /etc/ssh/ssh_host_* /peerstash/config/
+    mkdir -p "$SSH_FOLDER"
+    cp /etc/ssh/ssh_host_* "$SSH_FOLDER"/
 else
     echo "Using existing SSH host keys..."
-    cp /peerstash/config/ssh_host_* /etc/ssh/
+    cp "$SSH_FOLDER"/ssh_host_* /etc/ssh/
 fi
+
+# Start SSH server
 echo "Starting SSH service for remote machines..."
 /usr/sbin/sshd -D
