@@ -1,3 +1,10 @@
+# [0.2.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.1.0...peerstash-v0.2.0) (2025-03-24)
+
+
+### Features
+
+* **shell:** add tailnet keygen ([a058933](https://github.com/BPR02/PeerStash/commit/a0589331a33c2122d5a12efc4151323095e23180))
+
 # [0.1.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.0.1...peerstash-v0.1.0) (2025-03-23)
 
 
