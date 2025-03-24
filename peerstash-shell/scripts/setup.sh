@@ -78,7 +78,7 @@ fi
 
 # Setup tailnet API
 echo "Starting tailnet public API on port $TAILNET_PUBLIC_API_PORT"
-socat TCP-LISTEN:$TAILNET_PUBLIC_API_PORT,fork EXEC:"cat /peerstash/config/api_keys/tailnet_public.pem" &
+socat TCP-LISTEN:$TAILNET_PUBLIC_API_PORT,fork EXEC:"cat $API_KEYS_FOLDER/tailnet_public.pem" &
 
 # Generate SSH keys
 if [ ! -f "$SSH_FOLDER"/ssh_host_rsa_key ]; then
