@@ -1,0 +1,35 @@
+name: peerstash
+version: "0.1.1"
+services:
+  peerstash_shell:
+    container_name: peerstash_shell
+    image: ghcr.io/bpr02/peerstash-shell:latest
+    build: ../peerstash-shell
+    hostname: peerstash_shell
+    env_file:
+      - .env
+    ports:
+      - target: 22
+        published: "${SSH_PORT}"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: ${PEERSTASH_BACKUPS}
+        target: /peerstash/backups
+      - type: bind
+        source: ${PEERSTASH_CONFIG_SHELL}
+        target: /peerstash/config
+      - type: bind
+        source: ${PEERSTASH_ROOT_TARGET}
+        target: /peerstash/backup_root
+    networks: []
+    restart: unless-stopped
+    privileged: false
+    cpu_shares: 90
+    deploy:
+      resources:
+        limits:
+          memory: 15841M
+    command: []
+    devices: []
+    cap_add: []
