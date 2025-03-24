@@ -3,7 +3,6 @@ version: "0.1.1"
 services:
   peerstash_shell:
     container_name: peerstash_shell
-    image: ghcr.io/bpr02/peerstash-shell:latest
     build: ../peerstash-shell
     hostname: peerstash_shell
     env_file:
