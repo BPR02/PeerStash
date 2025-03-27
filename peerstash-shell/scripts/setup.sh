@@ -8,6 +8,10 @@ API_KEYS_FOLDER="/peerstash/config/api_keys"
 TAILNET_PUBLIC_API_PORT=40461
 TAILNET_AUTH_API_PORT=41461
 
+# set folder permissions
+chmod -R 700 /peerstash/config
+chmod -R 755 /peerstash/backups
+
 # Function to create users from the database
 create_users_from_db() {
     echo "Creating users from database..."
@@ -17,6 +21,7 @@ create_users_from_db() {
         else
             echo "Creating user $username..."
             adduser -D -h /peerstash/backups/"$username" "$username"
+            chmod 700 /peerstash/backups/"$username"
             echo "$username:$password_hash" | chpasswd -e
         fi
     done
@@ -29,6 +34,7 @@ if [ -f "$DB_PATH" ]; then
 else
     echo "No database found. Creating a new empty database..."
     sqlite3 "$DB_PATH" "CREATE TABLE users (username TEXT PRIMARY KEY, password_hash TEXT NOT NULL);"
+    chmod 700 "$DB_PATH"
 fi
 
 # Replace passwd binary with custom wrapper
@@ -43,7 +49,7 @@ apk del build-base
 echo "Updating adduser binary..."
 cp /peerstash/scripts/adduser.sh /usr/local/bin/adduser
 chown root /usr/local/bin/adduser
-chmod -R 744 /usr/local/bin/adduser
+chmod -R 700 /usr/local/bin/adduser
 
 # Start the API endpoint before enabling SSH
 echo "Starting web app API on port $WEB_API_PORT"

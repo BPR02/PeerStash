@@ -23,6 +23,7 @@ fi
 
 # create user
 $ORIGINAL_ADDUSER -D -h /peerstash/backups/"$USERNAME" "$USERNAME"
+chmod 700 /peerstash/backups/"$USERNAME"
 
 # generate random password
 PASSWORD=$(head -c 16 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9')

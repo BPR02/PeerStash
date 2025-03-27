@@ -18,9 +18,13 @@ services:
       - type: bind
         source: ${PEERSTASH_BACKUPS}
         target: /peerstash/backups
+        bind:
+          create_host_path: true
       - type: bind
         source: ${PEERSTASH_CONFIG_SHELL}
         target: /peerstash/config
+        bind:
+          create_host_path: true
       - type: bind
         source: ${PEERSTASH_ROOT_TARGET}
         target: /peerstash/backup_root

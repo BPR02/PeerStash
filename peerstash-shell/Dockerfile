@@ -11,7 +11,7 @@ RUN apk add --no-cache \
 
 # move scripts
 COPY ./scripts/ /peerstash/scripts/
-RUN chmod -R 744 /peerstash/scripts
+RUN chmod -R 700 /peerstash/scripts
 
 RUN mkdir -p "/peerstash/config"
 RUN mkdir -p "/peerstash/backups"
