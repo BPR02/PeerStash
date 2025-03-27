@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.2.0...peerstash-v0.2.1) (2025-03-27)
+
+
+### Bug Fixes
+
+* **shell:** update folder permissions ([39c1952](https://github.com/BPR02/PeerStash/commit/39c1952b4cf50debd62bb49135d8fcbb4d0a178b))
+
 # [0.2.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.1.0...peerstash-v0.2.0) (2025-03-24)
 
 
