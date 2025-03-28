@@ -29,7 +29,7 @@
     [
       "@semantic-release/exec",
       {
-        "publishCmd": "echo ${process.env.GITHUB_TOKEN} | docker login --username ${process.env.REPO_OWNER} --password-stdin ghcr.io && docker build -t ghcr.io/${process.env.REPO_OWNER}/peerstash-web:${nextRelease.version} . && docker push ghcr.io/${process.env.REPO_OWNER}/peerstash-web:${nextRelease.version}"
+        "publishCmd": "echo ${process.env.GITHUB_TOKEN} | docker login --username ${process.env.REPO_OWNER} --password-stdin ghcr.io && docker build -t ghcr.io/${process.env.REPO_OWNER}/peerstash-web:${nextRelease.version} . && docker push ghcr.io/${process.env.REPO_OWNER}/peerstash-web:${nextRelease.version} && docker build -t ghcr.io/${process.env.REPO_OWNER}/peerstash-web:latest . && docker push ghcr.io/${process.env.REPO_OWNER}/peerstash-web:latest"
       }
     ]
   ]
