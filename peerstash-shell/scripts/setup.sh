@@ -38,18 +38,26 @@ else
 fi
 
 # Replace passwd binary with custom wrapper
-echo "Updating passwd binary..."
-apk add build-base
-gcc -o /usr/local/bin/passwd /peerstash/scripts/passwd.c
-chown root /usr/local/bin/passwd
-chmod 4755 /usr/local/bin/passwd
-apk del build-base
+if [ ! -f "/usr/local/bin/passwd" ]; then
+    echo "Updating passwd binary..."
+    apk add build-base
+    gcc -o /usr/local/bin/passwd /peerstash/scripts/passwd.c
+    chown root /usr/local/bin/passwd
+    chmod 4755 /usr/local/bin/passwd
+    apk del build-base
+else
+    echo "passwd binary already exists. Skipping build"
+fi
 
 # Replace adduser with custom version
-echo "Updating adduser binary..."
-cp /peerstash/scripts/adduser.sh /usr/local/bin/adduser
-chown root /usr/local/bin/adduser
-chmod -R 700 /usr/local/bin/adduser
+if [ ! -f "/usr/local/bin/adduser" ]; then
+    echo "Updating adduser binary..."
+    cp /peerstash/scripts/adduser.sh /usr/local/bin/adduser
+    chown root /usr/local/bin/adduser
+    chmod -R 700 /usr/local/bin/adduser
+else
+    echo "adduser binary already exists. Skipping build"
+fi
 
 # Start the API endpoint before enabling SSH
 echo "Starting web app API on port $WEB_API_PORT"
