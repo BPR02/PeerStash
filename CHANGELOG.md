@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.2.1...peerstash-v0.2.2) (2025-04-01)
+
+
+### Performance Improvements
+
+* **shell:** check if local binaries exist before creating them ([d8e106a](https://github.com/BPR02/PeerStash/commit/d8e106a1800062e54a3711d299e20191d679ab02))
+
 ## [0.2.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.2.0...peerstash-v0.2.1) (2025-03-27)
 
 
