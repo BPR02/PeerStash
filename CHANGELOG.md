@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.2.2...peerstash-v0.3.0) (2025-04-13)
+
+
+### Features
+
+* **web:** web app login page test ([382b6b4](https://github.com/BPR02/PeerStash/commit/382b6b47e86aae671a6bc9b4ed78627886db4ad4))
+
 ## [0.2.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.2.1...peerstash-v0.2.2) (2025-04-01)
 
 
