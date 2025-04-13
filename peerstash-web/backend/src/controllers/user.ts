@@ -8,13 +8,6 @@ import { pool } from '../data/db';
 const ACCESS_SECRET = 'your_access_secret';
 const REFRESH_SECRET = 'your_refresh_secret';
 
-// Mock user
-const user = {
-  id: 1,
-  username: 'user1',
-  passwordHash: bcrypt.hashSync('password123', 10),
-};
-
 // Generate tokens
 const generateAccessToken = (email: string) =>
   jwt.sign({ email }, ACCESS_SECRET, { expiresIn: '15m' });
