@@ -5,10 +5,19 @@
   "description": "Peer-to-peer (p2p) backups between NAS machines owned by a group of friends (web app)",
   "license": "MIT",
   "author": "bpr02",
+  "main": "app/server.js",
+  "type": "module",
+  "scripts": {
+    "backend": "cd backend && npm install && npm start",
+    "frontend": "cd frontend && npm install && npm start",
+    "start": " concurrently --names backend,frontend --pad-prefix \"npm run backend\" \"npm run frontend\" ",
+    "dev": "docker compose -f ../peerstash-compose/docker-compose-dev-web.yml down && docker image rm peerstash-peerstash_web &> /dev/null || true && docker compose -f ../peerstash-compose/docker-compose-dev-web.yml up"
+  },
   "devDependencies": {
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.0.3",
     "@semantic-release/npm": "^12.0.1",
+    "concurrently": "^9.1.2",
     "semantic-release": "^24.2.3"
   }
 }

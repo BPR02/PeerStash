@@ -1,0 +1,78 @@
+name: peerstash
+version: "0.1.1"
+services:
+  peerstash_postgres:
+    container_name: peerstash-postgres
+    hostname: peerstash-postgres
+    image: tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:90724186f0a3517cf6914295b5ab410db9ce23190a2d9d0b9dd6463e3fa298f0
+    env_file:
+      .env
+    environment:
+      - PG_DATA=/var/lib/postgresql/data
+      - POSTGRES_DB=peerstash
+    volumes:
+      - type: bind
+        source: ${POSTGRES_PATH}
+        target: /var/lib/postgresql/data
+        bind:
+          create_host_path: true
+    networks:
+      - peerstash-web
+    restart: unless-stopped
+    privileged: false
+    cpu_shares: 90
+    deploy:
+      resources:
+        limits:
+          memory: 15841M
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "peerstash"]
+    ports: []
+    command: []
+    devices: []
+    cap_add: []
+  peerstash_web:
+    container_name: peerstash_web
+    build: ../peerstash-web
+    hostname: peerstash_web
+    depends_on:
+      peerstash_postgres:
+        condition: service_healthy
+        required: true
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DATABASE=peerstash
+      - POSTGRES_HOSTNAME=peerstash-postgres
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@peerstash-postgres:5432/peerstash?schema=public
+    ports:
+      - target: 3000
+        published: "${WEB_APP_PORT}"
+        protocol: tcp
+      - target: 3001
+        published: "${WEB_APP_API_PORT}"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: ${PEERSTASH_CONFIG_WEB}
+        target: /peerstash-web/config
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${PEERSTASH_ROOT_TARGET}
+        target: /peerstash/backup_root
+    networks:
+      - peerstash-web
+    restart: unless-stopped
+    privileged: false
+    cpu_shares: 90
+    deploy:
+      resources:
+        limits:
+          memory: 15841M
+    command: []
+    devices: []
+    cap_add: []
+networks:
+  peerstash-web:
+    name: peerstash-web
