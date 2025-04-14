@@ -3,12 +3,13 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { StatusCodes } from 'http-status-codes';
 import { pool } from '../data/db';
-
-// Mock secrets
-const ACCESS_SECRET = 'your_access_secret';
-const REFRESH_SECRET = 'your_refresh_secret';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Generate tokens
+const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'jwt-access-secret-super-secret-secret';
+const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'jwt-refresh-secret-super-secret-secret';
+
 const generateAccessToken = (email: string) =>
   jwt.sign({ email }, ACCESS_SECRET, { expiresIn: '15m' });
 
