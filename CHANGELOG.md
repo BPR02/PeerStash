@@ -1,3 +1,10 @@
+## [0.3.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.1...peerstash-v0.3.2) (2025-04-14)
+
+
+### Bug Fixes
+
+* **web:** http cookie test ([dd2861f](https://github.com/BPR02/PeerStash/commit/dd2861f8c4a897329abbba1b26664eba365cd826))
+
 ## [0.3.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.0...peerstash-v0.3.1) (2025-04-14)
 
 
