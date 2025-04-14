@@ -11,7 +11,7 @@ const App: React.FC = () => {
 
   const register = async () => {
     try {
-      await axios.post(`http://localhost:${process.env.WEB_APP_API_PORT}/user/register`, {
+      await axios.post(`${process.env.WEB_APP_IP}:${process.env.WEB_APP_API_PORT}/user/register`, {
         username: username,
         email: email,
         password: password,
@@ -24,7 +24,7 @@ const App: React.FC = () => {
 
   const login = async () => {
     try {
-      const res = await axios.post<{ accessToken: string }>(`http://localhost:${process.env.WEB_APP_API_PORT}/user/login`, {
+      const res = await axios.post<{ accessToken: string }>(`${process.env.WEB_APP_IP}:${process.env.WEB_APP_API_PORT}/user/login`, {
         email: email,
         password: password,
       });
@@ -53,7 +53,7 @@ const App: React.FC = () => {
 
   const getUserData = async () => {
     try {
-      const res = await axios.get<{ message: string }>(`http://localhost:${process.env.WEB_APP_API_PORT}/user/data`, {
+      const res = await axios.get<{ message: string }>(`${process.env.WEB_APP_IP}:${process.env.WEB_APP_API_PORT}/user/data`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessage(res.data.message);

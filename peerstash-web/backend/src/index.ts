@@ -16,7 +16,7 @@ dotenv.config();
 createUserTable();
 
 // middleware
-app.use(cors({ origin: `http://localhost:${process.env.WEB_APP_PORT}`, credentials: true}));
+app.use(cors({ origin: `${process.env.WEB_APP_IP}:${process.env.WEB_APP_PORT}`, credentials: true}));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
