@@ -1,3 +1,12 @@
+## [0.3.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.0...peerstash-v0.3.1) (2025-04-14)
+
+
+### Bug Fixes
+
+* **compose:** update example env file with web app variables ([ede9f5c](https://github.com/BPR02/PeerStash/commit/ede9f5c830cd6c1f1b64aca27dd817ee7f76b11e))
+* **web:** dehardcode jwt secrets ([5528990](https://github.com/BPR02/PeerStash/commit/5528990e5abb1dda7f64a2e81fe68f10b0a7c606))
+* **web:** dehardcode web app IP address ([14b5e89](https://github.com/BPR02/PeerStash/commit/14b5e898cb18c43ea4c445b352f439dfe33ecd15))
+
 # [0.3.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.2.2...peerstash-v0.3.0) (2025-04-13)
 
 
