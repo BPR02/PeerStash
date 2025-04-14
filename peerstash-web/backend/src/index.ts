@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction} from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middleware/errorHandler';
@@ -16,9 +16,13 @@ dotenv.config();
 createUserTable();
 
 // middleware
-app.use(cors({ origin: `${process.env.WEB_APP_IP}:${process.env.WEB_APP_PORT}`, credentials: true}));
+app.use(cors({
+  origin: `${process.env.WEB_APP_IP}:${process.env.WEB_APP_PORT}`,
+  credentials: true,
+  exposedHeaders: ["set-cookie"]
+}));
 app.use(express.json());
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(errorHandler);
 

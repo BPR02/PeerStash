@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
+axios.defaults.withCredentials = true;
+const BACKEND = `${process.env.WEB_APP_IP}:${process.env.WEB_APP_API_PORT}` || 'http://localhost:3001';
+
 const App: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [email, setEmail] = useState<string>('');
@@ -11,7 +14,7 @@ const App: React.FC = () => {
 
   const register = async () => {
     try {
-      await axios.post(`${process.env.WEB_APP_IP}:${process.env.WEB_APP_API_PORT}/user/register`, {
+      await axios.post(`${BACKEND}/user/register`, {
         username: username,
         email: email,
         password: password,
@@ -24,7 +27,7 @@ const App: React.FC = () => {
 
   const login = async () => {
     try {
-      const res = await axios.post<{ accessToken: string }>(`${process.env.WEB_APP_IP}:${process.env.WEB_APP_API_PORT}/user/login`, {
+      const res = await axios.post<{ accessToken: string }>(`${BACKEND}/user/login`, {
         email: email,
         password: password,
       });
@@ -38,10 +41,24 @@ const App: React.FC = () => {
   };
 
   const logout = () => {
+    axios.get(`${BACKEND}/user/logout`);
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
     setToken(null);
     setMessage('Logged out');
+  };
+
+  const refresh = async () => {
+    try {
+      const res = await axios.get<{ accessToken: string }>(
+        `${BACKEND}/user/refresh`
+      );
+      localStorage.setItem('token', res.data.accessToken);
+      setToken(res.data.accessToken);
+      setMessage(`Refresh successful!`);
+    } catch {
+      setMessage('Refresh failed');
+    }
   };
 
   useEffect(() => {
@@ -53,7 +70,7 @@ const App: React.FC = () => {
 
   const getUserData = async () => {
     try {
-      const res = await axios.get<{ message: string }>(`${process.env.WEB_APP_IP}:${process.env.WEB_APP_API_PORT}/user/data`, {
+      const res = await axios.get<{ message: string }>(`${BACKEND}/user/data`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessage(res.data.message);
@@ -101,6 +118,8 @@ const App: React.FC = () => {
         Remember Me
       </label>
       <p>{message}</p>
+      <br />
+      <button onClick={refresh}>Refresh</button>
     </div>
   );
 };

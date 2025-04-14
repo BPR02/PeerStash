@@ -63,7 +63,7 @@ export const loginUser = async (req: Request, res: Response) => {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: false, // set true if using HTTPS
-    path: '/refresh',
+    path: '/user/refresh',
     sameSite: 'lax',
   });
 
@@ -73,3 +73,20 @@ export const loginUser = async (req: Request, res: Response) => {
 export const getUserData = (_req: Request, res: Response) => {
   return res.status(StatusCodes.OK).json({ message: 'User Data not Implemented' });
 };
+
+export const refreshUser = (req: Request, res: Response) => {
+  const token = req.cookies.refreshToken;
+  if (!token) return res.sendStatus(StatusCodes.UNAUTHORIZED);
+
+  jwt.verify(token, REFRESH_SECRET, (err: any, user: any) => {
+    if (err) return res.sendStatus(StatusCodes.FORBIDDEN);
+
+    const newAccessToken = generateAccessToken(user.username);
+    res.status(StatusCodes.OK).json({ accessToken: newAccessToken });
+  });
+}
+
+export const logoutUser = (_req: Request, res: Response) => {
+  res.clearCookie('refreshToken', { path: '/user/refresh' });
+  res.status(StatusCodes.OK).json({ message: 'Logged out' });
+}
