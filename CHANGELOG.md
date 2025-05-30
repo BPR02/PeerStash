@@ -1,3 +1,10 @@
+## [0.3.4](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.3...peerstash-v0.3.4) (2025-05-30)
+
+
+### Bug Fixes
+
+* **shell:** revert a202280 ([ee7d89d](https://github.com/BPR02/PeerStash/commit/ee7d89ddaed82e207b65762cbe85e00e81dd2ddf))
+
 ## [0.3.3](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.2...peerstash-v0.3.3) (2025-05-30)
 
 
