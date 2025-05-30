@@ -11,7 +11,6 @@ TAILNET_AUTH_API_PORT=41461
 # set folder permissions
 chmod -R 700 /peerstash/config
 chmod -R 755 /peerstash/backups
-chmod -R 700 /peerstash/backup_root
 
 # Function to create users from the database
 create_users_from_db() {
