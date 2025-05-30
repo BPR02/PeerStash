@@ -1,3 +1,10 @@
+## [0.3.3](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.2...peerstash-v0.3.3) (2025-05-30)
+
+
+### Bug Fixes
+
+* **shell:** set up perms for backup root folder ([a202280](https://github.com/BPR02/PeerStash/commit/a2022804fc9839c6028df70afdfe210b5ac92cef))
+
 ## [0.3.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.1...peerstash-v0.3.2) (2025-04-14)
 
 
