@@ -28,6 +28,6 @@ if [ "$BRANCH" = "main" ]; then
   docker push "$FULL_IMAGE:latest"
   
   echo "🏷️  Tagging $FULL_IMAGE:dev to match latest..."
-  docker tag "$FULL_IMAGE:$VERSION" "$FULL_IMAGE:dev"
+  docker tag "$FULL_IMAGE:$TAG" "$FULL_IMAGE:dev"
   docker push "$FULL_IMAGE:dev"
 fi
