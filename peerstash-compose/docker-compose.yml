@@ -1,5 +1,4 @@
-name: peerstash
-version: "0.2.0"
+name: peerstash-v0.2.0
 services:
   networking:
     image: tailscale/tailscale:latest
