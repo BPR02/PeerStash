@@ -1,0 +1,30 @@
+name: Cleanup Untagged Images
+
+on:
+  workflow_run:
+    workflows: ["Semantic Release"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  delete-untagged-images:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - peerstash-control
+          - peerstash-shell
+          - peerstash-web
+    steps:
+      - name: Delete untagged images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ matrix.package }}
+          package-type: 'container'
+          min-versions-to-keep: 2
+          delete-only-untagged-versions: 'true'
+          token: ${{ secrets.GITHUB_TOKEN }}

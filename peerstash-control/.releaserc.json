@@ -2,7 +2,7 @@
   "branches": [
     "main"
   ],
-  "tagFormat": "peerstash-shell-v${version}",
+  "tagFormat": "peerstash-control-v${version}",
   "plugins": [
     [
       "@semantic-release/commit-analyzer",
@@ -17,7 +17,7 @@
         },
         "releaseRules": [
           {
-            "scope": "!*shell*",
+            "scope": "!*control*",
             "release": false
           }
         ]

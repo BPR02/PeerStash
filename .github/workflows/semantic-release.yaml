@@ -4,15 +4,17 @@ on:
   push:
     branches:
       - main
+      - dev
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   REPO_OWNER: bpr02
-      
+
 jobs:
   check_changes:
     runs-on: ubuntu-latest
     outputs:
+      control: ${{ steps.filter.outputs.control }}
       shell: ${{ steps.filter.outputs.shell }}
       web: ${{ steps.filter.outputs.web }}
       compose: ${{ steps.filter.outputs.compose }}
@@ -25,6 +27,9 @@ jobs:
       - name: Check for changes
         id: filter
         run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q '^peerstash-control/'; then
+            echo "control=true" >> $GITHUB_OUTPUT
+          fi
           if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q '^peerstash-shell/'; then
             echo "shell=true" >> $GITHUB_OUTPUT
           fi
@@ -45,46 +50,60 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Node.js
+        if: github.ref == 'refs/heads/main'
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Install dependencies for shell
-        if: needs.check_changes.outputs.shell == 'true'
-        run: npm install
-        working-directory: peerstash-shell
+      - name: Make release script executable
+        run: chmod +x ./scripts/build-and-push.sh
+
+      - name: Run Semantic Release for control
+        if: needs.check_changes.outputs.control == 'true' && github.ref == 'refs/heads/main'
+        run: |
+          npm install
+          npx semantic-release
+        working-directory: peerstash-control
 
       - name: Run Semantic Release for shell
-        if: needs.check_changes.outputs.shell == 'true'
-        run: npx semantic-release
+        if: needs.check_changes.outputs.shell == 'true' && github.ref == 'refs/heads/main'
+        run: |
+          npm install
+          npx semantic-release
         working-directory: peerstash-shell
 
-      - name: Install dependencies for web app
-        if: needs.check_changes.outputs.web == 'true'
-        run: npm install
-        working-directory: peerstash-web
-
       - name: Run Semantic Release for web app
-        if: needs.check_changes.outputs.web == 'true'
-        run: npx semantic-release
+        if: needs.check_changes.outputs.web == 'true' && github.ref == 'refs/heads/main'
+        run: |
+          npm install
+          npx semantic-release
         working-directory: peerstash-web
-
-      - name: Install dependencies docker compose
-        if: needs.check_changes.outputs.compose == 'true'
-        run: npm install
-        working-directory: peerstash-compose
 
       - name: Run Semantic Release for docker compose
-        if: needs.check_changes.outputs.compose == 'true'
-        run: npx semantic-release
+        if: needs.check_changes.outputs.compose == 'true' && github.ref == 'refs/heads/main'
+        run: |
+          npm install
+          npx semantic-release
         working-directory: peerstash-compose
 
-      - name: Install dependencies for root folder
-        if: needs.check_changes.outputs.shell == 'true' || needs.check_changes.outputs.web == 'true' || needs.check_changes.outputs.compose == 'true'
-        run: npm install
+      - name: Run Semantic Release for root folder
+        if: (needs.check_changes.outputs.control == 'true' || needs.check_changes.outputs.shell == 'true' || needs.check_changes.outputs.web == 'true' || needs.check_changes.outputs.compose == 'true') && github.ref == 'refs/heads/main'
+        run: |
+          npm install
+          npx semantic-release
         working-directory: .
 
-      - name: Run Semantic Release for root folder
-        if: needs.check_changes.outputs.shell == 'true' || needs.check_changes.outputs.web == 'true' || needs.check_changes.outputs.compose == 'true'
-        run: npx semantic-release
-        working-directory: .
+      - name: Build dev image for control
+        if: needs.check_changes.outputs.control == 'true' && github.ref == 'refs/heads/dev'
+        run: ../scripts/build-and-push.sh peerstash-control dev dev
+        working-directory: peerstash-control
+
+      - name: Build dev image for shell
+        if: needs.check_changes.outputs.shell == 'true' && github.ref == 'refs/heads/dev'
+        run: ../scripts/build-and-push.sh peerstash-shell dev dev
+        working-directory: peerstash-shell
+
+      - name: Build dev image for web app
+        if: needs.check_changes.outputs.web == 'true' && github.ref == 'refs/heads/dev'
+        run: ../scripts/build-and-push.sh peerstash-web dev dev
+        working-directory: peerstash-web
