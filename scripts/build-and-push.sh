@@ -21,9 +21,13 @@ echo "🏗️  Building $FULL_IMAGE:$TAG..."
 docker build -t "$FULL_IMAGE:$TAG" .
 docker push "$FULL_IMAGE:$TAG"
 
-# Only if we are on main, also push 'latest'
+# Only if we are on main, also push 'latest' and 'dev'
 if [ "$BRANCH" = "main" ]; then
   echo "🏷️  Tagging $FULL_IMAGE:latest..."
   docker tag "$FULL_IMAGE:$TAG" "$FULL_IMAGE:latest"
   docker push "$FULL_IMAGE:latest"
+  
+  echo "🏷️  Tagging $FULL_IMAGE:dev to match latest..."
+  docker tag "$FULL_IMAGE:$VERSION" "$FULL_IMAGE:dev"
+  docker push "$FULL_IMAGE:dev"
 fi
