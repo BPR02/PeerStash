@@ -1,3 +1,10 @@
+## [0.4.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.1...peerstash-v0.4.2) (2026-01-27)
+
+
+### Bug Fixes
+
+* **control:** force tag update ([1c1ea07](https://github.com/BPR02/PeerStash/commit/1c1ea07348d02257aa29df72fba19af782912c2c))
+
 ## [0.4.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.0...peerstash-v0.4.1) (2026-01-27)
 
 
