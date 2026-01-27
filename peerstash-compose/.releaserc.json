@@ -32,8 +32,8 @@
         "replacements": [
           {
             "files": ["docker-compose.yml"],
-            "from": "^name: peerstash-v[0-9].[0-9].[0-9]",
-            "to": "name: peerstash-v${nextRelease.version}",
+            "from": "compose_version: \".*\"",
+            "to": "compose_version: \"${nextRelease.version}\"",
             "results": [
               {
                 "file": "docker-compose.yml",
