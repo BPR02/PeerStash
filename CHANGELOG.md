@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.0...peerstash-v0.4.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* **ci:** make pushes to latest also update dev tag ([8fdbeb8](https://github.com/BPR02/PeerStash/commit/8fdbeb8066e607d665af7fdeac94fa1d488a57ef))
+
 # [0.4.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.4...peerstash-v0.4.0) (2026-01-27)
 
 
