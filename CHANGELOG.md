@@ -1,3 +1,11 @@
+## [0.4.4](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.3...peerstash-v0.4.4) (2026-01-27)
+
+
+### Bug Fixes
+
+* **compose:** clean up compose file ([#9](https://github.com/BPR02/PeerStash/issues/9)) ([fd8a2c5](https://github.com/BPR02/PeerStash/commit/fd8a2c59d439795d7bd28b0f0d2d87f941884e1f))
+* **compose:** force version bump ([#11](https://github.com/BPR02/PeerStash/issues/11)) ([2313fa2](https://github.com/BPR02/PeerStash/commit/2313fa2dd02ad1c2bac7f96d43bebad6f8be0103))
+
 ## [0.4.3](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.2...peerstash-v0.4.3) (2026-01-27)
 
 

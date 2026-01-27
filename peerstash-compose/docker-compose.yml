@@ -1,6 +1,6 @@
 name: peerstash
 x-meta:
-  compose_version: v0.2.2
+  compose_version: 0.2.3
 
 services:
   networking:
