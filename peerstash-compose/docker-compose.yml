@@ -3,9 +3,7 @@ services:
   networking:
     image: tailscale/tailscale:latest
     container_name: peerstash-tailscale
-    hostname: peerstash-bpr
-    env_file:
-      - .env
+    hostname: peerstash-${ADMIN_USERNAME}
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_EXTRA_ARGS=--advertise-tags=tag:peerstash
@@ -64,8 +62,6 @@ services:
     image: ghcr.io/bpr02/peerstash-control:latest
     container_name: peerstash-control
     network_mode: service:networking
-    env_file:
-      - .env
     environment:
       - USERNAME=${ADMIN_USERNAME}
       - PASSWORD=${ADMIN_PASSWORD}
