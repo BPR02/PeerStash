@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.4...peerstash-v0.4.0) (2026-01-27)
+
+
+### Features
+
+* **compose,control,ci,CONTRIBUTING:** migrate to new architecture with dev testing ([#2](https://github.com/BPR02/PeerStash/issues/2)) ([acb6d92](https://github.com/BPR02/PeerStash/commit/acb6d923bea67b2e62084a4721267f3bc55fa99b))
+
 ## [0.3.4](https://github.com/BPR02/PeerStash/compare/peerstash-v0.3.3...peerstash-v0.3.4) (2025-05-30)
 
 
