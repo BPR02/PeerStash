@@ -1,3 +1,14 @@
+## [0.4.3](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.2...peerstash-v0.4.3) (2026-01-27)
+
+
+### Bug Fixes
+
+* **compose:** properly target field with regex ([#5](https://github.com/BPR02/PeerStash/issues/5)) ([36a6abb](https://github.com/BPR02/PeerStash/commit/36a6abb873157085fc08321751181880ab6a6d5d))
+* **compose:** remove misused version field ([#3](https://github.com/BPR02/PeerStash/issues/3)) ([d60cb42](https://github.com/BPR02/PeerStash/commit/d60cb4272765fd6f6460cda2464770858f458cc0))
+* **compose:** test publishing ([#8](https://github.com/BPR02/PeerStash/issues/8)) ([11be8b9](https://github.com/BPR02/PeerStash/commit/11be8b9d4832275fc47e4d1901d569955da7dd3a))
+* **compose:** test version bump ([#6](https://github.com/BPR02/PeerStash/issues/6)) ([4a13342](https://github.com/BPR02/PeerStash/commit/4a13342d9e58b224c6776b1f5170b22497e489c8))
+* **control:** remove extra newline in startup script ([fb52e19](https://github.com/BPR02/PeerStash/commit/fb52e193672f0d519d50657356e7a283fbf792b2))
+
 ## [0.4.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.1...peerstash-v0.4.2) (2026-01-27)
 
 
