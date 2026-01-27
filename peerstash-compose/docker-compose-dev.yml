@@ -1,21 +1,21 @@
 name: peerstash
 version: "0.1.1"
 services:
-  tailscale-peerstash:
-    container_name: tailscale-peerstash
+  networking:
     image: tailscale/tailscale:latest
-    hostname: tailscale-peerstash
+    container_name: peerstash-tailscale
+    hostname: peerstash-bpr
     env_file:
       - .env
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_EXTRA_ARGS=
+      - TS_EXTRA_ARGS=--advertise-tags=tag:peerstash
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=false
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - target: ${SSH_PORT}
+      - target: 22
         published: "${SSH_PORT}"
         protocol: tcp
     restart: unless-stopped
@@ -23,7 +23,8 @@ services:
       - type: bind
         source: ${TAILSCALE_DATA}
         target: /var/lib/tailscale
-    network_mode: host
+        bind:
+          create_host_path: true
     cap_add:
       - net_admin
     privileged: false
@@ -33,32 +34,62 @@ services:
         limits:
           memory: 15841M
     command: []
-  peerstash_shell:
-    container_name: peerstash_shell
-    build: ../peerstash-shell
-    hostname: peerstash_shell
-    depends_on:
-      tailscale-peerstash:
-        condition: service_started
-        required: true
-    env_file:
-      - .env
-    ports:
-      - target: 22
-        published: "${SSH_PORT}"
-        protocol: tcp
+  storage:
+    image: drakkan/sftpgo:v2-alpine-slim
+    container_name: peerstash-sftp
+    network_mode: service:networking
+    environment:
+      - SFTPGO_SFTPD__KEY_AUTH_ONLY=1
+      - SFTPGO_SFTPD__BINDINGS__0__PORT=2022
+      - SFTPGO_SFTPD__BINDINGS__0__ADDRESS=0.0.0.0
+      - SFTPGO_HTTPD__BINDINGS__0__PORT=8080
+      - SFTPGO_HTTPD__BINDINGS__0__ADDRESS=0.0.0.0
+      - SFTPGO_DATA_PROVIDER__CREATE_DEFAULT_ADMIN=true
+      - SFTPGO_DEFAULT_ADMIN_USERNAME=${ADMIN_USERNAME}
+      - SFTPGO_DEFAULT_ADMIN_PASSWORD=${ADMIN_PASSWORD}
     volumes:
       - type: bind
-        source: ${PEERSTASH_BACKUPS}
-        target: /peerstash/backups
+        source: ${PEERSTASH_SFTP}/data
+        target: /srv/sftpgo/data
+        bind:
+          create_host_path: true
       - type: bind
-        source: ${PEERSTASH_CONFIG_SHELL}
-        target: /peerstash/config
+        source: ${PEERSTASH_SFTP}/config
+        target: /var/lib/sftpgo
+        bind:
+          create_host_path: true
+    depends_on:
+      - networking
+    restart: unless-stopped
+  control:
+    build: ../peerstash-control
+    container_name: peerstash-control
+    network_mode: service:networking
+    env_file:
+      - .env
+    environment:
+      - USERNAME=${ADMIN_USERNAME}
+      - PASSWORD=${ADMIN_PASSWORD}
+    volumes:
       - type: bind
         source: ${PEERSTASH_ROOT_TARGET}
-        target: /peerstash/backup_root
-    networks:
-      - tailscale-peerstash
+        target: /mnt/peerstash_root
+        read_only: true
+      - type: bind
+        source: ${PEERSTASH_CONTROL}/config
+        target: /var/lib/peerstash
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${PEERSTASH_CONTROL}/data
+        target: /srv/peerstash/data
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${PEERSTASH_CONTROL}/data/restic_cache
+        target: /root/.cache/restic
+        bind:
+          create_host_path: true
     restart: unless-stopped
     privileged: false
     cpu_shares: 90
@@ -69,6 +100,6 @@ services:
     command: []
     devices: []
     cap_add: []
-networks:
-  tailscale-peerstash:
-    name: tailscale-peerstash
+    depends_on:
+      - networking
+      - storage

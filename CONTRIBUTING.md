@@ -71,6 +71,7 @@ The scope is used to determine the service that was changed to allow for separat
 > **scope**: description
 
 #### REQUIRED (if changed)
+- **control**: peerstash-control was updated
 - **shell**: peerstash-shell was updated
 - **web**: peerstash-web was updated
 - **compose**: peerstash-compose/docker-compose.yml was updated
