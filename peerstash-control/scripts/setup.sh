@@ -17,7 +17,6 @@ fi
 adduser -D "$USERNAME"
 echo "$USERNAME:$PASSWORD" | chpasswd
 
-
 # Start SSH server
 echo "Starting SSH service for remote machines..."
 /usr/sbin/sshd -D
