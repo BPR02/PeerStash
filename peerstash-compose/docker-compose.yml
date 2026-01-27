@@ -1,4 +1,6 @@
-name: peerstash-v0.2.2
+name: peerstash
+x-meta:
+  compose_version: v0.2.2
 services:
   networking:
     image: tailscale/tailscale:latest
