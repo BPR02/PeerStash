@@ -14,9 +14,10 @@ else
 fi
 
 # make a dummy user
-adduser -D "$USERNAME"
+adduser "$USERNAME"
 echo "$USERNAME:$PASSWORD" | chpasswd
 
 # Start SSH server
 echo "Starting SSH service for remote machines..."
-/usr/sbin/sshd -D
+# /usr/sbin/sshd -D
+systemctl start ssh

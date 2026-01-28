@@ -7,6 +7,7 @@ COPY --from=binary_source /usr/bin/restic /usr/bin/restic
 
 RUN apt-get update && \
     apt-get install -y \
+        openssh-server \
         openssh-client \
         sqlite3 \
         openssl && \
