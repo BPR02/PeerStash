@@ -15,7 +15,7 @@ else
 fi
 
 # create admin user
-useradd -rm -d /home/$USERNAME -s /bin/bash -g root -G sudo -u 1000 $USERNAME
+useradd -D $USERNAME
 echo "$USERNAME:$PASSWORD" | chpasswd
 
 # Start SSH server
