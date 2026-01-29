@@ -15,7 +15,8 @@ RUN apt-get update && \
 
 # move scripts
 COPY ./scripts/ /srv/peerstash/scripts/
-RUN chmod -R 700 /srv/peerstash/scripts
+RUN chmod -R 755 /srv/peerstash/scripts
+RUN chmod 744 /srv/peerstash/scripts/setup.sh
 
 EXPOSE 22
 
