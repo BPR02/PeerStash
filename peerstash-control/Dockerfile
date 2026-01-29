@@ -19,4 +19,4 @@ RUN chmod -R 700 /srv/peerstash/scripts
 
 EXPOSE 22
 
-ENTRYPOINT ["/srv/peerstash/scripts/setup.sh"]
+# ENTRYPOINT ["/srv/peerstash/scripts/setup.sh"]
