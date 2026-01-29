@@ -15,7 +15,7 @@ else
 fi
 
 # create admin user
-useradd -M $USERNAME
+useradd -M -d / $USERNAME
 echo "$USERNAME:$PASSWORD" | chpasswd
 
 # Start SSH server
