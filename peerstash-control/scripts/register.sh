@@ -19,12 +19,12 @@ curl --request POST \
   --header 'Accept: application/json' \
   --header 'Authorization: Bearer <JWT>' \
   --header 'Content-Type: application/json' \
-  --data '{
-  "status": 1,
-  "username": $USERNAME,
-  "public_keys": [$CLIENT_PUBLIC_KEY],
-  "quota_size": $QUOTA_BYTES,
-  "permissions": {"/":["*"]}
-}'
+  --data "{
+  'status': 1,
+  'username': $USERNAME,
+  'public_keys': [$CLIENT_PUBLIC_KEY],
+  'quota_size': $QUOTA_BYTES,
+  'permissions': {'/':['*']}
+}"
 
 # add user to DB

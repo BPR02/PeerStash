@@ -48,8 +48,8 @@ fi
 # parse output
 NUMBERS=$(echo "$SFTP_OUTPUT" | grep -o "[0-9]*" | head -n 2)
 
-read -r AVAIL <<< $(echo "$NUMBERS" | sed -n '1p')
-read -r USED <<< $(echo "$NUMBERS" | sed -n '2p')
+read -r AVAIL <<< "$(echo "$NUMBERS" | sed -n '1p')"
+read -r USED <<< "$(echo "$NUMBERS" | sed -n '2p')"
 
 # validate result
 if [ -z "$USED" ] || [ -z "$AVAIL" ]; then
