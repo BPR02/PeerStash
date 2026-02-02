@@ -18,6 +18,45 @@ fi
 useradd -m -s /bin/bash "$USERNAME"
 echo "$USERNAME:$PASSWORD" | chpasswd
 
+# get SFTPGo JWT
+TOKEN=$(curl -s -u "$USERNAME:$PASSWORD" \
+    "http://localhost:8080/api/v2/token" | grep -o '"access_token":"[^"]*' | grep -o '[^"]*$')
+
+if [ -z "$TOKEN" ]; then
+    echo "Error: Authentication failed."
+    exit 1
+fi
+
+# delete existing SFTPGo API keys
+KEYS=$(curl --request GET \
+    --url http://localhost:8080/api/v2/apikeys \
+    --header "Authorization: Bearer $TOKEN")
+
+for row in $(echo "$KEYS" | jq -c '.[]'); do
+    id=$(echo "${row}" | jq -r '.id')
+    name=$(echo "${row}" | jq - r '.name')
+    
+    if [[ $name == "host" ]]; then
+        $(curl --request DELETE \
+            --url "http://localhost:8080/api/v2/apikeys/${id}" \
+            --header "Authorization: Bearer $TOKEN")
+    fi
+done
+
+# create new SFTPGo API key
+export API_KEY=$(curl --request GET \
+    --url http://localhost:8080/api/v2/apikeys \
+    --header "Authorization: Bearer $TOKEN" \
+    --data '{
+        "name": "host",
+        "scope": 1
+}' | grep -o '"key":"[^"]*' | grep -o '[^"]*$')
+
+curl --request PUT \
+    --url http://localhost:8080/api/v2/admin/profile \
+    --header "Authorization: Bearer $TOKEN" \
+    --data '{"allow_api_key_auth": true}'
+
 # Start SSH server
 echo "Starting SSH service for remote machines..."
 /usr/sbin/sshd -D

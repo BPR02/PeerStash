@@ -68,6 +68,7 @@ services:
     environment:
       - USERNAME=${ADMIN_USERNAME}
       - PASSWORD=${ADMIN_PASSWORD}
+      - DEFAULT_QUOTA_GB=${DEFAULT_QUOTA_GB}
     volumes:
       - type: bind
         source: ${PEERSTASH_ROOT_TARGET}
@@ -78,6 +79,10 @@ services:
         target: /var/lib/peerstash
         bind:
           create_host_path: true
+      - type: bind
+        source: ${PEERSTASH_SFTP}/config
+        target: /var/lib/sftpgo
+        read_only: true
       - type: bind
         source: ${PEERSTASH_CONTROL}/data
         target: /srv/peerstash/data

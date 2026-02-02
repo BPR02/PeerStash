@@ -9,6 +9,8 @@ RUN apt-get update && \
     apt-get install -y \
         openssh-server \
         openssh-client \
+        curl \
+        jq \
         sqlite3 \
         openssl && \
     rm -rf /var/lib/apt/lists/*
@@ -19,5 +21,6 @@ RUN chmod -R 755 /srv/peerstash/scripts
 RUN chmod 744 /srv/peerstash/scripts/setup.sh
 
 EXPOSE 22
+ENV DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB
 
 ENTRYPOINT ["/srv/peerstash/scripts/setup.sh"]

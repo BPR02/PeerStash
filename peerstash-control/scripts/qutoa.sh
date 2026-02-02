@@ -5,8 +5,8 @@ RETRY_DELAY=1  # in seconds
 
 # input validation
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-   echo "Usage: $(basename "$0") SFTP_USER SFTP_HOST SFTP_PORT" >&2
-   exit 1
+    echo "Usage: $(basename "$0") SFTP_USER SFTP_HOST SFTP_PORT" >&2
+    exit 1
 fi
 
 SFTP_USER=$1
