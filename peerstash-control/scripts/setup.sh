@@ -36,7 +36,7 @@ for row in $(echo "$KEYS" | jq -c '.[]'); do
     id=$(echo "${row}" | jq -r '.id')
     name=$(echo "${row}" | jq - r '.name')
     
-    if [[ $name == "host" ]]; then
+    if [ "$name" = "host" ]; then
         $(curl --request DELETE \
             --url "http://localhost:8080/api/v2/apikeys/${id}" \
             --header "Authorization: Bearer $TOKEN")
@@ -50,7 +50,7 @@ export API_KEY=$(curl --request GET \
     --data '{
         "name": "host",
         "scope": 1
-}' | grep -o '"key":"[^"]*' | grep -o '[^"]*$')
+}' | grep -o '"key": "[^"]*' | grep -o '[^"]*$')
 
 curl --request PUT \
     --url http://localhost:8080/api/v2/admin/profile \
