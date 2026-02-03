@@ -4,6 +4,7 @@ SSH_FOLDER="/var/lib/peerstash"
 
 # set up SSH user keys
 if [ ! -f ~/.ssh/id_ed25519 ]; then
+    mkdir -p ~/.ssh
     # copy or generate keys
     if [ ! -f $SSH_FOLDER/id_ed25519 ]; then
         echo "Generating SSH user keys..." >&2
