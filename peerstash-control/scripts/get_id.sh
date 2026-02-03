@@ -2,27 +2,6 @@
 
 SSH_FOLDER="/var/lib/peerstash"
 
-# set up SSH user keys
-if [ ! -f ~/.ssh/id_ed25519 ]; then
-    mkdir -p ~/.ssh
-    # copy or generate keys
-    if [ ! -f $SSH_FOLDER/id_ed25519 ]; then
-        echo "Generating SSH user keys..." >&2
-        ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519 -C "$USER"
-        cp ~/.ssh/id_* $SSH_FOLDER/
-    else
-        echo "Pulling SSH user keys from bind mount..." >&2
-        cp $SSH_FOLDER/id_* ~/.ssh/
-    fi
-
-    # use generated key for all SSH/SFTP connections
-    { 
-        echo "" 
-        echo "Host *" 
-        echo "	IdentityFile ~/.ssh/id_ed25519"
-    } >> ~/.ssh/config
-fi
-
 # get ssh keys
 SERVER_PUBLIC_KEY=$(cat /var/lib/sftpgo/id_ed25519.pub)
 CLIENT_PUBLIC_KEY=$(cat ~/.ssh/id_ed25519.pub)

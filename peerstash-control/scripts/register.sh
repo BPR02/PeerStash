@@ -5,6 +5,8 @@
 SHARE_KEY=$1
 QUOTA_GB=$2
 
+SSH_FOLDER="/var/lib/peerstash"
+
 if [ -z $SHARE_KEY ]; then
     echo "Usage: $(basename "$0") SHARE_KEY [QUOTA_GB]" >&2
     exit 1
@@ -18,7 +20,7 @@ CLIENT_PUBLIC_KEY=$(echo "$JSON_STRING" | jq ".client_public_key")
 
 # Set default quota
 if [ -z $QUOTA_GB ]; then
-    QUTOA_GB=$DEFAULT_QUOTA_GB
+    QUOTA_GB=$DEFAULT_QUOTA_GB
 fi
 
 # check if user is already in DB
@@ -29,6 +31,7 @@ QUOTA_BYTES=$(($QUOTA_GB * 1024 * 1024 * 1024))
 # add SFTP key to known hosts
 echo "" >> ~/.ssh/known_hosts
 echo "[peerstash-$USERNAME]:2022 $SERVER_PUBLIC_KEY" >> ~/.ssh/known_hosts
+cp ~/.ssh/known_hosts $SSH_FOLDER/known_hosts
 
 # add user to SFTPGo
 if curl -sS --fail --request POST \

@@ -2,7 +2,7 @@
 
 SSH_FOLDER="/var/lib/peerstash"
 
-# Generate SSH keys
+# Generate SSH host keys
 mkdir -p /var/run/sshd
 
 if [ ! -f "$SSH_FOLDER"/ssh_host_rsa_key ]; then
@@ -12,6 +12,27 @@ if [ ! -f "$SSH_FOLDER"/ssh_host_rsa_key ]; then
 else
     echo "Using existing SSH host keys..."
     cp "$SSH_FOLDER"/ssh_host_* /etc/ssh/
+fi
+
+# Generate SSH user keys
+mkdir -p ~/.ssh
+
+if [ ! -f "$SSH_FOLDER"/id_ed25519 ]; then
+    echo "Generating SSH user keys..." >&2
+    ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519 -C "$USER"
+    cp ~/.ssh/id_* $SSH_FOLDER/
+    { 
+        echo "" 
+        echo "Host *" 
+        echo "	IdentityFile ~/.ssh/id_ed25519"
+    } >> ~/.ssh/config
+    cp ~/.ssh/config $SSH_FOLDER/config
+    touch ~/.ssh/known_hosts
+else
+    echo "Using existing SSH user keys..." >&2
+    cp $SSH_FOLDER/id_* ~/.ssh/
+    cp $SSH_FOLDER/config ~/.ssh/config
+    cp $SSH_FOLDER/known_hosts ~/.ssh/known_hosts
 fi
 
 # create admin user
