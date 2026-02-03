@@ -28,31 +28,32 @@ if [ -z "$TOKEN" ]; then
 fi
 
 # delete existing SFTPGo API keys
-KEYS=$(curl --request GET \
+KEYS=$(curl --silent --request GET \
     --url http://localhost:8080/api/v2/apikeys \
     --header "Authorization: Bearer $TOKEN")
 
 for row in $(echo "$KEYS" | jq -c '.[]'); do
     id=$(echo "${row}" | jq -r '.id')
-    name=$(echo "${row}" | jq - r '.name')
-    
+    name=$(echo "${row}" | jq -r '.name')
+
     if [ "$name" = "host" ]; then
-        $(curl --request DELETE \
+        $(curl --silent --request DELETE \
             --url "http://localhost:8080/api/v2/apikeys/${id}" \
             --header "Authorization: Bearer $TOKEN")
     fi
 done
 
 # create new SFTPGo API key
-export API_KEY=$(curl --request GET \
+export API_KEY=$(curl --silent --request POST \
     --url http://localhost:8080/api/v2/apikeys \
     --header "Authorization: Bearer $TOKEN" \
     --data '{
         "name": "host",
-        "scope": 1
+        "scope": 1,
+        "admin": "'"$USERNAME"'"
 }' | grep -o '"key": "[^"]*' | grep -o '[^"]*$')
 
-curl --request PUT \
+curl --silent --request PUT \
     --url http://localhost:8080/api/v2/admin/profile \
     --header "Authorization: Bearer $TOKEN" \
     --data '{"allow_api_key_auth": true}'
