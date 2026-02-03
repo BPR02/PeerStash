@@ -17,7 +17,7 @@ SERVER_PUBLIC_KEY=$(echo "$JSON_STRING" | jq ".server_public_key")
 CLIENT_PUBLIC_KEY=$(echo "$JSON_STRING" | jq ".client_public_key")
 
 # Set default quota
-if [ -z $QUOTA_GB]; then
+if [ -z $QUOTA_GB ]; then
     QUTOA_GB=$DEFAULT_QUOTA_GB
 fi
 

@@ -50,5 +50,5 @@ JSON_STRING=$( jq -n \
                   --arg c "$CLIENT_PUBLIC_KEY" \
                   '{username: $u, server_public_key: $s, client_public_key: $c}' )
 
-ENCODED=$(echo $JSON_STRING | openssl enc -base64)
+ENCODED=$(echo $JSON_STRING | openssl enc -base64 -A)
 echo "peerstash#$ENCODED"

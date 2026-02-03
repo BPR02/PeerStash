@@ -62,6 +62,9 @@ curl -sS --request PUT \
 # share SFTPGo API key with admin user
 echo "export API_KEY=$API_KEY" >> /home/"$USERNAME"/.bashrc
 
+# share default quota with admin user
+echo "export DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB" >> /home/"$USERNAME"/.bashrc
+
 # Start SSH server
 echo "Starting SSH service for remote machines..."
 /usr/sbin/sshd -D
