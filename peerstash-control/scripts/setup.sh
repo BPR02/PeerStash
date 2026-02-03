@@ -14,6 +14,10 @@ else
     cp "$SSH_FOLDER"/ssh_host_* /etc/ssh/
 fi
 
+# create admin user
+useradd -m -s /bin/bash "$USERNAME"
+echo "$USERNAME:$PASSWORD" | chpasswd
+
 # Generate SSH user keys
 mkdir -p /home/"$USERNAME"/.ssh
 
@@ -35,10 +39,6 @@ else
     cp $SSH_FOLDER/config /home/"$USERNAME"/.ssh/config
     cp $SSH_FOLDER/known_hosts /home/"$USERNAME"/.ssh/known_hosts
 fi
-
-# create admin user
-useradd -m -s /bin/bash "$USERNAME"
-echo "$USERNAME:$PASSWORD" | chpasswd
 
 # get SFTPGo JWT
 TOKEN=$(curl -sS -u "$USERNAME:$PASSWORD" \
