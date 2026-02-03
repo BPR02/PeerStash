@@ -44,7 +44,7 @@ for row in $(echo "$KEYS" | jq -c '.[]'); do
 done
 
 # create new SFTPGo API key
-export API_KEY=$(curl -sS --request POST \
+API_KEY=$(curl -sS --request POST \
     --url http://localhost:8080/api/v2/apikeys \
     --header "Authorization: Bearer $TOKEN" \
     --data '{
@@ -53,12 +53,14 @@ export API_KEY=$(curl -sS --request POST \
         "admin": "'"$USERNAME"'"
 }' | grep -o '"key":"[^"]*' | grep -o '[^"]*$')
 
-echo $API_KEY
-
+# enable API key auth
 curl -sS --request PUT \
     --url http://localhost:8080/api/v2/admin/profile \
     --header "Authorization: Bearer $TOKEN" \
     --data '{"allow_api_key_auth": true}'
+
+# share SFTPGo API key with admin user
+echo "export API_KEY=$API_KEY" >> /home/"$USERNAME"/.bashrc
 
 # Start SSH server
 echo "Starting SSH service for remote machines..."
