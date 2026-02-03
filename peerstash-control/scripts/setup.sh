@@ -15,24 +15,24 @@ else
 fi
 
 # Generate SSH user keys
-mkdir -p ~/.ssh
+mkdir -p /home/"$USERNAME"/.ssh
 
 if [ ! -f "$SSH_FOLDER"/id_ed25519 ]; then
     echo "Generating SSH user keys..." >&2
-    ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519 -C "$USER"
-    cp ~/.ssh/id_* $SSH_FOLDER/
+    ssh-keygen -t ed25519 -N "" -f /home/"$USERNAME"/.ssh/id_ed25519 -C "$USER"
+    cp /home/"$USERNAME"/.ssh/id_* $SSH_FOLDER/
     { 
         echo "" 
         echo "Host *" 
-        echo "	IdentityFile ~/.ssh/id_ed25519"
-    } >> ~/.ssh/config
-    cp ~/.ssh/config $SSH_FOLDER/config
-    touch ~/.ssh/known_hosts
+        echo "	IdentityFile /home/"$USERNAME"/.ssh/id_ed25519"
+    } >> /home/"$USERNAME"/.ssh/config
+    cp /home/"$USERNAME"/.ssh/config $SSH_FOLDER/config
+    touch /home/"$USERNAME"/.ssh/known_hosts
 else
     echo "Using existing SSH user keys..." >&2
-    cp $SSH_FOLDER/id_* ~/.ssh/
-    cp $SSH_FOLDER/config ~/.ssh/config
-    cp $SSH_FOLDER/known_hosts ~/.ssh/known_hosts
+    cp $SSH_FOLDER/id_* /home/"$USERNAME"/.ssh/
+    cp $SSH_FOLDER/config /home/"$USERNAME"/.ssh/config
+    cp $SSH_FOLDER/known_hosts /home/"$USERNAME"/.ssh/known_hosts
 fi
 
 # create admin user
