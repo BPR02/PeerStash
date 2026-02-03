@@ -28,6 +28,7 @@ if [ ! -f "$SSH_FOLDER"/id_ed25519 ]; then
     } >> /home/"$USERNAME"/.ssh/config
     cp /home/"$USERNAME"/.ssh/config $SSH_FOLDER/config
     touch /home/"$USERNAME"/.ssh/known_hosts
+    cp /home/"$USERNAME"/.ssh/known_hosts $SSH_FOLDER/known_hosts
 else
     echo "Using existing SSH user keys..." >&2
     cp $SSH_FOLDER/id_* /home/"$USERNAME"/.ssh/
