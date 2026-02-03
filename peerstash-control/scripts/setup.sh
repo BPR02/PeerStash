@@ -30,8 +30,9 @@ if [ ! -f "$SSH_FOLDER"/id_ed25519 ]; then
         echo "Host *" 
         echo "	IdentityFile /home/"$USERNAME"/.ssh/id_ed25519"
     } >> /home/"$USERNAME"/.ssh/config
-    cp /home/"$USERNAME"/.ssh/config $SSH_FOLDER/config
     touch /home/"$USERNAME"/.ssh/known_hosts
+    chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
+    cp /home/"$USERNAME"/.ssh/config $SSH_FOLDER/config
     cp /home/"$USERNAME"/.ssh/known_hosts $SSH_FOLDER/known_hosts
 else
     echo "Using existing SSH user keys..." >&2
