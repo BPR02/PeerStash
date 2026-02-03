@@ -31,19 +31,22 @@ echo "" >> ~/.ssh/known_hosts
 echo "[peerstash-$USERNAME]:2022 $SERVER_PUBLIC_KEY" >> ~/.ssh/known_hosts
 
 # add user to SFTPGo
-curl -sS --request POST \
+if curl -sS --fail --request POST \
     --url http://localhost:8080/api/v2/users \
     --header 'Accept: application/json' \
     --header "X-SFTPGO-API-KEY: $API_KEY" \
     --header 'Content-Type: application/json' \
-    --data '{
-    "status": 1,
-    "username": "'"$USERNAME"'",
-    "public_keys": ["'"$CLIENT_PUBLIC_KEY"'"],
-    "quota_size": "'"$QUOTA_BYTES"'",
-    "permissions": {"/":["*"]}
-}'
-
-echo "User $USERNAME created with ${QUOTA_GB}GB limit."
+    --data "{
+    \"status\": 1,
+    \"username\": $USERNAME,
+    \"public_keys\": [$CLIENT_PUBLIC_KEY],
+    \"quota_size\": $QUOTA_BYTES,
+    \"permissions\": {\"/\":[\"*\"]}
+}"; then
+  echo "User $USERNAME created with ${QUOTA_GB}GB limit." >&2
+else
+  echo "Failed to create user." >&2
+  exit $?
+fi
 
 # add user to DB

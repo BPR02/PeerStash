@@ -21,6 +21,5 @@ RUN chmod -R 755 /srv/peerstash/scripts
 RUN chmod 744 /srv/peerstash/scripts/setup.sh
 
 EXPOSE 22
-ENV DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB
 
 ENTRYPOINT ["/srv/peerstash/scripts/setup.sh"]
