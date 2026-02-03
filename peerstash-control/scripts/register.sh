@@ -31,7 +31,7 @@ echo "" >> ~/.ssh/known_hosts
 echo "[peerstash-$USERNAME]:2022 $SERVER_PUBLIC_KEY" >> ~/.ssh/known_hosts
 
 # add user to SFTPGo
-curl --silent --request POST \
+curl -sS --request POST \
     --url http://localhost:8080/api/v2/users \
     --header 'Accept: application/json' \
     --header "X-SFTPGO-API-KEY: $API_KEY" \

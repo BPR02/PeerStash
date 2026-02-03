@@ -19,7 +19,7 @@ useradd -m -s /bin/bash "$USERNAME"
 echo "$USERNAME:$PASSWORD" | chpasswd
 
 # get SFTPGo JWT
-TOKEN=$(curl -s -u "$USERNAME:$PASSWORD" \
+TOKEN=$(curl -sS -u "$USERNAME:$PASSWORD" \
     "http://localhost:8080/api/v2/token" | grep -o '"access_token":"[^"]*' | grep -o '[^"]*$')
 
 if [ -z "$TOKEN" ]; then
@@ -28,7 +28,7 @@ if [ -z "$TOKEN" ]; then
 fi
 
 # delete existing SFTPGo API keys
-KEYS=$(curl --silent --request GET \
+KEYS=$(curl -sS --request GET \
     --url http://localhost:8080/api/v2/apikeys \
     --header "Authorization: Bearer $TOKEN")
 
@@ -37,25 +37,25 @@ for row in $(echo "$KEYS" | jq -c '.[]'); do
     name=$(echo "${row}" | jq -r '.name')
 
     if [ "$name" = "host" ]; then
-        curl --silent --request DELETE \
+        curl -sS --request DELETE \
             --url "http://localhost:8080/api/v2/apikeys/${id}" \
             --header "Authorization: Bearer $TOKEN"
     fi
 done
 
 # create new SFTPGo API key
-export API_KEY=$(curl --silent --request POST \
+export API_KEY=$(curl -sS --request POST \
     --url http://localhost:8080/api/v2/apikeys \
     --header "Authorization: Bearer $TOKEN" \
     --data '{
         "name": "host",
         "scope": 1,
         "admin": "'"$USERNAME"'"
-}' | grep -o '"key": "[^"]*' | grep -o '[^"]*$')
+}') # | grep -o '"key": "[^"]*' | grep -o '[^"]*$')
 
 echo $API_KEY
 
-curl --silent --request PUT \
+curl -sS --request PUT \
     --url http://localhost:8080/api/v2/admin/profile \
     --header "Authorization: Bearer $TOKEN" \
     --data '{"allow_api_key_auth": true}'
