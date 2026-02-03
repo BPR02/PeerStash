@@ -51,7 +51,7 @@ export API_KEY=$(curl -sS --request POST \
         "name": "host",
         "scope": 1,
         "admin": "'"$USERNAME"'"
-}') # | grep -o '"key": "[^"]*' | grep -o '[^"]*$')
+}' | grep -o '"key":"[^"]*' | grep -o '[^"]*$')
 
 echo $API_KEY
 
