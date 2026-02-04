@@ -29,7 +29,7 @@ QUOTA_BYTES=$(($QUOTA_GB * 1024 * 1024 * 1024))
 # add SFTP key to known hosts
 echo "" >> ~/.ssh/known_hosts
 echo "[peerstash-${USERNAME}]:2022 $SERVER_PUBLIC_KEY" >> ~/.ssh/known_hosts
-cp ~/.ssh/known_hosts $SSH_FOLDER/known_hosts
+cp -p ~/.ssh/known_hosts $SSH_FOLDER/known_hosts
 
 # add user to SFTPGo
 if curl -sS --fail --request POST \
