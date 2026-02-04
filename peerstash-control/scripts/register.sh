@@ -32,7 +32,7 @@ echo "[peerstash-${USERNAME}]:2022 $SERVER_PUBLIC_KEY" >> ~/.ssh/known_hosts
 cp -p ~/.ssh/known_hosts $SSH_FOLDER/known_hosts
 
 # add user to SFTPGo
-if curl -sS --fail --request POST \
+if curl -s --fail --request POST \
     --url http://localhost:8080/api/v2/users \
     --header 'Accept: application/json' \
     --header "X-SFTPGO-API-KEY: $API_KEY" \
@@ -43,12 +43,12 @@ if curl -sS --fail --request POST \
     \"public_keys\": [$CLIENT_PUBLIC_KEY],
     \"quota_size\": $QUOTA_BYTES,
     \"permissions\": {\"/\":[\"*\"]}
-}"; then
+}" > /dev/null; then
   echo "User $USERNAME created with ${QUOTA_GB}GB limit." >&2
   exit 0
 fi
 # update SFTPGo user if already exists
-if curl -sS --fail --request PUT \
+if curl -s --fail --request PUT \
     --url "http://localhost:8080/api/v2/users/${USERNAME}" \
     --header 'Accept: application/json' \
     --header "X-SFTPGO-API-KEY: $API_KEY" \
@@ -59,7 +59,7 @@ if curl -sS --fail --request PUT \
     \"public_keys\": [$CLIENT_PUBLIC_KEY],
     \"quota_size\": $QUOTA_BYTES,
     \"permissions\": {\"/\":[\"*\"]}
-}"; then
+}" > /dev/null; then
   echo "User $USERNAME updated with ${QUOTA_GB}GB limit." >&2
   exit 0
 else
