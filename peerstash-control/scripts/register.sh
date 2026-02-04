@@ -14,7 +14,7 @@ fi
 
 # extract information from share key
 JSON_STRING=$(echo "$SHARE_KEY" | grep -o "[^#]*$" | openssl base64 -d -A)
-USERNAME=$(echo "$JSON_STRING" | jq ".username")
+USERNAME=$(echo "$JSON_STRING" | jq -r ".username")
 SERVER_PUBLIC_KEY=$(echo "$JSON_STRING" | jq ".server_public_key")
 CLIENT_PUBLIC_KEY=$(echo "$JSON_STRING" | jq ".client_public_key")
 
@@ -23,14 +23,12 @@ if [ -z $QUOTA_GB ]; then
     QUOTA_GB=$DEFAULT_QUOTA_GB
 fi
 
-# check if user is already in DB
-
 # Convert GB to Bytes
 QUOTA_BYTES=$(($QUOTA_GB * 1024 * 1024 * 1024))
 
 # add SFTP key to known hosts
 echo "" >> ~/.ssh/known_hosts
-echo "[peerstash-$USERNAME]:2022 $SERVER_PUBLIC_KEY" >> ~/.ssh/known_hosts
+echo "[peerstash-${USERNAME}]:2022 $SERVER_PUBLIC_KEY" >> ~/.ssh/known_hosts
 cp ~/.ssh/known_hosts $SSH_FOLDER/known_hosts
 
 # add user to SFTPGo
@@ -41,15 +39,30 @@ if curl -sS --fail --request POST \
     --header 'Content-Type: application/json' \
     --data "{
     \"status\": 1,
-    \"username\": $USERNAME,
+    \"username\": \"$USERNAME\",
     \"public_keys\": [$CLIENT_PUBLIC_KEY],
     \"quota_size\": $QUOTA_BYTES,
     \"permissions\": {\"/\":[\"*\"]}
 }"; then
   echo "User $USERNAME created with ${QUOTA_GB}GB limit." >&2
+  exit 0
+fi
+# update SFTPGo user if already exists
+if curl -sS --fail --request PUT \
+    --url "http://localhost:8080/api/v2/users/${USERNAME}" \
+    --header 'Accept: application/json' \
+    --header "X-SFTPGO-API-KEY: $API_KEY" \
+    --header 'Content-Type: application/json' \
+    --data "{
+    \"status\": 1,
+    \"username\": \"$USERNAME\",
+    \"public_keys\": [$CLIENT_PUBLIC_KEY],
+    \"quota_size\": $QUOTA_BYTES,
+    \"permissions\": {\"/\":[\"*\"]}
+}"; then
+  echo "User $USERNAME updated with ${QUOTA_GB}GB limit." >&2
+  exit 0
 else
   echo "Failed to create user." >&2
-  exit $?
+  exit 1
 fi
-
-# add user to DB
