@@ -41,6 +41,7 @@ else
     cp $SSH_FOLDER/id_* /home/"$USERNAME"/.ssh/
     cp $SSH_FOLDER/config /home/"$USERNAME"/.ssh/config
     cp $SSH_FOLDER/known_hosts /home/"$USERNAME"/.ssh/known_hosts
+    chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 fi
 
 # get SFTPGo JWT
