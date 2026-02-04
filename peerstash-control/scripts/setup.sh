@@ -23,7 +23,9 @@ mkdir -p /home/"$USERNAME"/.ssh
 
 if [ ! -f "$SSH_FOLDER"/id_ed25519 ]; then
     echo "Generating SSH user keys..." >&2
-    ssh-keygen -t ed25519 -N "" -f /home/"$USERNAME"/.ssh/id_ed25519 -C "$USER"
+    if [ ! -f /home/"$USERNAME"/.ssh/id_ed25519 ] then
+        ssh-keygen -t ed25519 -N "" -f /home/"$USERNAME"/.ssh/id_ed25519 -C "$USER"
+    fi
     cp /home/"$USERNAME"/.ssh/id_* $SSH_FOLDER/
     { 
         echo "" 
