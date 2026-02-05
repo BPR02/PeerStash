@@ -1,7 +1,6 @@
 name: peerstash
 x-meta:
   compose_version: 0.2.3
-
 services:
   networking:
     image: tailscale/tailscale:latest
