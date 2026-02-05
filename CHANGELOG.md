@@ -1,3 +1,15 @@
+# [0.5.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.4...peerstash-v0.5.0) (2026-02-05)
+
+
+### Bug Fixes
+
+* **compose, control:** force semantic release ([#14](https://github.com/BPR02/PeerStash/issues/14)) ([5ea14e8](https://github.com/BPR02/PeerStash/commit/5ea14e823d69999192945e5359eab74db7d68f95))
+
+
+### Features
+
+* **control, compose:** add connection scripts ([#12](https://github.com/BPR02/PeerStash/issues/12)) ([49faa7b](https://github.com/BPR02/PeerStash/commit/49faa7b433556199036964a3477366ba14640ef5))
+
 ## [0.4.4](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.3...peerstash-v0.4.4) (2026-01-27)
 
 
