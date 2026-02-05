@@ -1,3 +1,10 @@
+# [0.6.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.5.0...peerstash-v0.6.0) (2026-02-05)
+
+
+### Features
+
+* **compose:** disable SFTPGo web UI and ssh password auth ([#15](https://github.com/BPR02/PeerStash/issues/15)) ([4df734b](https://github.com/BPR02/PeerStash/commit/4df734b72a4ed796f2fa23ce26240f9f754e6337))
+
 # [0.5.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.4.4...peerstash-v0.5.0) (2026-02-05)
 
 
