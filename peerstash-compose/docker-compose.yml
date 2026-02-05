@@ -100,8 +100,10 @@ services:
         limits:
           memory: 15841M
     command: []
-    devices: []
-    cap_add: []
+    devices:
+      - /dev/fuse:/dev/fuse
+    cap_add:
+      - sys_admin
     depends_on:
       - networking
       - storage

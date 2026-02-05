@@ -1,7 +1,7 @@
 FROM creativeprojects/resticprofile:0.26.0 AS binary_source
 
 
-FROM python:3.11-slim
+FROM python:3.11
 
 COPY --from=binary_source /usr/bin/resticprofile /usr/bin/resticprofile
 COPY --from=binary_source /usr/bin/restic /usr/bin/restic
@@ -13,7 +13,8 @@ RUN apt-get update && \
         curl \
         jq \
         sqlite3 \
-        openssl && \
+        openssl \ 
+        fuse && \
     rm -rf /var/lib/apt/lists/*
 
 # move scripts
