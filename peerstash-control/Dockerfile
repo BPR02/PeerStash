@@ -1,7 +1,7 @@
 FROM creativeprojects/resticprofile:0.26.0 AS binary_source
 
 
-FROM python:3.11
+FROM python:3.11-slim
 
 COPY --from=binary_source /usr/bin/resticprofile /usr/bin/resticprofile
 COPY --from=binary_source /usr/bin/restic /usr/bin/restic
