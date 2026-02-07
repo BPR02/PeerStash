@@ -1,7 +1,7 @@
 #!/bin/sh
 
-export SSH_FOLDER="/var/lib/peerstash"
-export DB_PATH="/var/lib/peerstash/peerstash.db"
+SSH_FOLDER="/var/lib/peerstash"
+DB_PATH="/var/lib/peerstash/peerstash.db"
 
 # Generate SSH host keys
 mkdir -p /var/run/sshd
@@ -115,11 +115,11 @@ curl -sS --request PUT \
     --header "Authorization: Bearer $TOKEN" \
     --data '{"allow_api_key_auth": true}'
 
-# share SFTPGo API key with admin user
+# share environment variables
 echo "export API_KEY=$API_KEY" >> /home/"$USERNAME"/.bashrc
-
-# share default quota with admin user
 echo "export DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB" >> /home/"$USERNAME"/.bashrc
+echo "export SSH_FOLDER=/var/lib/peerstash" >> /home/"$USERNAME"/.bashrc
+echo "export DB_PATH=/var/lib/peerstash/peerstash.db" >> /home/"$USERNAME"/.bashrc
 
 # Start SSH server
 echo "Starting SSH service for remote machines..."
