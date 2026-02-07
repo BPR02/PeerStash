@@ -59,3 +59,5 @@ fi
 
 # print quota
 echo "$USED / $AVAIL"
+# update database
+sqlite3 "$DB_PATH" "UPDATE hosts SET last_seen=CURRENT_TIMESTAMP WHERE hostname='$SFTP_HOST';"

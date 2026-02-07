@@ -1,6 +1,7 @@
 #!/bin/sh
 
-SSH_FOLDER="/var/lib/peerstash"
+export SSH_FOLDER="/var/lib/peerstash"
+export DB_PATH="/var/lib/peerstash/peerstash.db"
 
 # Generate SSH host keys
 mkdir -p /var/run/sshd
@@ -42,6 +43,35 @@ else
     cp $SSH_FOLDER/config /home/"$USERNAME"/.ssh/config
     cp $SSH_FOLDER/known_hosts /home/"$USERNAME"/.ssh/known_hosts
     chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
+fi
+
+# Check if the database exists
+if [ -f "$DB_PATH" ]; then
+    echo "SQLite database found. Restoring backup tasks..."
+    echo "TODO!"
+else
+    echo "No database found. Creating a new empty database..."
+    sqlite3 "$DB_PATH" "CREATE TABLE hosts (\
+        hostname TEXT PRIMARY KEY,\
+        port INTEGER DEFAULT 2022,\
+        last_seen DATETIME\
+    );"
+    sqlite3 "$DB_PATH" "CREATE TABLE tasks (\
+        id INTEGER PRIMARY KEY AUTOINCREMENT,\
+        name TEXT NOT NULL UNIQUE,\
+        include TEXT NOT NULL,\
+        exclude TEXT,\
+        hostname TEXT NOT NULL,\
+        schedule TEXT NOT NULL,\
+        retention_policy TEXT NOT NULL,\
+        last_run DATETIME,\
+        last_exit_code INTEGER,\
+        last_snapshot_id TEXT,\
+        is_locked BOOLEAN DEFAULT 0,\
+        FOREIGN KEY (hostname) REFERENCES hosts(hostname)\
+    );"
+    chown "$USERNAME":"$USERNAME" "$DB_PATH"
+    chmod 700 "$DB_PATH"
 fi
 
 # get SFTPGo JWT

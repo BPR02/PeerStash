@@ -1,7 +1,5 @@
 #!/bin/bash
 
-SSH_FOLDER="/var/lib/peerstash"
-
 # get ssh keys
 SERVER_PUBLIC_KEY=$(cat /var/lib/sftpgo/id_ed25519.pub)
 CLIENT_PUBLIC_KEY=$(cat ~/.ssh/id_ed25519.pub)
