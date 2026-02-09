@@ -46,18 +46,22 @@ if [ "$SUCCESS" = false ]; then
 fi
 
 # parse output
-NUMBERS=$(echo "$SFTP_OUTPUT" | grep -o "[0-9]*" | head -n 2)
+NUMBERS=$(echo "$SFTP_OUTPUT" | grep -o "[0-9]*" | head -n 3)
 
-read -r AVAIL <<< "$(echo "$NUMBERS" | sed -n '1p')"
+read -r TOTAL <<< "$(echo "$NUMBERS" | sed -n '1p')"
 read -r USED <<< "$(echo "$NUMBERS" | sed -n '2p')"
+read -r FREE <<< "$(echo "$NUMBERS" | sed -n '3p')"
 
 # validate result
-if [ -z "$USED" ] || [ -z "$AVAIL" ]; then
+if [ -z "$USED" ] || [ -z "$TOTAL" ] || [ -z "$FREE" ]; then
     echo "Error: Connection successful, but could not parse quota numbers." >&2
     exit 3
 fi
 
 # print quota
-echo "$USED / $AVAIL"
+echo "TOTAL: $TOTAL"
+echo " USED: $USED"
+echo " FREE: $FREE"
+
 # update database
 sqlite3 "$DB_PATH" "UPDATE hosts SET last_seen=CURRENT_TIMESTAMP WHERE hostname='$SFTP_HOST';"
