@@ -26,8 +26,7 @@ WORKDIR /app
 COPY . .
 RUN uv sync --locked && \
     uv build --wheel && \
-    uv tool install dist/*.whl && \
-    which peerstash
+    uv tool install dist/*.whl
 
 # build final image
 FROM python:3.13-slim AS final
@@ -40,7 +39,7 @@ RUN apt-get update && \
         fuse && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/bin/peerstash /usr/bin/peerstash
+COPY --from=builder /usr/local/bin/peerstash /usr/bin/peerstash
 
 # move scripts
 COPY ./scripts/ /srv/peerstash/scripts/
