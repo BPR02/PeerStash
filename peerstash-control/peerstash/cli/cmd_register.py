@@ -20,7 +20,7 @@ import typer
 
 from peerstash.core import registration
 
-SSH_FOLDER = os.environ.get("DEFAULT_QUOTA_GB", "10")
+DEFAULT_QUOTA_GB = os.environ.get("DEFAULT_QUOTA_GB", "10")
 
 app = typer.Typer()
 
@@ -28,7 +28,7 @@ app = typer.Typer()
 @app.command(name="register")
 def register_peer(
     share_key: str = typer.Argument(..., help="The share key provided by the peer"),
-    quota_gb: int = typer.Argument(10, help="Quota in GiB"),
+    quota_gb: int = typer.Argument(DEFAULT_QUOTA_GB, help="Quota in GiB"),
     yes: bool = typer.Option(
         False, "--yes", "-y", help="Overwrite existing user without prompting"
     ),
@@ -52,7 +52,7 @@ def register_peer(
                     default=False,
                 )
                 if not confirm:
-                    raise typer.Abort("Aborting.")
+                    raise typer.Abort("Aborted user update.")
 
             typer.secho(f"Updating user {username}...", fg=typer.colors.YELLOW)
         else:
@@ -61,8 +61,11 @@ def register_peer(
         # update or insert peer
         registration.upsert_peer(user_data, quota_gb, allow_update=exists)
 
-        typer.secho("Success!", fg=typer.colors.GREEN, bold=True)
+        typer.secho(f"Success! User {username} created with quota of {quota_gb} GiB", fg=typer.colors.GREEN, bold=True)
 
+    except RuntimeError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
     except ValueError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
