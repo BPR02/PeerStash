@@ -44,7 +44,7 @@ RUN apt-get update && \
 # install wheel from builder
 WORKDIR /app
 COPY --from=builder /app/dist/*.whl /app
-RUN pip install dist/*.whl && \
+RUN pip install /app/*.whl && \
     rm -rf /app
 
 # move scripts
