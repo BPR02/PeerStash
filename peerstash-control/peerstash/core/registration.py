@@ -23,7 +23,6 @@ from typing import Dict
 
 import requests
 
-
 SSH_FOLDER = os.environ.get("SSH_FOLDER", "~/.ssh")
 DB_PATH = os.environ.get("DB_PATH", "peerstash.db")
 SFTPGO_URL = "http://localhost:8080/api/v2"
