@@ -61,7 +61,11 @@ def register_peer(
         # update or insert peer
         registration.upsert_peer(user_data, quota_gb, allow_update=exists)
 
-        typer.secho(f"Success! User {username} created with quota of {quota_gb} GiB", fg=typer.colors.GREEN, bold=True)
+        typer.secho(
+            f"Success! User {username} created with quota of {quota_gb} GiB",
+            fg=typer.colors.GREEN,
+            bold=True,
+        )
 
     except RuntimeError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
