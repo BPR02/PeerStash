@@ -26,10 +26,11 @@ WORKDIR /app
 COPY . .
 RUN apt-get update && \
     apt-get install -y \
-        patchelf && \
+        patchelf \
+        ccache && \
     uv sync --locked --group build  && \
     uv run python3 -m nuitka --mode=onefile peerstash && \
-    ls ./peerstash.dist
+    ls ./peerstash.onefile-build
 
 # build final image
 FROM python:3.13-slim AS final
@@ -45,7 +46,7 @@ RUN apt-get update && \
         fuse && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/peerstash.dist/peerstash /usr/bin/peerstash
+COPY --from=builder /app/peerstash.onefile-build/peerstash.bin /usr/bin/peerstash
 
 # move scripts
 COPY ./scripts/ /srv/peerstash/scripts/
