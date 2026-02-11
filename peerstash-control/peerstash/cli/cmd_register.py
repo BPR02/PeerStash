@@ -14,9 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 import typer
 
 from peerstash.core import registration
+
+SSH_FOLDER = os.environ.get("DEFAULT_QUOTA_GB", "10")
 
 app = typer.Typer()
 
@@ -48,8 +52,7 @@ def register_peer(
                     default=False,
                 )
                 if not confirm:
-                    typer.secho("Aborted.", fg=typer.colors.YELLOW)
-                    raise typer.Abort()
+                    raise typer.Abort("Aborting.")
 
             typer.secho(f"Updating user {username}...", fg=typer.colors.YELLOW)
         else:

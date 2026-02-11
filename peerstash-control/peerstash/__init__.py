@@ -14,14 +14,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import typer
+from peerstash.cli import cli
 
-from peerstash.cli import cmd_id, cmd_register
-
-# Create the main app
-app = typer.Typer(help="PeerStash CLI Tool")
-app.command(name="id")(cmd_id.print_id)
-app.command(name="register")(cmd_register.register_peer)
 
 def main() -> None:
-    app()
+    cli()
