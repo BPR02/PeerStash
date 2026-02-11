@@ -26,7 +26,8 @@ WORKDIR /app
 COPY . .
 RUN uv sync --locked && \
     uv build --wheel && \
-    uv tool install dist/*.whl
+    uv tool install dist/*.whl && \
+    which peerstash
 
 # build final image
 FROM python:3.13-slim AS final
