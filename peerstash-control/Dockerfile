@@ -39,7 +39,7 @@ RUN apt-get update && \
         fuse && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /root/.local/bin/peerstash /usr/bin/peerstash
+COPY --from=builder /usr/bin/peerstash /usr/bin/peerstash
 
 # move scripts
 COPY ./scripts/ /srv/peerstash/scripts/
