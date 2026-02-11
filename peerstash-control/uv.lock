@@ -200,10 +200,12 @@ dependencies = [
 ]
 
 [package.dev-dependencies]
+build = [
+    { name = "nuitka" },
+]
 dev = [
     { name = "black" },
     { name = "isort" },
-    { name = "nuitka" },
     { name = "pytest" },
 ]
 
@@ -215,10 +217,10 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
+build = [{ name = "nuitka", specifier = ">=4.0" }]
 dev = [
     { name = "black", specifier = ">=26.1.0" },
     { name = "isort", specifier = ">=7.0.0" },
-    { name = "nuitka", specifier = ">=4.0" },
     { name = "pytest", specifier = ">=9.0.2" },
 ]
 

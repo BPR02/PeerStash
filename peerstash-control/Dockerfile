@@ -24,7 +24,7 @@ ENV UV_NO_DEV=1
 
 WORKDIR /app
 COPY . .
-RUN uv sync --locked && \
+RUN uv sync --locked --group build  && \
     uv run python3 -m nuitka --mode=onefile peerstash && \
     ls ./peerstash.dist
 
