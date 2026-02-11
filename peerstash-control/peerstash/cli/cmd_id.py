@@ -14,37 +14,25 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import typer
 
-# build python app
-FROM ghcr.io/astral-sh/uv:python3.13-trixie-slim AS builder
+from peerstash.core import identity
 
-ENV UV_COMPILE_BYTECODE=1
-ENV UV_LINK_MODE=copy
-ENV UV_NO_DEV=1
+app = typer.Typer()
 
-WORKDIR /app
-COPY . .
-RUN uv sync --locked && \
-    uv build --wheel && \
-    uv tool install dist/*.whl
 
-# build final image
-FROM python:3.13-slim AS final
+@app.command(name="id")
+def print_id():
+    """
+    Generate identity string for this node.
+    """
+    try:
+        # get base64 encoded string
+        payload = identity.generate_identity_payload()
 
-RUN apt-get update && \
-    apt-get install -y \
-        openssh-server \
-        openssh-client \
-        restic \
-        fuse && \
-    rm -rf /var/lib/apt/lists/*
+        # write share code to std out
+        typer.echo(f"peerstash#{payload}")
 
-COPY --from=builder /root/.local/bin/peerstash /usr/bin/peerstash
-
-# move scripts
-COPY ./scripts/ /srv/peerstash/scripts/
-RUN chmod -R 744 /srv/peerstash/scripts
-
-EXPOSE 22
-
-ENTRYPOINT ["/srv/peerstash/scripts/setup.sh"]
+    except ValueError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)

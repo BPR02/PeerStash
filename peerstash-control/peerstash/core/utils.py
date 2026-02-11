@@ -14,37 +14,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+from typing import Optional
 
-# build python app
-FROM ghcr.io/astral-sh/uv:python3.13-trixie-slim AS builder
 
-ENV UV_COMPILE_BYTECODE=1
-ENV UV_LINK_MODE=copy
-ENV UV_NO_DEV=1
-
-WORKDIR /app
-COPY . .
-RUN uv sync --locked && \
-    uv build --wheel && \
-    uv tool install dist/*.whl
-
-# build final image
-FROM python:3.13-slim AS final
-
-RUN apt-get update && \
-    apt-get install -y \
-        openssh-server \
-        openssh-client \
-        restic \
-        fuse && \
-    rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /root/.local/bin/peerstash /usr/bin/peerstash
-
-# move scripts
-COPY ./scripts/ /srv/peerstash/scripts/
-RUN chmod -R 744 /srv/peerstash/scripts
-
-EXPOSE 22
-
-ENTRYPOINT ["/srv/peerstash/scripts/setup.sh"]
+def get_file_content(filepath: str) -> Optional[str]:
+    """Reads file content safely, handling ~ expansion and errors."""
+    try:
+        full_path = os.path.expanduser(filepath)
+        if not os.path.exists(full_path):
+            return None
+        with open(full_path, "r") as f:
+            content = f.read().strip()
+            return content if content else None
+    except Exception:
+        return None

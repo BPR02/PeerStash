@@ -6,3 +6,5 @@ dist/
 .env
 node_modules
 .test/
+__pycache__
+.venv

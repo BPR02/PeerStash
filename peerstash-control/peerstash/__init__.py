@@ -14,37 +14,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import typer
 
-# build python app
-FROM ghcr.io/astral-sh/uv:python3.13-trixie-slim AS builder
+from peerstash.cli import cmd_id, cmd_register
 
-ENV UV_COMPILE_BYTECODE=1
-ENV UV_LINK_MODE=copy
-ENV UV_NO_DEV=1
+# Create the main app
+app = typer.Typer(help="PeerStash CLI Tool")
+app.command(name="id")(cmd_id.print_id)
+app.command(name="register")(cmd_register.register_peer)
 
-WORKDIR /app
-COPY . .
-RUN uv sync --locked && \
-    uv build --wheel && \
-    uv tool install dist/*.whl
-
-# build final image
-FROM python:3.13-slim AS final
-
-RUN apt-get update && \
-    apt-get install -y \
-        openssh-server \
-        openssh-client \
-        restic \
-        fuse && \
-    rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /root/.local/bin/peerstash /usr/bin/peerstash
-
-# move scripts
-COPY ./scripts/ /srv/peerstash/scripts/
-RUN chmod -R 744 /srv/peerstash/scripts
-
-EXPOSE 22
-
-ENTRYPOINT ["/srv/peerstash/scripts/setup.sh"]
+def main() -> None:
+    app()
