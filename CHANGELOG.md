@@ -1,3 +1,10 @@
+## [0.6.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.6.0...peerstash-v0.6.1) (2026-02-11)
+
+
+### Bug Fixes
+
+* **control:** add replace plugin as npm dependency ([#17](https://github.com/BPR02/PeerStash/issues/17)) ([be36e6c](https://github.com/BPR02/PeerStash/commit/be36e6ccb3926f312fde939a5764089276329515))
+
 # [0.6.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.5.0...peerstash-v0.6.0) (2026-02-05)
 
 
