@@ -41,9 +41,9 @@ RUN apt-get update && \
         fuse && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/dist/*.whl /app
-
+# install wheel from builder
 WORKDIR /app
+COPY --from=builder /app/dist/*.whl /app
 RUN pip install dist/*.whl && \
     rm -rf /app
 
