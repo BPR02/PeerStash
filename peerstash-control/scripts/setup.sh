@@ -142,6 +142,9 @@ echo "export DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB" >> /home/"$USERNAME"/.bashrc
 echo "export SSH_FOLDER=/var/lib/peerstash" >> /home/"$USERNAME"/.bashrc
 echo "export DB_PATH=/var/lib/peerstash/peerstash.db" >> /home/"$USERNAME"/.bashrc
 
+# clear password environment variable
+unset PASSWORD
+
 # Start SSH server
 echo "Starting SSH service for remote machines..."
 /usr/sbin/sshd -D
