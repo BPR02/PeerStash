@@ -24,12 +24,8 @@ ENV UV_NO_DEV=1
 
 WORKDIR /app
 COPY . .
-RUN apt-get update && \
-    apt-get install -y \
-        patchelf \
-        ccache && \
-    uv sync --locked --group build  && \
-    uv run python3 -m nuitka --mode=onefile peerstash
+RUN uv sync --locked --group build  && \
+    uv build --wheel
 
 # build final image
 FROM python:3.13-slim AS final
@@ -45,7 +41,11 @@ RUN apt-get update && \
         fuse && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /app/peerstash.bin /usr/bin/peerstash
+COPY --from=builder /app/dist/*.whl /app
+
+WORKDIR /app
+RUN pip install dist/*.whl && \
+    rm -rf /app
 
 # move scripts
 COPY ./scripts/ /srv/peerstash/scripts/
