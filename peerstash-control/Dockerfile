@@ -24,7 +24,7 @@ ENV UV_NO_DEV=1
 
 WORKDIR /app
 COPY . .
-RUN uv sync --locked --group build  && \
+RUN uv sync --locked && \
     uv build --wheel
 
 # build final image
@@ -44,7 +44,8 @@ RUN apt-get update && \
 # install wheel from builder
 WORKDIR /app
 COPY --from=builder /app/dist/*.whl /app
-RUN pip install /app/*.whl && \
+RUN pip install --upgrade pip && \
+    pip install /app/*.whl && \
     rm -rf /app
 
 # move scripts
