@@ -35,6 +35,9 @@ RUN apt-get update && \
     apt-get install -y \
         openssh-server \
         openssh-client \
+        curl \
+        jq \
+        sqlite3 \
         restic \
         fuse && \
     rm -rf /var/lib/apt/lists/*
