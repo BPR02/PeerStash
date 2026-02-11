@@ -25,8 +25,8 @@ ENV UV_NO_DEV=1
 WORKDIR /app
 COPY . .
 RUN uv sync --locked && \
-    uv build --wheel && \
-    uv tool install dist/*.whl
+    uv run python3 -m nuitka --mode=onefile peerstash && \
+    ls ./peerstash.dist
 
 # build final image
 FROM python:3.13-slim AS final
@@ -42,7 +42,7 @@ RUN apt-get update && \
         fuse && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/local/bin/peerstash /usr/bin/peerstash
+COPY --from=builder /app/peerstash.dist/peerstash /usr/bin/peerstash
 
 # move scripts
 COPY ./scripts/ /srv/peerstash/scripts/

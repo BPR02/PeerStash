@@ -16,6 +16,7 @@ dependencies = [
 dev = [
     "black>=26.1.0",
     "isort>=7.0.0",
+    "nuitka>=4.0",
     "pytest>=9.0.2",
 ]
 

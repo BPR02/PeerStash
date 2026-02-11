@@ -166,6 +166,12 @@ wheels = [
 ]
 
 [[package]]
+name = "nuitka"
+version = "4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/d6/477dc84457fc07885f5fd020da4920e8a2787b2c04563ad444ac98f7d3eb/nuitka-4.0.tar.gz", hash = "sha256:0f404f292c3c2cc808d186d05a6d06a4b0aeca93f299cdfd5e33ddbcd19ab560", size = 4410008 }
+
+[[package]]
 name = "packaging"
 version = "26.0"
 source = { registry = "https://pypi.org/simple" }
@@ -197,6 +203,7 @@ dependencies = [
 dev = [
     { name = "black" },
     { name = "isort" },
+    { name = "nuitka" },
     { name = "pytest" },
 ]
 
@@ -211,6 +218,7 @@ requires-dist = [
 dev = [
     { name = "black", specifier = ">=26.1.0" },
     { name = "isort", specifier = ">=7.0.0" },
+    { name = "nuitka", specifier = ">=4.0" },
     { name = "pytest", specifier = ">=9.0.2" },
 ]
 
