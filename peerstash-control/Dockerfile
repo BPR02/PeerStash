@@ -24,8 +24,11 @@ ENV UV_NO_DEV=1
 
 WORKDIR /app
 COPY . .
-RUN uv sync --locked && \
-    uv build --wheel
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock,ro \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked -vv && \
+    uv build --wheel -vv
 
 # build final image
 FROM python:3.13-slim AS final
@@ -45,7 +48,7 @@ RUN apt-get update && \
 WORKDIR /app
 COPY --from=builder /app/dist/*.whl /app
 RUN pip install --upgrade pip && \
-    pip install /app/*.whl && \
+    pip install -vv /app/*.whl && \
     rm -rf /app
 
 # move scripts
