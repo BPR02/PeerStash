@@ -1,6 +1,23 @@
 #!/bin/sh
 
-SSH_FOLDER="/var/lib/peerstash"
+# Peerstash
+# Copyright (C) 2026 BPR02
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+export SSH_FOLDER="/var/lib/peerstash"
+export DB_PATH="/var/lib/peerstash/peerstash.db"
 
 # Generate SSH host keys
 mkdir -p /var/run/sshd
@@ -17,6 +34,11 @@ fi
 # create admin user
 useradd -m -s /bin/bash "$USERNAME"
 echo "$USERNAME:$PASSWORD" | chpasswd
+
+# create password text file
+mkdir -p /tmp/peerstash
+echo "$PASSWORD" > /tmp/peerstash/password.txt
+chmod 400 /tmp/peerstash/password.txt
 
 # Generate SSH user keys
 mkdir -p /home/"$USERNAME"/.ssh
@@ -42,6 +64,35 @@ else
     cp $SSH_FOLDER/config /home/"$USERNAME"/.ssh/config
     cp $SSH_FOLDER/known_hosts /home/"$USERNAME"/.ssh/known_hosts
     chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
+fi
+
+# Check if the database exists
+if [ -f "$DB_PATH" ]; then
+    echo "SQLite database found. Restoring backup tasks..."
+    echo "TODO!"
+else
+    echo "No database found. Creating a new empty database..."
+    sqlite3 "$DB_PATH" "CREATE TABLE hosts (\
+        hostname TEXT PRIMARY KEY,\
+        port INTEGER DEFAULT 2022,\
+        last_seen DATETIME\
+    );"
+    sqlite3 "$DB_PATH" "CREATE TABLE tasks (\
+        id INTEGER PRIMARY KEY AUTOINCREMENT,\
+        name TEXT NOT NULL UNIQUE,\
+        include TEXT NOT NULL,\
+        exclude TEXT,\
+        hostname TEXT NOT NULL,\
+        schedule TEXT NOT NULL,\
+        retention_policy TEXT NOT NULL,\
+        last_run DATETIME,\
+        last_exit_code INTEGER,\
+        last_snapshot_id TEXT,\
+        is_locked BOOLEAN DEFAULT 0,\
+        FOREIGN KEY (hostname) REFERENCES hosts(hostname)\
+    );"
+    chown "$USERNAME":"$USERNAME" "$DB_PATH"
+    chmod 700 "$DB_PATH"
 fi
 
 # get SFTPGo JWT
@@ -85,11 +136,14 @@ curl -sS --request PUT \
     --header "Authorization: Bearer $TOKEN" \
     --data '{"allow_api_key_auth": true}'
 
-# share SFTPGo API key with admin user
+# share environment variables
 echo "export API_KEY=$API_KEY" >> /home/"$USERNAME"/.bashrc
-
-# share default quota with admin user
 echo "export DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB" >> /home/"$USERNAME"/.bashrc
+echo "export SSH_FOLDER=/var/lib/peerstash" >> /home/"$USERNAME"/.bashrc
+echo "export DB_PATH=/var/lib/peerstash/peerstash.db" >> /home/"$USERNAME"/.bashrc
+
+# clear password environment variable
+unset PASSWORD
 
 # Start SSH server
 echo "Starting SSH service for remote machines..."

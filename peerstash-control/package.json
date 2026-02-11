@@ -3,7 +3,7 @@
   "version": "0.2.1",
   "private": true,
   "description": "Peer-to-peer (p2p) backups between NAS machines owned by a group of friends (control)",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "author": "bpr02",
   "devDependencies": {
     "@semantic-release/commit-analyzer": "^13.0.1",

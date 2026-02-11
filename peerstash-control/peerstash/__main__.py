@@ -1,0 +1,3 @@
+import peerstash
+
+peerstash.main()
