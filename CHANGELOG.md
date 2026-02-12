@@ -1,3 +1,10 @@
+# [0.7.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.6.2...peerstash-v0.7.0) (2026-02-12)
+
+
+### Features
+
+* **control:** add a integrity check to share key ([#23](https://github.com/BPR02/PeerStash/issues/23)) ([98cef17](https://github.com/BPR02/PeerStash/commit/98cef17c1a72f2b8997141da871579d435fd043c))
+
 ## [0.6.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.6.1...peerstash-v0.6.2) (2026-02-12)
 
 
