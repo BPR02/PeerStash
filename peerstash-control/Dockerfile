@@ -27,7 +27,7 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock,ro \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked -vv && \
+    uv sync --frozen -vv && \
     uv build --wheel -vv
 
 # build final image
