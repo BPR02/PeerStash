@@ -30,9 +30,9 @@ Tailscale needs access to the network tunnel device. The docker compose file has
 There are dev tools available to check the code for syntax errors and other potential issues. Tools are split into each `peerstash-` folder, so you should `cd` into the directory of the service you're updating before running the dev tools.
 
 ### Shell Checks
-`peerstash-shell` has the `shellcheck` node module to check for POSIX compliance in shell scripts. Running the command below should output nothing to the terminal if all scripts are compliant with POSIX.
+`peerstash-control` has the `shellcheck` node module to check for POSIX compliance in shell scripts. Running the command below should output nothing to the terminal if all scripts are compliant with POSIX.
 ```bash
-$ cd peerstash-shell
+$ cd peerstash-control
 $ npx shellcheck scripts/*.sh
 ```
 
@@ -48,9 +48,9 @@ When committing code, follow the [Conventional Commit](https://www.conventionalc
 ```
 
 ### Examples
-- feat(shell): create adduser script
-- fix(shell): update passwd script to work without sudo
-- feat(web,shell): initial dockerfiles
+- feat(control): create setup script
+- fix(compose): hardcode SFTPGo port
+- feat(control,compose): add SFTPGo config folder as read-only bind mount in control container
 
 
 ### Types
@@ -72,14 +72,13 @@ The scope is used to determine the service that was changed to allow for separat
 
 #### REQUIRED (if changed)
 - **control**: peerstash-control was updated
-- **shell**: peerstash-shell was updated
-- **web**: peerstash-web was updated
 - **compose**: peerstash-compose/docker-compose.yml was updated
 #### Other
 - **ci**: changes to the workflows were made
 - **release**: used by semantic-release when an update is made
 - **README**: changes to the readme were made
 - **CONTRIBUTING**: changes to the contributing file were made
+- **LICENSE**: changes to the license were made
 
 ### Extras
 - The start of `<body>` or `<footer>` can be `BREAKING CHANGE:` to indicate a **major** version bump

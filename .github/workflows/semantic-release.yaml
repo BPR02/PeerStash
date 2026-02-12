@@ -15,8 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       control: ${{ steps.filter.outputs.control }}
-      shell: ${{ steps.filter.outputs.shell }}
-      web: ${{ steps.filter.outputs.web }}
       compose: ${{ steps.filter.outputs.compose }}
     steps:
       - name: Checkout repository
@@ -29,12 +27,6 @@ jobs:
         run: |
           if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q '^peerstash-control/'; then
             echo "control=true" >> $GITHUB_OUTPUT
-          fi
-          if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q '^peerstash-shell/'; then
-            echo "shell=true" >> $GITHUB_OUTPUT
-          fi
-          if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q '^peerstash-web/'; then
-            echo "web=true" >> $GITHUB_OUTPUT
           fi
           if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q '^peerstash-compose/docker-compose.yml'; then
             echo "compose=true" >> $GITHUB_OUTPUT
@@ -73,20 +65,6 @@ jobs:
           npx semantic-release
         working-directory: peerstash-control
 
-      - name: Run Semantic Release for shell
-        if: needs.check_changes.outputs.shell == 'true' && github.ref == 'refs/heads/main'
-        run: |
-          npm install
-          npx semantic-release
-        working-directory: peerstash-shell
-
-      - name: Run Semantic Release for web app
-        if: needs.check_changes.outputs.web == 'true' && github.ref == 'refs/heads/main'
-        run: |
-          npm install
-          npx semantic-release
-        working-directory: peerstash-web
-
       - name: Run Semantic Release for docker compose
         if: needs.check_changes.outputs.compose == 'true' && github.ref == 'refs/heads/main'
         run: |
@@ -95,7 +73,7 @@ jobs:
         working-directory: peerstash-compose
 
       - name: Run Semantic Release for root folder
-        if: (needs.check_changes.outputs.control == 'true' || needs.check_changes.outputs.shell == 'true' || needs.check_changes.outputs.web == 'true' || needs.check_changes.outputs.compose == 'true') && github.ref == 'refs/heads/main'
+        if: (needs.check_changes.outputs.control == 'true' || needs.check_changes.outputs.compose == 'true') && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
@@ -107,13 +85,3 @@ jobs:
         if: needs.check_changes.outputs.control == 'true' && github.ref == 'refs/heads/dev'
         run: ../scripts/build-and-push.sh peerstash-control dev dev
         working-directory: peerstash-control
-
-      - name: Build dev image for shell
-        if: needs.check_changes.outputs.shell == 'true' && github.ref == 'refs/heads/dev'
-        run: ../scripts/build-and-push.sh peerstash-shell dev dev
-        working-directory: peerstash-shell
-
-      - name: Build dev image for web app
-        if: needs.check_changes.outputs.web == 'true' && github.ref == 'refs/heads/dev'
-        run: ../scripts/build-and-push.sh peerstash-web dev dev
-        working-directory: peerstash-web
