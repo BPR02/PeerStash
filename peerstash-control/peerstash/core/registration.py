@@ -98,9 +98,16 @@ def _db_add_host(username) -> None:
 def parse_share_key(share_key: str) -> Dict[str, str]:
     """Decodes the base64 share key."""
     try:
-        clean_key = share_key.split("#")[-1]
+        # decode base64 string
+        check, clean_key = share_key.split("#")
+        check_username = check.split(".")[-1]
         decoded_json = base64.b64decode(clean_key, altchars=b"-_").decode("utf-8")
-        return json.loads(decoded_json)
+        data = json.loads(decoded_json)
+        # check if username in key matches in username data
+        if data["username"] != check_username:
+            raise Exception(f"username does not match hash")
+
+        return data
     except Exception as e:
         raise ValueError(f"Invalid share key: {e}")
 
