@@ -17,8 +17,6 @@ jobs:
       matrix:
         package:
           - peerstash-control
-          - peerstash-shell
-          - peerstash-web
     steps:
       - name: Delete untagged images
         uses: actions/delete-package-versions@v5

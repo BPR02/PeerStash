@@ -36,10 +36,9 @@ jobs:
           requireScope: true
           scopes: |
             control
-            shell
-            web
             compose
             ci
             release
             README
             CONTRIBUTING
+            LICENSE
