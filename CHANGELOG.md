@@ -1,3 +1,11 @@
+## [0.6.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.6.1...peerstash-v0.6.2) (2026-02-12)
+
+
+### Bug Fixes
+
+* **control:** force rebuild ([#20](https://github.com/BPR02/PeerStash/issues/20)) ([9f94a27](https://github.com/BPR02/PeerStash/commit/9f94a27cb7e55a45e9a96e2050c8f3c0a5c15537))
+* **control:** use --frozen instead of --lock for uv sync ([#21](https://github.com/BPR02/PeerStash/issues/21)) ([c4bfd53](https://github.com/BPR02/PeerStash/commit/c4bfd539a24ade63215d1b835e0b468583668217))
+
 ## [0.6.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.6.0...peerstash-v0.6.1) (2026-02-11)
 
 

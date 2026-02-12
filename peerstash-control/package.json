@@ -1,6 +1,6 @@
 {
   "name": "peerstash-control",
-  "version": "0.2.1",
+  "version": "0.2.4",
   "private": true,
   "description": "Peer-to-peer (p2p) backups between NAS machines owned by a group of friends (control)",
   "license": "AGPL-3.0-only",
