@@ -27,11 +27,8 @@ def print_id():
     Generate identity string for this node.
     """
     try:
-        # get base64 encoded string
-        payload = identity.generate_identity_payload()
-
         # write share code to std out
-        typer.echo(f"peerstash#{payload}")
+        typer.echo(identity.generate_share_key())
 
     except ValueError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
