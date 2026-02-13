@@ -45,7 +45,10 @@ def db_get_host(username: str) -> Optional[HostRead]:
         cursor.execute(
             "SELECT 1 FROM hosts WHERE hostname=?", (f"peerstash-{username}",)
         )
-        return cursor.fetchone()
+        res = cursor.fetchone()
+        if not res:
+            return None
+        return HostRead(**{key: res[i] for i, key in enumerate(HostRead.model_fields.keys())})
 
 
 def db_add_task(
@@ -77,4 +80,7 @@ def db_get_task(name: str) -> Optional[TaskRead]:
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT 1 FROM tasks WHERE name=?", (name,))
-        return cursor.fetchone()
+        res = cursor.fetchone()
+        if not res:
+            return None
+        return TaskRead(**{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())})
