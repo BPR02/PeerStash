@@ -57,9 +57,9 @@ class TaskCreate(TaskBase):
 
 
 class TaskRead(TaskCreate):
-    last_run: datetime
-    last_exit_code: int
-    last_snapshot_id: str
+    last_run: Optional[datetime]
+    last_exit_code: Optional[int]
+    last_snapshot_id: Optional[str]
     is_locked: bool
 
 
