@@ -125,7 +125,11 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
     url = f"{SFTPGO_URL}/users/{username}" if allow_update else f"{SFTPGO_URL}/users"
 
     resp = method(url, json=payload, headers=headers)
-    resp.raise_for_status()
+    if resp.status_code == 409:
+        # DB-SFTPGo desync, requires manual fix
+        raise RuntimeError(f"User '{username}' already exists in SFTPGo. Database might be corrupted.")
+    else:
+        resp.raise_for_status()
 
     # update known_hosts file for ssh
     _update_known_hosts(username, user_data["server_public_key"], allow_update)
