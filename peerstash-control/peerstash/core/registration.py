@@ -18,10 +18,11 @@ import base64
 import json
 import os
 import shutil
-import sqlite3
 from typing import Dict
 
 import requests
+
+from peerstash.core.db import db_add_host, db_get_host
 
 SSH_FOLDER = os.environ.get("SSH_FOLDER", "~/.ssh")
 DB_PATH = os.environ.get("DB_PATH", "peerstash.db")
@@ -81,20 +82,6 @@ def _update_known_hosts(
             )
 
 
-def _db_add_host(username) -> None:
-    """Adds the peerstash hostname to the db."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO hosts (hostname, port) VALUES (?, ?)",
-            (f"peerstash-{username}", "2022"),
-        )
-        conn.commit()
-    except sqlite3.Error as e:
-        raise Exception(f"Database error {e}")
-
-
 def parse_share_key(share_key: str) -> Dict[str, str]:
     """Decodes the base64 share key."""
     try:
@@ -112,16 +99,6 @@ def parse_share_key(share_key: str) -> Dict[str, str]:
         raise ValueError(f"Invalid share key: {e}")
 
 
-def check_peer_exists(username: str) -> bool:
-    """Checks the local DB to see if we know this peer."""
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT 1 FROM hosts WHERE hostname=?", (f"peerstash-{username}",)
-        )
-        return cursor.fetchone() is not None
-
-
 def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = False):
     """
     Creates or Updates a peer in SFTPGo and the System.
@@ -129,7 +106,7 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
     username = user_data["username"]
 
     # check if this peer already exists (DB-SFTPGo desync, requires manual fix)
-    if check_peer_exists(username) and not allow_update:
+    if (db_get_host(username) is not None) and not allow_update:
         raise PeerExistsError(f"User {username} already exists.")
 
     # set up sftpgo request
@@ -155,6 +132,6 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
 
     # update hosts table
     if not allow_update:
-        _db_add_host(username)
+        db_add_host(username)
 
     return True

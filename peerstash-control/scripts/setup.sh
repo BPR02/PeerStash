@@ -79,13 +79,13 @@ else
         last_seen DATETIME\
     );"
     sqlite3 "$DB_PATH" "CREATE TABLE tasks (\
-        id INTEGER PRIMARY KEY AUTOINCREMENT,\
-        name TEXT NOT NULL UNIQUE,\
+        name TEXT PRIMARY KEY,\
         include TEXT NOT NULL,\
         exclude TEXT,\
         hostname TEXT NOT NULL,\
         schedule TEXT NOT NULL,\
-        retention_policy TEXT NOT NULL,\
+        retention INT NOT NULL,\
+        prune_schedule TEXT NOT NULL,\
         last_run DATETIME,\
         last_exit_code INTEGER,\
         last_snapshot_id TEXT,\

@@ -19,6 +19,7 @@ import os
 import typer
 
 from peerstash.core import registration
+from peerstash.core.db import db_get_host
 
 DEFAULT_QUOTA_GB = os.environ.get("DEFAULT_QUOTA_GB", "10")
 
@@ -42,7 +43,7 @@ def register_peer(
         username = user_data["username"]
 
         # check if peer already exists in database
-        exists = registration.check_peer_exists(username)
+        exists = db_get_host(username) is not None
 
         # ask if overwriting is okay
         if exists:

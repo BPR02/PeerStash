@@ -16,9 +16,10 @@
 
 import typer
 
-from peerstash.cli import cmd_id, cmd_register
+from peerstash.cli import cmd_id, cmd_register, cmd_schedule
 
 # Create the main cli app
 cli = typer.Typer(help="PeerStash CLI Tool")
 cli.command(name="id")(cmd_id.print_id)
 cli.command(name="register")(cmd_register.register_peer)
+cli.command(name="schedule")(cmd_schedule.schedule)
