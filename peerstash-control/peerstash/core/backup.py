@@ -64,6 +64,41 @@ def _get_free_space(hostname: str, port: int) -> int:
     return free
 
 
+def _verify_backup_size(name: str) -> bool:
+    """
+    Checks if a backup will exceed the SFTPGo quota. Must be run with root permissions to access password file.
+    """
+    # pull info from DB
+    task = db_get_task(name)
+    if not task:
+        raise ValueError(f"Task with name '{name}' not in DB")
+
+    # get free space in SFTP server
+    free_bytes = _get_free_space(task.hostname, SFTP_PORT)
+
+    # get added bytes
+    res = run_backup(name, True)
+    added_bytes: int = res["total_bytes_processed"]
+
+    # return true if there will be at least 25GiB of space after the backup (for pruning purposes)
+    return free_bytes > (added_bytes + QUOTA_BUFFER)
+
+
+def _init_repo(name: str) -> None:
+    """
+    Initializes a repository. Must be run with root permissions to access password file.
+    """
+    # pull info from DB
+    task = db_get_task(name)
+    if not task:
+        raise ValueError(f"Task with name '{name}' not in DB")
+
+    # initialize repo
+    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.password_file = "/tmp/peerstash/password.txt"
+    restic.init()
+
+
 def schedule_backup(
     paths: str | list[str],
     peer: str,
@@ -130,30 +165,23 @@ def schedule_backup(
     return (name, next_elapse)
 
 
-def init_repo(name: str) -> None:
-    """
-    Initializes a repository. Must be run with root permissions to access password file.
-    """
-    # pull info from DB
-    task = db_get_task(name)
-    if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
-
-    # initialize repo
-    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-    restic.password_file = "/tmp/peerstash/password.txt"
-    restic.init()
-
-
-def run_backup(name: str, dry_run: bool = False) -> dict[str, Any]:
+def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str, Any]:
     """
     Runs a backup. Must be run with root permissions to access password file.
     """
+    # initialize repo
+    if init:
+        _init_repo(name)
+
     # dry run first to see if there's enough storage
-    if not dry_run and not verify_backup_size(name):
+    if not dry_run and not _verify_backup_size(name):
+        if init:
+            raise RuntimeError(
+                f"Not enough storage to create initial backup for task '{name}'"
+            )
         # attempt to prune, leaving only 1 snapshot
         prune_repo(name, 1)
-        if not verify_backup_size(name):
+        if not _verify_backup_size(name):
             raise RuntimeError(f"Not enough storage to complete task '{name}'")
 
     # pull info from DB
@@ -180,26 +208,6 @@ def run_backup(name: str, dry_run: bool = False) -> dict[str, Any]:
         raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
 
     return res
-
-
-def verify_backup_size(name: str) -> bool:
-    """
-    Checks if a backup will exceed the SFTPGo quota. Must be run with root permissions to access password file.
-    """
-    # pull info from DB
-    task = db_get_task(name)
-    if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
-
-    # get free space in SFTP server
-    free_bytes = _get_free_space(task.hostname, SFTP_PORT)
-
-    # get added bytes
-    res = run_backup(name, True)
-    added_bytes: int = res["total_bytes_processed"]
-
-    # return true if there will be at least 25GiB of space after the backup (for pruning purposes)
-    return free_bytes > (added_bytes + QUOTA_BUFFER)
 
 
 def prune_repo(name: str, forced_retention: Optional[int] = None) -> None:

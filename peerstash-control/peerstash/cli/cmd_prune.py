@@ -16,13 +16,25 @@
 
 import typer
 
-from peerstash.cli import (cmd_backup, cmd_id, cmd_prune, cmd_register,
-                           cmd_schedule)
+from peerstash.core.backup import prune_repo
 
-# Create the main cli app
-cli = typer.Typer(help="PeerStash CLI Tool")
-cli.command(name="id")(cmd_id.print_id)
-cli.command(name="register")(cmd_register.register_peer)
-cli.command(name="schedule")(cmd_schedule.schedule)
-cli.command(name="backup")(cmd_backup.backup)
-cli.command(name="prune")(cmd_prune.prune)
+app = typer.Typer()
+
+
+@app.command(name="prune")
+def prune(name: str = typer.Argument(..., help="Name of the backup task to prune.")):
+    """
+    Prunes the repo for a backup task. Respects the retention set by the task.
+    """
+    try:
+        prune_repo(name)
+        typer.secho(
+            f"Repository for task '{name}' has been pruned.",
+            fg=typer.colors.GREEN,
+        )
+    except ValueError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
+    except Exception as e:
+        typer.secho(f"System Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)

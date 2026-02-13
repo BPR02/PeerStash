@@ -127,7 +127,9 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
     resp = method(url, json=payload, headers=headers)
     if resp.status_code == 409:
         # DB-SFTPGo desync, requires manual fix
-        raise RuntimeError(f"User '{username}' already exists in SFTPGo. Database might be corrupted.")
+        raise RuntimeError(
+            f"User '{username}' already exists in SFTPGo. Database might be corrupted."
+        )
     else:
         resp.raise_for_status()
 
