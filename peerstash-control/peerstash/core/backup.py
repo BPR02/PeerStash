@@ -24,7 +24,8 @@ import paramiko
 import restic
 from oncalendar import TzIterator
 
-from peerstash.core.db import db_add_task, db_get_host, db_get_task
+from peerstash.core.db import (db_add_task, db_get_task, db_host_exists,
+                               db_task_exists)
 from peerstash.core.utils import generate_sha1
 
 USER = os.getenv("USER")
@@ -136,11 +137,11 @@ def schedule_backup(
     else:
         exclude = None
 
-    # verify peer exists
-    if db_get_host(peer) is None:
-        raise ValueError(f"Peer {peer} does not exist")
-    # then create standard hostname
+    # create standard hostname
     hostname = f"peerstash-{peer}"
+    # verify peer exists
+    if not db_host_exists(hostname):
+        raise ValueError(f"Peer {peer} does not exist")
 
     # validate schedule
     try:
@@ -154,7 +155,7 @@ def schedule_backup(
         raise ValueError(f"retention must be 1 or more")
 
     # insert into db
-    if db_get_task(name) is not None:
+    if db_task_exists(name):
         raise ValueError(f"Backup task with name '{name}' already exists")
     db_add_task(name, include, exclude, hostname, schedule, retention, prune_schedule)
 

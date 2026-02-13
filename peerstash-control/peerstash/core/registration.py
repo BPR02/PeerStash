@@ -22,7 +22,7 @@ from typing import Dict
 
 import requests
 
-from peerstash.core.db import db_add_host, db_get_host
+from peerstash.core.db import db_add_host, db_host_exists
 
 SSH_FOLDER = os.environ.get("SSH_FOLDER", "~/.ssh")
 DB_PATH = os.environ.get("DB_PATH", "peerstash.db")
@@ -106,7 +106,7 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
     username = user_data["username"]
 
     # check if this peer already exists (DB-SFTPGo desync, requires manual fix)
-    if (db_get_host(username) is not None) and not allow_update:
+    if db_host_exists(f"peerstash-{username}") and not allow_update:
         raise PeerExistsError(f"User {username} already exists.")
 
     # set up sftpgo request

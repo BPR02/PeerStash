@@ -24,31 +24,39 @@ SSH_FOLDER = os.environ.get("SSH_FOLDER", "~/.ssh")
 DB_PATH = os.environ.get("DB_PATH", "peerstash.db")
 
 
-def db_add_host(username: str) -> None:
+def db_add_host(hostname: str) -> None:
     """Adds the peerstash hostname to the DB."""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO hosts (hostname, port) VALUES (?, ?)",
-            (f"peerstash-{username}", "2022"),
+            (hostname, "2022"),
         )
         conn.commit()
     except sqlite3.Error as e:
         raise Exception(f"Database error {e}")
 
 
-def db_get_host(username: str) -> Optional[HostRead]:
+def db_host_exists(hostname: str) -> bool:
     """Checks the DB to see if we know this peer."""
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT 1 FROM hosts WHERE hostname=?", (f"peerstash-{username}",)
-        )
+        cursor.execute("SELECT 1 FROM hosts WHERE hostname=?", (hostname,))
+        return cursor.fetchone() is not None
+
+
+def db_get_host(hostname: str) -> Optional[HostRead]:
+    """Gets host entry from DB."""
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM hosts WHERE hostname=?", (hostname,))
         res = cursor.fetchone()
         if not res:
             return None
-        return HostRead(**{key: res[i] for i, key in enumerate(HostRead.model_fields.keys())})
+        return HostRead(
+            **{key: res[i] for i, key in enumerate(HostRead.model_fields.keys())}
+        )
 
 
 def db_add_task(
@@ -75,12 +83,22 @@ def db_add_task(
         raise Exception(f"Database error {e}")
 
 
-def db_get_task(name: str) -> Optional[TaskRead]:
+def db_task_exists(name: str) -> bool:
     """Checks the DB to see if there's already a task with this name."""
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT 1 FROM tasks WHERE name=?", (name,))
+        return cursor.fetchone() is not None
+
+
+def db_get_task(name: str) -> Optional[TaskRead]:
+    """Checks the DB to see if there's already a task with this name."""
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tasks WHERE name=?", (name,))
         res = cursor.fetchone()
         if not res:
             return None
-        return TaskRead(**{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())})
+        return TaskRead(
+            **{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())}
+        )

@@ -19,7 +19,7 @@ import os
 import typer
 
 from peerstash.core import registration
-from peerstash.core.db import db_get_host
+from peerstash.core.db import db_host_exists
 
 DEFAULT_QUOTA_GB = os.environ.get("DEFAULT_QUOTA_GB", "10")
 
@@ -42,11 +42,8 @@ def register_peer(
         user_data = registration.parse_share_key(share_key)
         username = user_data["username"]
 
-        # check if peer already exists in database
-        exists = db_get_host(username) is not None
-
-        # ask if overwriting is okay
-        if exists:
+        # ask if overwriting is okay if host exists already
+        if db_host_exists(f"peerstash-{username}"):
             if not yes:
                 confirm = typer.confirm(
                     f"User '{username}' already exists. Do you want to overwrite their keys and quota?",
