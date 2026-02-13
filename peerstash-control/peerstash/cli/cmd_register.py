@@ -42,8 +42,10 @@ def register_peer(
         user_data = registration.parse_share_key(share_key)
         username = user_data["username"]
 
+        exists = db_host_exists(f"peerstash-{username}")
+
         # ask if overwriting is okay if host exists already
-        if db_host_exists(f"peerstash-{username}"):
+        if exists:
             if not yes:
                 confirm = typer.confirm(
                     f"User '{username}' already exists. Do you want to overwrite their keys and quota?",
