@@ -41,7 +41,8 @@ RUN apt-get update && \
         jq \
         sqlite3 \
         restic \
-        fuse && \
+        fuse \
+        sudo && \
     rm -rf /var/lib/apt/lists/*
 
 # install wheel from builder

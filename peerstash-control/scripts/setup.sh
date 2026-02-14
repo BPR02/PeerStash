@@ -67,6 +67,11 @@ else
     chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 fi
 
+# copy user ssh keys to root user
+cp /home/"$USERNAME"/.ssh/config /root/.ssh/config
+cp /home/"$USERNAME"/.ssh/known_hosts /root/.ssh/known_hosts
+chmod +w /root/.ssh/known_hosts
+
 # Check if the database exists
 if [ -f "$DB_PATH" ]; then
     echo "SQLite database found. Restoring backup tasks..."

@@ -220,7 +220,7 @@ def prune_repo(name: str, forced_retention: Optional[int] = None) -> None:
     if not task:
         raise ValueError(f"Task with name '{name}' not in DB")
 
-    retention = forced_retention if forced_retention else int(task.retention)
+    retention = forced_retention if forced_retention else task.retention
 
     # run forget and prune
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"

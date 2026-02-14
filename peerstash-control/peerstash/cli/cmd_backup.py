@@ -29,7 +29,7 @@ def backup(
     ),
 ):
     """
-    Runs a backup task.
+    Runs a backup task. Requires root permissions.
     """
     try:
         run_backup(name, init=init)
