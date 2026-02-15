@@ -20,7 +20,7 @@ import os
 
 from .utils import get_file_content
 
-USER = os.getenv("PEERSTASH_USER")
+USER = os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
 
 
 def _generate_identity_payload() -> str:

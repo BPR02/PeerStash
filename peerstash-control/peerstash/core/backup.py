@@ -28,7 +28,7 @@ from peerstash.core.db import (db_add_task, db_get_task, db_host_exists,
                                db_task_exists)
 from peerstash.core.utils import generate_sha1
 
-USER = os.getenv("PEERSTASH_USER")
+USER = os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
 SFTP_PORT = 2022
 QUOTA_BUFFER = 25 * 1024 * 1024 * 1024
 
