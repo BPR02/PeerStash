@@ -20,7 +20,7 @@ from typing import Optional
 
 from peerstash.core.db_schemas import *
 
-DB_PATH = os.environ.get("DB_PATH", "/var/lib/peerstash/peerstash.db")
+DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
 
 
 def db_add_host(hostname: str) -> None:

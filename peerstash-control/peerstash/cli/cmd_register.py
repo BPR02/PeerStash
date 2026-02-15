@@ -21,7 +21,7 @@ import typer
 from peerstash.core import registration
 from peerstash.core.db import db_host_exists
 
-DEFAULT_QUOTA_GB = os.environ.get("DEFAULT_QUOTA_GB", "10")
+DEFAULT_QUOTA_GB = os.getenv("DEFAULT_QUOTA_GB", "10")
 
 app = typer.Typer()
 

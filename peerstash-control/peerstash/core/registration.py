@@ -24,10 +24,10 @@ import requests
 
 from peerstash.core.db import db_add_host, db_host_exists
 
-SSH_FOLDER = os.environ.get("SSH_FOLDER", "~/.ssh")
-DB_PATH = os.environ.get("DB_PATH", "/var/lib/peerstash/peerstash.db")
+SSH_FOLDER = os.getenv("SSH_FOLDER", "~/.ssh")
+DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
 SFTPGO_URL = "http://localhost:8080/api/v2"
-API_KEY = os.environ.get("API_KEY", "")
+API_KEY = os.getenv("API_KEY", "")
 
 
 class PeerExistsError(Exception):
