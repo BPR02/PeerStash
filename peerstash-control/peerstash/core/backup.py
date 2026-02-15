@@ -16,11 +16,11 @@
 
 import os
 import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-import paramiko
 import restic
 from oncalendar import TzIterator
 
@@ -37,21 +37,16 @@ def _get_free_space(hostname: str, port: int) -> int:
     """
     Get the amount of free bytes in the sftpgo server.
     """
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
     try:
         # connect to the server (SSH keys should already be set up in ~/.ssh/)
-        ssh.connect(
-            hostname=hostname,
-            port=port,
-            username=USER,
-            key_filename=f"/home/{USER}/.ssh/id_ed25519",
+        process = subprocess.run(
+            ["sftp", "-P", f"{port}", f"{USER}@{hostname}"],
+            input="df\nbye\n",
+            capture_output=True,
+            text=True,
+            check=True,
         )
-
-        # execute the 'df' command directly in the sftp shell
-        _, stdout, _ = ssh.exec_command("df")
-        output = stdout.read().decode("utf-8")
+        output = process.stdout
 
         # get output
         if not output.strip():
@@ -65,8 +60,6 @@ def _get_free_space(hostname: str, port: int) -> int:
             raise Exception("Unable to parse output.")
     except Exception as e:
         raise RuntimeError(f"Could not get quota from SFTP server. ({e})")
-    finally:
-        ssh.close()
 
     return free
 
