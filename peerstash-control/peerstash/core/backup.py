@@ -42,7 +42,12 @@ def _get_free_space(hostname: str, port: int) -> int:
 
     try:
         # connect to the server (SSH keys should already be set up in ~/.ssh/)
-        ssh.connect(hostname=hostname, port=port, username=USER)
+        ssh.connect(
+            hostname=hostname,
+            port=port,
+            username=USER,
+            key_filename=f"/home/{USER}/.ssh/id_ed25519",
+        )
 
         # execute the 'df' command directly in the sftp shell
         _, stdout, _ = ssh.exec_command("df")
