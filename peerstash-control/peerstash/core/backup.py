@@ -38,6 +38,7 @@ def _get_free_space(hostname: str, port: int) -> int:
     Get the amount of free bytes in the sftpgo server.
     """
     ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     try:
         # connect to the server (SSH keys should already be set up in ~/.ssh/)
