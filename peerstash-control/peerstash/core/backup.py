@@ -30,7 +30,6 @@ from peerstash.core.utils import generate_sha1
 
 USER = os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
 SFTP_PORT = 2022
-QUOTA_BUFFER = 25 * 1024 * 1024 * 1024
 
 
 def _get_free_space(hostname: str, port: int) -> int:
@@ -64,7 +63,7 @@ def _get_free_space(hostname: str, port: int) -> int:
     return free
 
 
-def _verify_backup_size(name: str) -> bool:
+def _verify_backup_size(name: str) -> tuple[int, int]:
     """
     Checks if a backup will exceed the SFTPGo quota. Must be run with root permissions to access password file.
     """
@@ -80,8 +79,8 @@ def _verify_backup_size(name: str) -> bool:
     res = run_backup(name, True)
     added_bytes: int = res["total_bytes_processed"]
 
-    # return true if there will be at least 25GiB of space after the backup (for pruning purposes)
-    return free_bytes > (added_bytes + QUOTA_BUFFER)
+    # return true if there will be space after the backup (for pruning purposes)
+    return (free_bytes, added_bytes)
 
 
 def _init_repo(name: str) -> None:
@@ -174,15 +173,20 @@ def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str
         _init_repo(name)
 
     # dry run first to see if there's enough storage
-    if not dry_run and not _verify_backup_size(name):
-        if init:
-            raise RuntimeError(
-                f"Not enough storage to create initial backup for task '{name}'"
-            )
-        # attempt to prune, leaving only 1 snapshot
-        prune_repo(name, 1)
-        if not _verify_backup_size(name):
-            raise RuntimeError(f"Not enough storage to complete task '{name}'")
+    if not dry_run:
+        free_space, backup_size = _verify_backup_size(name)
+        if free_space > backup_size:
+            if init:
+                raise RuntimeError(
+                    f"Not enough storage to create initial backup for task '{name}' (only {free_space} bytes available, but size is {backup_size})"
+                )
+            # attempt to prune, leaving only 1 snapshot
+            prune_repo(name, 1)
+            free_space_2, backup_size_2 = _verify_backup_size(name)
+            if free_space_2 > backup_size_2:
+                raise RuntimeError(
+                    f"Not enough storage to complete task '{name}' (only {free_space_2} bytes available, but size is {backup_size_2})"
+                )
 
     # pull info from DB
     task = db_get_task(name)
