@@ -20,6 +20,8 @@ import os
 
 from .utils import get_file_content
 
+USER = os.getenv("PEERSTASH_USER")
+
 
 def _generate_identity_payload() -> str:
     """
@@ -27,7 +29,7 @@ def _generate_identity_payload() -> str:
     """
     server_pub_key = get_file_content("/var/lib/sftpgo/id_ed25519.pub")
     client_pub_key = get_file_content("~/.ssh/id_ed25519.pub")
-    username = os.environ.get("USER")
+    username = USER
 
     if not username:
         raise ValueError("Username not found. Are you logged in through SSH?")
@@ -47,7 +49,7 @@ def _generate_identity_payload() -> str:
 
 
 def generate_share_key() -> str:
-    username = os.environ.get("USER")
+    username = USER
     payload = _generate_identity_payload()
 
     return f"peerstash.{username}#{payload}"

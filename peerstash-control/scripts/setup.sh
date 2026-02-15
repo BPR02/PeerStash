@@ -19,6 +19,7 @@
 
 export SSH_FOLDER="/var/lib/peerstash"
 export DB_PATH="/var/lib/peerstash/peerstash.db"
+export PEERSTASH_USER="$USERNAME"
 
 # Generate SSH host keys
 mkdir -p /var/run/sshd
@@ -35,6 +36,7 @@ fi
 # create admin user
 useradd -m -s /bin/bash "$USERNAME"
 echo "$USERNAME:$PASSWORD" | chpasswd
+adduser "$USERNAME" sudo
 
 # create password text file
 mkdir -p /tmp/peerstash
@@ -47,7 +49,7 @@ mkdir -p /home/"$USERNAME"/.ssh
 if [ ! -f "$SSH_FOLDER"/id_ed25519 ]; then
     echo "Generating SSH user keys..." >&2
     if [ ! -f /home/"$USERNAME"/.ssh/id_ed25519 ]; then
-        ssh-keygen -t ed25519 -N "" -f /home/"$USERNAME"/.ssh/id_ed25519 -C "$USER"
+        ssh-keygen -t ed25519 -N "" -f /home/"$USERNAME"/.ssh/id_ed25519 -C "$USERNAME"
     fi
     cp /home/"$USERNAME"/.ssh/id_* $SSH_FOLDER/
     { 
@@ -147,6 +149,7 @@ echo "export API_KEY=$API_KEY" >> /home/"$USERNAME"/.bashrc
 echo "export DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB" >> /home/"$USERNAME"/.bashrc
 echo "export SSH_FOLDER=/var/lib/peerstash" >> /home/"$USERNAME"/.bashrc
 echo "export DB_PATH=/var/lib/peerstash/peerstash.db" >> /home/"$USERNAME"/.bashrc
+echo "export PEERSTASH_USER=$USERNAME" >> /home/"$USERNAME"/.bashrc
 
 # clear password environment variable
 unset PASSWORD
