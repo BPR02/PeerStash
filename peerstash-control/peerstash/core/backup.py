@@ -55,7 +55,7 @@ def _get_free_space(hostname: str, port: int) -> int:
         # Parse output with Regex like the subprocess method
         numbers = re.findall(r"[0-9]+", output)
         if len(numbers) >= 3:
-            free = numbers[2]
+            free = int(numbers[2])
         else:
             raise Exception("Unable to parse output.")
     except Exception as e:
