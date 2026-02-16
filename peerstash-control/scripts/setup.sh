@@ -66,17 +66,17 @@ touch /home/"$USERNAME"/.ssh/known_hosts
 if [ -f "$DB_PATH" ]; then
     echo "SQLite database found. Restoring backup tasks..."
     # create known_hosts file from DB
-    while IFS='|' read -r hostname port public_key; do
+    sqlite3 "$DB_PATH" "SELECT * FROM hosts;" | while IFS='|' read -r hostname port public_key; do
         {
             echo ""
             echo "[$hostname]:$port $public_key"
             echo ""
         } >> /home/"$USERNAME"/.ssh/known_hosts
-    done < <(sqlite3 "$DB_PATH" "SELECT * FROM hosts;")
+    done
     # start up existing backup tasks
-    while IFS='|' read -r name schedule prune_schedule; do
+    sqlite3 "$DB_PATH" "SELECT name, schedule, prune_schedule FROM tasks;" | while IFS='|' read -r name schedule prune_schedule; do
         /srv/peerstash/bin/create_task "$name" "$schedule" "$prune_schedule"
-    done < <(sqlite3 "$DB_PATH" "SELECT name, schedule, prune_schedule FROM tasks;")
+    done
 else
     echo "No database found. Creating a new empty database..."
     sqlite3 "$DB_PATH" "CREATE TABLE hosts (\
