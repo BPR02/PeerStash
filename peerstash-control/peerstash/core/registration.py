@@ -22,7 +22,7 @@ from typing import Dict
 
 import requests
 
-from peerstash.core.db import db_add_host, db_host_exists
+from peerstash.core.db import db_add_host, db_host_exists, db_update_host
 
 SSH_FOLDER = os.getenv("SSH_FOLDER", "~/.ssh")
 DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
@@ -71,16 +71,6 @@ def _update_known_hosts(
         with open(hosts_file, "a") as f:
             f.write(f"\n{host_entry}\n")
 
-    # sync to bind mount
-    bind_mount = os.path.join(SSH_FOLDER, "known_hosts")
-    if os.path.abspath(hosts_file) != os.path.abspath(bind_mount):
-        try:
-            shutil.copy2(hosts_file, bind_mount)
-        except Exception as e:
-            raise Exception(
-                f"Could not copy known_hosts to bind mount {bind_mount}: {e}"
-            )
-
     # sync to root user
     root_hosts_file = "/root/.ssh/known_hosts"
     if os.path.abspath(hosts_file) != os.path.abspath(root_hosts_file):
@@ -88,7 +78,7 @@ def _update_known_hosts(
             shutil.copy2(hosts_file, root_hosts_file)
         except Exception as e:
             raise Exception(
-                f"Could not copy known_hosts to root user {root_hosts_file}: {e}"
+                f"Could not copy known_hosts to root user ({root_hosts_file}): {e}"
             )
 
 
@@ -148,6 +138,8 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
 
     # update hosts table
     if not allow_update:
-        db_add_host(username)
+        db_add_host(username, user_data["server_public_key"])
+    else:
+        db_update_host(username, user_data["server_public_key"])
 
     return True

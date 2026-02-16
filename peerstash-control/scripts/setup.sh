@@ -51,37 +51,36 @@ if [ ! -f "$SSH_FOLDER"/id_ed25519 ]; then
         ssh-keygen -t ed25519 -N "" -f /home/"$USERNAME"/.ssh/id_ed25519 -C "$USERNAME"
     fi
     cp /home/"$USERNAME"/.ssh/id_* $SSH_FOLDER/
-    { 
-        echo "" 
-        echo "Host *" 
-        echo "	IdentityFile /home/"$USERNAME"/.ssh/id_ed25519"
-    } >> /home/"$USERNAME"/.ssh/config
-    touch /home/"$USERNAME"/.ssh/known_hosts
-    chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
-    cp -p /home/"$USERNAME"/.ssh/config $SSH_FOLDER/config
-    cp -p /home/"$USERNAME"/.ssh/known_hosts $SSH_FOLDER/known_hosts
 else
     echo "Using existing SSH user keys..." >&2
     cp $SSH_FOLDER/id_* /home/"$USERNAME"/.ssh/
-    cp $SSH_FOLDER/config /home/"$USERNAME"/.ssh/config
-    cp $SSH_FOLDER/known_hosts /home/"$USERNAME"/.ssh/known_hosts
-    chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 fi
-
-# copy user ssh keys to root user
-cp /home/"$USERNAME"/.ssh/config /root/.ssh/config
-cp /home/"$USERNAME"/.ssh/known_hosts /root/.ssh/known_hosts
-chmod +w /root/.ssh/known_hosts
+{
+    echo "" 
+    echo "Host *" 
+    echo "	IdentityFile /home/"$USERNAME"/.ssh/id_ed25519"
+} >> /home/"$USERNAME"/.ssh/config
+touch /home/"$USERNAME"/.ssh/known_hosts
 
 # Check if the database exists
 if [ -f "$DB_PATH" ]; then
     echo "SQLite database found. Restoring backup tasks..."
-    echo "TODO!"
+    # create known_hosts file from DB
+    while IFS='|' read -r hostname port public_key; do
+        {
+            echo ""
+            echo "[$hostname]:$port $public_key"
+            echo ""
+        } >> /home/"$USERNAME"/.ssh/known_hosts
+    done < <(sqlite3 "$DB_FILE" "$QUERY")
+    # start up existing backup tasks
+    # TODO!
 else
     echo "No database found. Creating a new empty database..."
     sqlite3 "$DB_PATH" "CREATE TABLE hosts (\
         hostname TEXT PRIMARY KEY,\
         port INTEGER DEFAULT 2022,\
+        public_key TEXT NOT NULL,\
         last_seen DATETIME\
     );"
     sqlite3 "$DB_PATH" "CREATE TABLE tasks (\
@@ -101,6 +100,12 @@ else
     chown "$USERNAME":"$USERNAME" "$DB_PATH"
     chmod 700 "$DB_PATH"
 fi
+
+# copy user ssh keys to root user
+cp /home/"$USERNAME"/.ssh/config /root/.ssh/config
+cp /home/"$USERNAME"/.ssh/known_hosts /root/.ssh/known_hosts
+chmod +w /root/.ssh/known_hosts
+chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 
 # get SFTPGo JWT
 TOKEN=$(curl -sS -u "$USERNAME:$PASSWORD" \

@@ -23,14 +23,14 @@ from peerstash.core.db_schemas import *
 DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
 
 
-def db_add_host(hostname: str) -> None:
-    """Adds the peerstash hostname to the DB."""
+def db_add_host(hostname: str, public_key: str) -> None:
+    """Adds the peerstash host to the DB."""
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO hosts (hostname, port) VALUES (?, ?)",
-            (hostname, "2022"),
+            "INSERT INTO hosts (hostname, port, public_key) VALUES (?, ?, ?)",
+            (hostname, "2022", public_key),
         )
         conn.commit()
     except sqlite3.Error as e:
@@ -56,6 +56,20 @@ def db_get_host(hostname: str) -> Optional[HostRead]:
         return HostRead(
             **{key: res[i] for i, key in enumerate(HostRead.model_fields.keys())}
         )
+
+
+def db_update_host(hostname: str, public_key: str) -> None:
+    """Updates the peerstash host on the DB."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE hosts SET public_key = ? WHERE hostname = ?",
+            (public_key, hostname),
+        )
+        conn.commit()
+    except sqlite3.Error as e:
+        raise Exception(f"Database error {e}")
 
 
 def db_add_task(
