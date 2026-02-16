@@ -93,7 +93,7 @@ services:
         bind:
           create_host_path: true
     restart: unless-stopped
-    privileged: false
+    privileged: true
     cpu_shares: 90
     deploy:
       resources:

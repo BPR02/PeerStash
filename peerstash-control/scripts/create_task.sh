@@ -27,7 +27,7 @@ SCHEDULE=$2
 PRUNE_SCHEDULE=$3
 
 # validate task name
-if [[ ! "$TASK_NAME" =~ ^[a-zA-Z-_0-9]+$ ]]; then
+if ! expr "$TASK_NAME" : '^[a-zA-Z-_0-9]+$' >/dev/null; then
     echo "Task name contains invalid characters" >&2
 fi
 
@@ -35,7 +35,6 @@ fi
 {
     echo "[Unit]"
     echo "Description=Peerstash Backup - $TASK_NAME"
-    echo ""
     echo ""
 
     echo "[Service]"
@@ -46,11 +45,14 @@ fi
     echo "[Unit]"
     echo "Description=Peerstash Backup - $TASK_NAME"
     echo ""
-    echo ""
 
     echo "[Timer]"
     echo "OnCalendar=$SCHEDULE"
     echo "RandomizedDelaySec=600"
+    echo ""
+
+    echo "[Install]"
+    echo "WantedBy=timers.target"
 } >> /etc/systemd/system/"peerstash_backup-$TASK_NAME.timer"
 
 
@@ -58,7 +60,6 @@ fi
 {
     echo "[Unit]"
     echo "Description=Peerstash Prune - $TASK_NAME"
-    echo ""
     echo ""
 
     echo "[Service]"
@@ -69,11 +70,14 @@ fi
     echo "[Unit]"
     echo "Description=Peerstash Prune - $TASK_NAME"
     echo ""
-    echo ""
 
     echo "[Timer]"
     echo "OnCalendar=$PRUNE_SCHEDULE"
     echo "RandomizedDelaySec=600"
+    echo ""
+
+    echo "[Install]"
+    echo "WantedBy=timers.target"
 } >> /etc/systemd/system/"peerstash_prune-$TASK_NAME.timer"
 
 # start services
