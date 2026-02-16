@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
         system(command); 
     }
     else {
-        fprintf(2, "Usage: /srv/peerstash/scripts/create_task TASK_NAME SCHEDULE PRUNE_SCHEDULE");
+        fprintf(stderr, "Usage: /srv/peerstash/scripts/create_task TASK_NAME SCHEDULE PRUNE_SCHEDULE\n");
         return 1;
     }
     return 0;
