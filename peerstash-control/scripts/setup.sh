@@ -72,7 +72,7 @@ if [ -f "$DB_PATH" ]; then
             echo "[$hostname]:$port $public_key"
             echo ""
         } >> /home/"$USERNAME"/.ssh/known_hosts
-    done < <(sqlite3 "$DB_FILE" "$QUERY")
+    done < <(sqlite3 "$DB_PATH" "SELECT * FROM hosts;")
     # start up existing backup tasks
     # TODO!
 else
