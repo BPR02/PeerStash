@@ -113,6 +113,12 @@ def schedule_backup(
     # generate name if not specified
     if not name:
         name = generate_sha1(f"{paths}{peer}{schedule}{retention}{datetime.now()}")
+    
+    # validate name
+    if len(name) > 127:
+        raise ValueError(f"Task name '{name}' is too long (127 character max)")
+    if not re.fullmatch("^[a-zA-Z-_0-9]+$", name):
+        raise ValueError(f"Task name '{name}' contains illegal characters")
 
     # validate include paths
     if isinstance(paths, str):
@@ -158,7 +164,7 @@ def schedule_backup(
     db_add_task(name, include, exclude, hostname, schedule, retention, prune_schedule)
 
     # create systemd task
-    # TODO!
+    subprocess.run(["/srv/peerstash/bin/create_task", name, schedule, prune_schedule], check=True)
 
     # return name and next elapse for output
     return (name, next_elapse)

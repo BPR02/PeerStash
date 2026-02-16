@@ -74,7 +74,9 @@ if [ -f "$DB_PATH" ]; then
         } >> /home/"$USERNAME"/.ssh/known_hosts
     done < <(sqlite3 "$DB_PATH" "SELECT * FROM hosts;")
     # start up existing backup tasks
-    # TODO!
+    while IFS='|' read -r name schedule prune_schedule; do
+        /srv/peerstash/bin/create_task "$name" "$schedule" "$prune_schedule"
+    done < <(sqlite3 "$DB_PATH" "SELECT name, schedule, prune_schedule FROM tasks;")
 else
     echo "No database found. Creating a new empty database..."
     sqlite3 "$DB_PATH" "CREATE TABLE hosts (\

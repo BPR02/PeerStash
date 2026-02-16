@@ -30,6 +30,17 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen -vv && \
     uv build --wheel -vv
 
+# build custom binaries
+FROM debian:trixie AS compiler
+
+# build create_task binary
+COPY ./scripts/*.c /srv/peerstash/scripts/
+RUN apt-get update && \
+    apt-get install -y build-essential && \
+    gcc -o /srv/peerstash/bin/create_task /srv/peerstash/scripts/create_task.c && \
+    chown root /srv/peerstash/bin/create_task && \
+    chmod 4755 /srv/peerstash/bin/create_task
+
 # build final image
 FROM python:3.13-slim AS final
 
@@ -52,8 +63,11 @@ RUN pip install --upgrade pip && \
     pip install -vv /app/*.whl && \
     rm -rf /app
 
+# copy create_task binary from compiler
+COPY --from=compiler /srv/peerstash/bin/create_task /srv/peerstash/bin/create_task
+
 # move scripts
-COPY ./scripts/ /srv/peerstash/scripts/
+COPY ./scripts/*.sh /srv/peerstash/scripts/
 RUN chmod -R 744 /srv/peerstash/scripts
 
 EXPOSE 22
