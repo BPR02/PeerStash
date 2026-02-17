@@ -35,6 +35,10 @@ case "$TASK_NAME" in
 esac
 
 # validate cron expressions (Whitelist: 0-9, space, *, /, ,, -)
+if [ "$(echo "$SCHEDULE" | awk '{print NF}')" -ne 5 ]; then
+    echo "Schedule must have exactly 5 fields (e.g., '0 3 * * *')" >&2
+    exit 1
+fi
 case "$SCHEDULE" in
     *[!0-9\ */,-]*|"")
         echo "Schedule contains invalid characters." >&2
@@ -42,6 +46,10 @@ case "$SCHEDULE" in
         ;;
 esac
 
+if [ "$(echo "$PRUNE_SCHEDULE" | awk '{print NF}')" -ne 5 ]; then
+    echo "Prune schedule must have exactly 5 fields (e.g., '0 4 * * *')" >&2
+    exit 1
+fi
 case "$PRUNE_SCHEDULE" in
     *[!0-9\ */,-]*|"")
         echo "Prune schedule contains invalid characters." >&2
