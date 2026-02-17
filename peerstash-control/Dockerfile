@@ -54,8 +54,13 @@ RUN apt-get update && \
         sqlite3 \
         restic \
         fuse \
+        cron \
+        supervisor \
         sudo && \
     rm -rf /var/lib/apt/lists/*
+
+# set up supervisord
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # install wheel from builder
 WORKDIR /app

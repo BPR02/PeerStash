@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-if [ -z $1 ] || [ -z $2 ] || [ -z $3 ]; then
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "Usage: $(basename "$0") TASK_NAME SCHEDULE PRUNE_SCHEDULE" >&2
     exit 1
 fi
@@ -27,62 +27,28 @@ SCHEDULE=$2
 PRUNE_SCHEDULE=$3
 
 # validate task name
-if ! expr "$TASK_NAME" : '^[a-zA-Z-_0-9]+$' >/dev/null; then
+if ! expr "$TASK_NAME" : '^[a-zA-Z0-9_-]+$' >/dev/null; then
     echo "Task name contains invalid characters" >&2
+    exit 1
 fi
 
-# create scheduled backup
-{
-    echo "[Unit]"
-    echo "Description=Peerstash Backup - $TASK_NAME"
-    echo ""
+# soft validate cron expression (error if any potentially malicious characters exist)
+if echo "$SCHEDULE" | grep -q "[a-z|&><]"; then
+    echo "Schedule contains invalid characters" >&2
+    exit 1
+fi
 
-    echo "[Service]"
-    echo "ExecStart=peerstash backup $TASK_NAME"
-} >> /etc/systemd/system/"peerstash_backup-$TASK_NAME.service"
+# soft validate cron expression (error if any potentially malicious characters exist)
+if echo "$PRUNE_SCHEDULE" | grep -q "[a-z|&><]"; then
+    echo "Prune schedule contains invalid characters" >&2
+    exit 1
+fi
 
-{
-    echo "[Unit]"
-    echo "Description=Peerstash Backup - $TASK_NAME"
-    echo ""
+# Define the cron jobs, randomize jobs by up to 10 minutes
+BACKUP_JOB="$SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && peerstash backup $TASK_NAME"
+PRUNE_JOB="$PRUNE_SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && peerstash prune $TASK_NAME"
 
-    echo "[Timer]"
-    echo "OnCalendar=$SCHEDULE"
-    echo "RandomizedDelaySec=600"
-    echo ""
+# Append the new jobs to the current crontab
+(crontab -l 2>/dev/null; echo "$BACKUP_JOB"; echo "$PRUNE_JOB") | crontab -
 
-    echo "[Install]"
-    echo "WantedBy=timers.target"
-} >> /etc/systemd/system/"peerstash_backup-$TASK_NAME.timer"
-
-
-# create scheduled prune
-{
-    echo "[Unit]"
-    echo "Description=Peerstash Prune - $TASK_NAME"
-    echo ""
-
-    echo "[Service]"
-    echo "ExecStart=peerstash prune $TASK_NAME"
-} >> /etc/systemd/system/"peerstash_prune-$TASK_NAME.service"
-
-{
-    echo "[Unit]"
-    echo "Description=Peerstash Prune - $TASK_NAME"
-    echo ""
-
-    echo "[Timer]"
-    echo "OnCalendar=$PRUNE_SCHEDULE"
-    echo "RandomizedDelaySec=600"
-    echo ""
-
-    echo "[Install]"
-    echo "WantedBy=timers.target"
-} >> /etc/systemd/system/"peerstash_prune-$TASK_NAME.timer"
-
-# start services
-systemctl daemon-reload
-systemctl start "peerstash_backup-$TASK_NAME"
-systemctl start "peerstash_prune-$TASK_NAME"
-systemctl enable "peerstash_backup-$TASK_NAME"
-systemctl enable "peerstash_prune-$TASK_NAME"
+echo "Successfully scheduled '$TASK_NAME' in crontab."

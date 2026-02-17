@@ -21,8 +21,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
+from cron_validator import CronValidator
 import restic
-from oncalendar import TzIterator
 
 from peerstash.core.db import (db_add_task, db_get_task, db_host_exists,
                                db_task_exists)
@@ -102,11 +102,11 @@ def schedule_backup(
     paths: str | list[str],
     peer: str,
     retention: int = 8,
-    schedule: str = "*-*-* 03:00:00",  # default to daily backups at 3AM (local time)
-    prune_schedule: str = "Sun *-*-* 04:00:00",  # default to weekly prunes at 4AM (local time)
+    schedule: str = "0 3 * * *",  # default to daily backups at 3AM (local time)
+    prune_schedule: str = "0 4 * * 0",  # default to weekly prunes at 4AM (local time)
     exclude_patterns: Optional[str | list[str]] = None,
     name: Optional[str] = None,
-) -> tuple[str, datetime]:
+) -> str:
     """
     Schedules a recurring backup.
     """
@@ -148,11 +148,8 @@ def schedule_backup(
         raise ValueError(f"Peer {peer} does not exist")
 
     # validate schedule
-    try:
-        iterator = TzIterator(schedule, datetime.now().astimezone())
-        next_elapse = next(iterator)
-    except Exception as e:
-        raise ValueError(f"schedule '{schedule}' is invalid ({e})")
+    if CronValidator.parse(schedule) is None:
+        raise ValueError(f"cron schedule '{schedule}' is invalid.")
 
     # validate retention amount
     if retention < 1:
@@ -167,7 +164,7 @@ def schedule_backup(
     subprocess.run(["/srv/peerstash/bin/create_task", name, schedule, prune_schedule], check=True)
 
     # return name and next elapse for output
-    return (name, next_elapse)
+    return name
 
 
 def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str, Any]:

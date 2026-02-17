@@ -34,13 +34,13 @@ def schedule(
         ),
     ] = ["."],
     schedule: str = typer.Option(
-        "*-*-* 03:00:00", help="An OnCalendar expression to schedule backups."
+        "0 3 * * *", help="A cron expression to schedule backups."
     ),
     retention: int = typer.Option(
         8, help="Number of backup snapshots to keep after pruning."
     ),
     prune_schedule: str = typer.Option(
-        "Sun *-*-* 04:00:00", help="An OnCalendar expression to schedule pruning."
+        "0 4 * * 0", help="A cron expression to schedule pruning."
     ),
     exclude: Annotated[
         list[str] | None,
@@ -57,11 +57,11 @@ def schedule(
             raise typer.Abort(
                 "At least one file or directory must be included. Use --include <directory or file name>"
             )
-        task_name, next_elapse = schedule_backup(
+        task_name = schedule_backup(
             include, peer, retention, schedule, prune_schedule, exclude, name
         )
         typer.secho(
-            f"Backup task '{task_name}' created. Next backup: {next_elapse}",
+            f"Backup task '{task_name}' created.",
             fg=typer.colors.GREEN,
         )
     except ValueError as e:
