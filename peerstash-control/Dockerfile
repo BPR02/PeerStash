@@ -33,14 +33,15 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # build custom binaries
 FROM debian:trixie AS compiler
 
-# build create_task binary
+# build custom binaries
 COPY ./scripts/*.c /srv/peerstash/scripts/
 RUN mkdir -p /srv/peerstash/bin && \
     apt-get update && \
     apt-get install -y build-essential && \
     gcc -o /srv/peerstash/bin/create_task /srv/peerstash/scripts/create_task.c && \
-    chown root /srv/peerstash/bin/create_task && \
-    chmod 4755 /srv/peerstash/bin/create_task
+    gcc -o /srv/peerstash/bin/sync_hosts /srv/peerstash/scripts/sync_hosts.c && \
+    chown root /srv/peerstash/bin/* && \
+    chmod 4755 /srv/peerstash/bin/*
 
 # build final image
 FROM python:3.13-slim AS final
@@ -70,7 +71,7 @@ RUN pip install --upgrade pip && \
     rm -rf /app
 
 # copy create_task binary from compiler
-COPY --from=compiler /srv/peerstash/bin/create_task /srv/peerstash/bin/create_task
+COPY --from=compiler /srv/peerstash/bin/* /srv/peerstash/bin/
 
 # move scripts
 COPY ./scripts/*.sh /srv/peerstash/scripts/

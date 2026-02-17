@@ -17,7 +17,7 @@
 import base64
 import json
 import os
-import shutil
+import subprocess
 from typing import Dict
 
 import requests
@@ -72,14 +72,7 @@ def _update_known_hosts(
             f.write(f"\n{host_entry}\n")
 
     # sync to root user
-    root_hosts_file = "/root/.ssh/known_hosts"
-    if os.path.abspath(hosts_file) != os.path.abspath(root_hosts_file):
-        try:
-            shutil.copy2(hosts_file, root_hosts_file)
-        except Exception as e:
-            raise Exception(
-                f"Could not copy known_hosts to root user ({root_hosts_file}): {e}"
-            )
+    subprocess.run("/srv/peerstash/bin/sync_hosts")
 
 
 def parse_share_key(share_key: str) -> Dict[str, str]:

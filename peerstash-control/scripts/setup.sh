@@ -106,9 +106,6 @@ fi
 # copy user ssh keys to root user
 cp /home/"$USERNAME"/.ssh/config /root/.ssh/config
 cp /home/"$USERNAME"/.ssh/known_hosts /root/.ssh/known_hosts
-chmod 755 /root
-chmod 755 /root/.ssh
-chmod 666 /root/.ssh/known_hosts
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 
 # get SFTPGo JWT
