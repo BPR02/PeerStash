@@ -17,6 +17,7 @@
 import os
 import re
 import subprocess
+from subprocess import CalledProcessError
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
@@ -161,7 +162,10 @@ def schedule_backup(
     db_add_task(name, include, exclude, hostname, schedule, retention, prune_schedule)
 
     # create systemd task
-    subprocess.run(["/srv/peerstash/bin/create_task", name, schedule, prune_schedule], check=True)
+    try:
+        subprocess.run(["/srv/peerstash/bin/create_task", name, schedule, prune_schedule], check=True)
+    except CalledProcessError as e:
+        raise RuntimeError(f"Failed to create backup task ({e})")
 
     # return name and next elapse for output
     return name

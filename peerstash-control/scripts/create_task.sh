@@ -22,33 +22,44 @@ if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     exit 1
 fi
 
-TASK_NAME=$1
-SCHEDULE=$2
-PRUNE_SCHEDULE=$3
+TASK_NAME="$1"
+SCHEDULE="$2"
+PRUNE_SCHEDULE="$3"
 
 # validate task name
-if ! expr "$TASK_NAME" : '^[a-zA-Z0-9_-]+$' >/dev/null; then
-    echo "Task name contains invalid characters" >&2
-    exit 1
-fi
+case "$TASK_NAME" in
+    *[!a-zA-Z0-9_-]*|"") 
+        echo "Task name contains invalid characters." >&2
+        exit 1 
+        ;;
+esac
 
-# soft validate cron expression (error if any potentially malicious characters exist)
-if echo "$SCHEDULE" | grep -q "[a-z|&><]"; then
-    echo "Schedule contains invalid characters" >&2
-    exit 1
-fi
+# validate cron expressions (Whitelist: 0-9, space, *, /, ,, -)
+case "$SCHEDULE" in
+    *[!0-9\ */,-]*|"")
+        echo "Schedule contains invalid characters." >&2
+        exit 1
+        ;;
+esac
 
-# soft validate cron expression (error if any potentially malicious characters exist)
-if echo "$PRUNE_SCHEDULE" | grep -q "[a-z|&><]"; then
-    echo "Prune schedule contains invalid characters" >&2
-    exit 1
-fi
+case "$PRUNE_SCHEDULE" in
+    *[!0-9\ */,-]*|"")
+        echo "Prune schedule contains invalid characters." >&2
+        exit 1
+        ;;
+esac
 
 # Define the cron jobs, randomize jobs by up to 10 minutes
 BACKUP_JOB="$SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && peerstash backup $TASK_NAME"
 PRUNE_JOB="$PRUNE_SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && peerstash prune $TASK_NAME"
 
-# Append the new jobs to the current crontab
-(crontab -l 2>/dev/null; echo "$BACKUP_JOB"; echo "$PRUNE_JOB") | crontab -
+# Update crontab (removes old entries for this task to prevent duplicates)
+(
+    # Get current crontab, hide errors if empty, and strip out existing jobs for this task
+    crontab -l 2>/dev/null | grep -v "peerstash .* $TASK_NAME$"
+    # Append the new jobs
+    echo "$BACKUP_JOB"
+    echo "$PRUNE_JOB"
+) | crontab -
 
 echo "Successfully scheduled '$TASK_NAME' in crontab."
