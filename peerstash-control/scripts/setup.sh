@@ -158,6 +158,9 @@ echo "export DB_PATH=/var/lib/peerstash/peerstash.db" >> /home/"$USERNAME"/.bash
 # clear password environment variable
 unset PASSWORD
 
+# set up logging
+touch /var/log/peerstash-cron.log
+
 # start supervisord management
 echo "Starting SSH service for remote machines..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
