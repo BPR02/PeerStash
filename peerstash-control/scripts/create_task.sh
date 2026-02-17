@@ -62,12 +62,15 @@ BACKUP_JOB="$SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1
 PRUNE_JOB="$PRUNE_SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && peerstash prune $TASK_NAME"
 
 # Update crontab (removes old entries for this task to prevent duplicates)
-(
+if ! (
     # Get current crontab, hide errors if empty, and strip out existing jobs for this task
     crontab -l 2>/dev/null | grep -v "peerstash .* $TASK_NAME$"
     # Append the new jobs
     echo "$BACKUP_JOB"
     echo "$PRUNE_JOB"
-) | crontab -
+) | crontab - ; then
+    echo "Failed to schedule '$TASK_NAME' in crontab." >&2
+    exit 1
+fi
 
 echo "Successfully scheduled '$TASK_NAME' in crontab."
