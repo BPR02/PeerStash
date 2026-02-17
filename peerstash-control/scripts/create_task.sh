@@ -26,6 +26,8 @@ TASK_NAME="$1"
 SCHEDULE="$2"
 PRUNE_SCHEDULE="$3"
 
+PEERSTASH_BIN="/usr/local/bin/peerstash"
+
 # validate task name
 case "$TASK_NAME" in
     *[!a-zA-Z0-9_-]*|"") 
@@ -58,8 +60,8 @@ case "$PRUNE_SCHEDULE" in
 esac
 
 # Define the cron jobs, randomize jobs by up to 10 minutes
-BACKUP_JOB="$SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && peerstash backup $TASK_NAME"
-PRUNE_JOB="$PRUNE_SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && peerstash prune $TASK_NAME"
+BACKUP_JOB="$SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && $PEERSTASH_BIN backup $TASK_NAME"
+PRUNE_JOB="$PRUNE_SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && $PEERSTASH_BIN prune $TASK_NAME"
 
 # Update crontab (removes old entries for this task to prevent duplicates)
 if ! (
