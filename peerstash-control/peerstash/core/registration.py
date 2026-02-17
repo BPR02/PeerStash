@@ -131,8 +131,8 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
 
     # update hosts table
     if not allow_update:
-        db_add_host(username, user_data["server_public_key"])
+        db_add_host(f"peerstash-{username}", user_data["server_public_key"])
     else:
-        db_update_host(username, user_data["server_public_key"])
+        db_update_host(f"peerstash-{username}", user_data["server_public_key"])
 
     return True
