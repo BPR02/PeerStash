@@ -59,8 +59,8 @@ fi
     echo "" 
     echo "Host *" 
     echo "	IdentityFile /home/"$USERNAME"/.ssh/id_ed25519"
-} >> /home/"$USERNAME"/.ssh/config
-touch /home/"$USERNAME"/.ssh/known_hosts
+} > /home/"$USERNAME"/.ssh/config
+echo "" > /home/"$USERNAME"/.ssh/known_hosts
 
 # Check if the database exists
 if [ -f "$DB_PATH" ]; then
