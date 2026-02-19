@@ -39,6 +39,7 @@ RUN mkdir -p /srv/peerstash/bin && \
     apt-get update && \
     apt-get install -y build-essential && \
     gcc -o /srv/peerstash/bin/create_task /srv/peerstash/scripts/create_task.c && \
+    gcc -o /srv/peerstash/bin/remove_task /srv/peerstash/scripts/remove_task.c && \
     gcc -o /srv/peerstash/bin/sync_hosts /srv/peerstash/scripts/sync_hosts.c && \
     chown root /srv/peerstash/bin/* && \
     chmod 4755 /srv/peerstash/bin/*

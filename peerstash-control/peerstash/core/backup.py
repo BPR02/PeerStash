@@ -33,6 +33,7 @@ from peerstash.core.db import (
     db_host_exists,
     db_task_exists,
     db_update_task,
+    db_delete_task,
 )
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import generate_sha1
@@ -272,3 +273,23 @@ def prune_repo(
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/tmp/peerstash/password.txt"
     restic.forget(keep_last=retention, prune=True)
+
+
+def remove_schedule(name: str) -> None:
+    """
+    Removes a backup task from the scheduler.
+    """
+    # pull info from DB
+    task = db_get_task(name)
+    if not task:
+        raise ValueError(f"Task with name '{name}' not in DB")
+
+    # remove from crontab
+    try:
+        subprocess.run(["/srv/peerstash/bin/remove_task", name], check=True)
+    except CalledProcessError as e:
+        raise RuntimeError(f"Failed to remove task '{name}' ({e})")
+    
+    # remove from db
+    if not db_delete_task(name):
+        raise RuntimeError(f"Failed to remove task '{name}' from database")

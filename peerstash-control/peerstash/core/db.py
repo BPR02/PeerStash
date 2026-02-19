@@ -142,3 +142,12 @@ def db_update_task(name: str, data: TaskUpdate) -> Optional[TaskRead]:
         return TaskRead(
             **{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())}
         )
+
+
+def db_delete_task(name: str) -> bool:
+    """Removes the task from the DB."""
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM tasks WHERE name = ? RETURNING condition", (name,))
+        res = cursor.fetchone()
+        return res is not None

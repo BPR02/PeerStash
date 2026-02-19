@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Peerstash
 # Copyright (C) 2026 BPR02
 
@@ -14,22 +16,29 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import typer
 
-from peerstash.cli import (
-    cmd_backup,
-    cmd_cancel,
-    cmd_id,
-    cmd_prune,
-    cmd_register,
-    cmd_schedule,
-)
+if [ -z "$1" ]; then
+    echo "Usage: $(basename "$0") TASK_NAME" >&2
+    exit 1
+fi
 
-# Create the main cli app
-cli = typer.Typer(help="PeerStash CLI Tool")
-cli.command(name="id")(cmd_id.print_id)
-cli.command(name="register")(cmd_register.register_peer)
-cli.command(name="schedule")(cmd_schedule.schedule)
-cli.command(name="backup")(cmd_backup.backup)
-cli.command(name="prune")(cmd_prune.prune)
-cli.command(name="cancel")(cmd_cancel.remove_schedule)
+TASK_NAME="$1"
+
+# validate task name
+case "$TASK_NAME" in
+    *[!a-zA-Z0-9_-]*|"") 
+        echo "Task name contains invalid characters." >&2
+        exit 1 
+        ;;
+esac
+
+# Update crontab
+if ! (
+    # Get current crontab, hide errors if empty, and strip out existing jobs for this task
+    crontab -l 2>/dev/null | grep -v "peerstash .* tester [0-9]* >> /var/log/peerstash-cron.log 2>&1$"
+) | crontab - ; then
+    echo "Failed to remove '$TASK_NAME' from crontab." >&2
+    exit 1
+fi
+
+echo "Successfully removed '$TASK_NAME' from crontab."
