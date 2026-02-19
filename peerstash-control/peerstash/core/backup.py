@@ -114,7 +114,7 @@ def schedule_backup(
     # generate name if not specified
     if not name:
         name = generate_sha1(f"{paths}{peer}{schedule}{retention}{datetime.now()}")
-    
+
     # validate name
     if len(name) > 127:
         raise ValueError(f"Task name '{name}' is too long (127 character max)")
@@ -163,7 +163,10 @@ def schedule_backup(
 
     # create systemd task
     try:
-        subprocess.run(["/srv/peerstash/bin/create_task", name, schedule, prune_schedule], check=True)
+        subprocess.run(
+            ["/srv/peerstash/bin/create_task", name, schedule, prune_schedule],
+            check=True,
+        )
     except CalledProcessError as e:
         raise RuntimeError(f"Failed to create backup task ({e})")
 
@@ -177,10 +180,12 @@ def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str
     """
     # initialize repo
     if init:
+        print("First run, initializing repo...")
         _init_repo(name)
 
     # dry run first to see if there's enough storage
     if not dry_run:
+        print("Verifying free space...")
         free_space, backup_size = _verify_backup_size(name)
         if free_space > backup_size:
             if init:
@@ -188,6 +193,7 @@ def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str
                     f"Not enough storage to create initial backup for task '{name}' (only {free_space} bytes available, but size is {backup_size})"
                 )
             # attempt to prune, leaving only 1 snapshot
+            print("Not enough free space, attempting to prune...")
             prune_repo(name, 1)
             free_space_2, backup_size_2 = _verify_backup_size(name)
             if free_space_2 > backup_size_2:
@@ -205,6 +211,7 @@ def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str
     exclude_patterns = task.exclude.split("|") if task.exclude else None
 
     # run backup
+    print(f"Running backup task '{task.name}'...")
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/tmp/peerstash/password.txt"
     res = restic.backup(
@@ -215,6 +222,7 @@ def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str
         skip_if_unchanged=True,
     )
 
+    print(f"Checking repo '{task.name}'...")
     if not restic.check(read_data=True):
         raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
 
@@ -233,6 +241,7 @@ def prune_repo(name: str, forced_retention: Optional[int] = None) -> None:
     retention = forced_retention if forced_retention else task.retention
 
     # run forget and prune
+    print(f"Running prune for task '{task.name}' (keeping {retention} snapshots)...")
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/tmp/peerstash/password.txt"
     restic.forget(keep_last=retention, prune=True)
