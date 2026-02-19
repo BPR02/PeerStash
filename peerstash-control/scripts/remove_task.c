@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 int main(int argc, char *argv[]) {
-    if (argc == 4) {
+    if (argc == 2) {
         setuid(0);
         char command[255];
         sprintf(command, "/srv/peerstash/scripts/remove_task.sh \"%s\"", argv[1]); 
