@@ -43,36 +43,36 @@ def list(
         if not long:
             typer.secho(
                 f"{task.name}",
-                fg=(typer.colors.BLUE if task.is_locked else typer.colors.GREEN),
+                fg=(typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE),
             )
             continue
 
         if not human_readable:
             parsed: str = ""
-            parsed += "[X]\t" if task.is_locked else "\t"
+            parsed += "[X]" if task.is_locked else ""
             parsed += task.name
-            parsed += f"|\t{task.hostname.strip('peerstash-')}"
-            parsed += f'\t"{task.schedule}"'
-            parsed += f"\t+[{task.include}]"
-            parsed += f"\t-[{task.exclude}]"
-            parsed += f'\t"{task.prune_schedule}"'
-            parsed += f"\t{task.retention}"
+            parsed += f" | {task.hostname.removeprefix('peerstash-')}"
+            parsed += f' "{task.schedule}"'
+            parsed += f" +[{task.include}]"
+            parsed += f" -[{task.exclude}]"
+            parsed += f' "{task.prune_schedule}"'
+            parsed += f" {task.retention}"
             if all:
-                parsed += f"\t{task.last_run} ({task.last_exit_code})"
-                parsed += f"\t[{task.last_snapshot_id}]"
+                parsed += f" {task.last_run} ({task.last_exit_code})"
+                parsed += f" [{task.last_snapshot_id}]"
             typer.secho(
                 f"{parsed}",
-                fg=(typer.colors.BLUE if task.is_locked else typer.colors.GREEN),
+                fg=(typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE),
             )
             continue
 
         typer.secho(
             f'{task.name}{" [LOCKED]" if all and task.is_locked else ""}',
-            fg=(typer.colors.BLUE if task.is_locked else typer.colors.GREEN),
+            fg=(typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE),
         )
         typer.secho(
-            f'    peer=       {task.hostname.strip("peerstash-")}',
-            fg=typer.colors.WHITE,
+            f'    peer=       {task.hostname.removeprefix("peerstash-")}',
+            fg=typer.colors.BRIGHT_WHITE,
         )
         typer.secho(f"    schedule=   {task.schedule}", fg=typer.colors.CYAN)
         typer.secho(f"    includes=   {task.include}", fg=typer.colors.BRIGHT_GREEN)
@@ -88,5 +88,5 @@ def list(
             )
             typer.secho(
                 f"    last id=    {task.last_snapshot_id}",
-                fg=typer.colors.BRIGHT_WHITE,
+                fg=typer.colors.MAGENTA,
             )
