@@ -16,7 +16,9 @@
 
 import os
 import re
+import random
 import subprocess
+import time
 from subprocess import CalledProcessError
 from datetime import datetime
 from pathlib import Path
@@ -182,10 +184,13 @@ def schedule_backup(
     return name
 
 
-def run_backup(name: str, dry_run: bool = False) -> dict[str, Any]:
+def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, Any]:
     """
     Runs a backup. Must be run with root permissions to access password file.
     """
+    # randomly wait up to <offset> minutes
+    time.sleep(random.randint(0, offset * 60))
+
     # pull info from DB
     task = db_get_task(name)
     if not task:

@@ -60,8 +60,8 @@ case "$PRUNE_SCHEDULE" in
 esac
 
 # Define the cron jobs, randomize jobs by up to 10 minutes
-BACKUP_JOB="$SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && PEERSTASH_USER=$PEERSTASH_USER; $PEERSTASH_BIN backup $TASK_NAME >> /var/log/peerstash-cron.log 2>&1"
-PRUNE_JOB="$PRUNE_SCHEDULE sleep \$(od -vAn -N2 -tu2 < /dev/urandom | awk '{print \$1 % 600}') && PEERSTASH_USER=$PEERSTASH_USER; $PEERSTASH_BIN prune $TASK_NAME >> /var/log/peerstash-cron.log 2>&1"
+BACKUP_JOB="$SCHEDULE PEERSTASH_USER=$PEERSTASH_USER $PEERSTASH_BIN backup $TASK_NAME 10 >> /var/log/peerstash-cron.log 2>&1"
+PRUNE_JOB="$PRUNE_SCHEDULE PEERSTASH_USER=$PEERSTASH_USER $PEERSTASH_BIN prune $TASK_NAME 10 >> /var/log/peerstash-cron.log 2>&1"
 
 # Update crontab (removes old entries for this task to prevent duplicates)
 if ! (
