@@ -219,7 +219,10 @@ def run_backup(name: str, dry_run: bool = False) -> dict[str, Any]:
     exclude_patterns = task.exclude.split("|") if task.exclude else None
 
     # run backup
-    print(f"Running backup task '{task.name}'...")
+    if dry_run:
+        print(f"Calculating added bytes for backup task '{task.name}'...")
+    else:
+        print(f"Running backup task '{task.name}'...")
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/tmp/peerstash/password.txt"
     res = restic.backup(
@@ -230,12 +233,13 @@ def run_backup(name: str, dry_run: bool = False) -> dict[str, Any]:
         skip_if_unchanged=True,
     )
 
-    print(f"Checking repo '{task.name}'...")
-    if not restic.check(read_data=True):
-        raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
-    print(f"Repo healthy. Backup complete.")
+    if not dry_run:
+        print(f"Checking repo '{task.name}'...")
+        if not restic.check(read_data=True):
+            raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
+        print(f"Repo for healthy. Backup complete.")
 
-    db_update_task(task.name, TaskUpdate(last_run=datetime.now()))
+        db_update_task(task.name, TaskUpdate(last_run=datetime.now()))
 
     return res
 
