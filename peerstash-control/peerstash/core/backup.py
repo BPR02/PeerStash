@@ -251,10 +251,15 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
     return res
 
 
-def prune_repo(name: str, forced_retention: Optional[int] = None) -> None:
+def prune_repo(
+    name: str, forced_retention: Optional[int] = None, offset: int = 0
+) -> None:
     """
     Prunes a repo according to retention policy. Must be run with root permissions to access password file.
     """
+    # randomly wait up to <offset> minutes
+    time.sleep(random.randint(0, offset * 60))
+
     # pull info from DB
     task = db_get_task(name)
     if not task:

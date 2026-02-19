@@ -22,12 +22,15 @@ app = typer.Typer()
 
 
 @app.command(name="prune")
-def prune(name: str = typer.Argument(..., help="Name of the backup task to prune.")):
+def prune(
+    name: str = typer.Argument(..., help="Name of the backup task to prune."),
+    offset: int = typer.Argument(0, help="Random delay in minutes."),
+):
     """
     Prunes the repo for a backup task. Respects the retention set by the task. Requires root permissions.
     """
     try:
-        prune_repo(name)
+        prune_repo(name, offset=offset)
         typer.secho(
             f"Repository for task '{name}' has been pruned.",
             fg=typer.colors.GREEN,
