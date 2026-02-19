@@ -22,17 +22,12 @@ app = typer.Typer()
 
 
 @app.command(name="backup")
-def backup(
-    name: str = typer.Argument(..., help="Name of the backup task to run."),
-    init: bool = typer.Option(
-        False, "--init", "-i", help="Initializes the repository before backing up."
-    ),
-):
+def backup(name: str = typer.Argument(..., help="Name of the backup task to run.")):
     """
     Runs a backup task. Requires root permissions.
     """
     try:
-        run_backup(name, init=init)
+        run_backup(name)
         typer.secho(
             f"Backup task '{name}' completed.",
             fg=typer.colors.GREEN,

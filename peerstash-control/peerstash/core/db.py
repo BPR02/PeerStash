@@ -16,7 +16,7 @@
 
 import os
 import sqlite3
-from typing import Optional
+from typing import Optional, Any
 
 from peerstash.core.db_schemas import *
 
@@ -109,6 +109,33 @@ def db_get_task(name: str) -> Optional[TaskRead]:
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM tasks WHERE name=?", (name,))
+        res = cursor.fetchone()
+        if not res:
+            return None
+        return TaskRead(
+            **{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())}
+        )
+
+
+def db_update_task(name: str, data: TaskUpdate) -> Optional[TaskRead]:
+    """Updates the task in the DB."""
+    model_dump: dict[str, Any] = data.model_dump(
+        exclude_none=True, exclude_defaults=True
+    )
+    if not model_dump:
+        return db_get_task(name)
+    fields = []
+    values = list(model_dump.values())
+    values.append(name)
+    for key in model_dump.keys():
+        fields.append(f"{key} = %s")
+
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"UPDATE tasks SET {', '.join(fields)} WHERE name = %s RETURNING *;",
+            values,
+        )
         res = cursor.fetchone()
         if not res:
             return None

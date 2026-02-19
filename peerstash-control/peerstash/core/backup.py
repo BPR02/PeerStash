@@ -25,8 +25,14 @@ from typing import Any, Optional
 from cron_validator import CronValidator
 import restic
 
-from peerstash.core.db import (db_add_task, db_get_task, db_host_exists,
-                               db_task_exists)
+from peerstash.core.db import (
+    db_add_task,
+    db_get_task,
+    db_host_exists,
+    db_task_exists,
+    db_update_task,
+)
+from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import generate_sha1
 
 USER = os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
@@ -174,12 +180,19 @@ def schedule_backup(
     return name
 
 
-def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str, Any]:
+def run_backup(name: str, dry_run: bool = False) -> dict[str, Any]:
     """
     Runs a backup. Must be run with root permissions to access password file.
     """
+    # pull info from DB
+    task = db_get_task(name)
+    if not task:
+        raise ValueError(f"Task with name '{name}' not in DB")
+
     # initialize repo
-    if init:
+    init = False
+    if task.last_run is None:
+        init = True
         print("First run, initializing repo...")
         _init_repo(name)
 
@@ -201,11 +214,6 @@ def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str
                     f"Not enough storage to complete task '{name}' (only {free_space_2} bytes available, but size is {backup_size_2})"
                 )
 
-    # pull info from DB
-    task = db_get_task(name)
-    if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
-
     # parse include and exclude delimited strings
     paths = task.include.split("|")
     exclude_patterns = task.exclude.split("|") if task.exclude else None
@@ -225,6 +233,8 @@ def run_backup(name: str, dry_run: bool = False, init: bool = False) -> dict[str
     print(f"Checking repo '{task.name}'...")
     if not restic.check(read_data=True):
         raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
+
+    db_update_task(task.name, TaskUpdate(last_run=datetime.now()))
 
     return res
 
