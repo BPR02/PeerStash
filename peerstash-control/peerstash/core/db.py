@@ -128,12 +128,12 @@ def db_update_task(name: str, data: TaskUpdate) -> Optional[TaskRead]:
     values = list(model_dump.values())
     values.append(name)
     for key in model_dump.keys():
-        fields.append(f"{key} = %s")
+        fields.append(f"{key} = ?")
 
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute(
-            f"UPDATE tasks SET {', '.join(fields)} WHERE name = %s RETURNING *;",
+            f"UPDATE tasks SET {', '.join(fields)} WHERE name = ? RETURNING *;",
             values,
         )
         res = cursor.fetchone()

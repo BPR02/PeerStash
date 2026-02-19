@@ -233,6 +233,7 @@ def run_backup(name: str, dry_run: bool = False) -> dict[str, Any]:
     print(f"Checking repo '{task.name}'...")
     if not restic.check(read_data=True):
         raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
+    print(f"Repo healthy. Backup complete.")
 
     db_update_task(task.name, TaskUpdate(last_run=datetime.now()))
 
