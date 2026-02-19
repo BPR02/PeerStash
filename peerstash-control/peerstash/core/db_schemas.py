@@ -35,7 +35,7 @@ class HostRead(HostCreate):
     last_seen: Optional[datetime]
 
 
-class HostUpdate(HostBase):
+class HostUpdate(BaseModel):
     port: Optional[int] = None
     last_seen: Optional[datetime] = None
 
@@ -63,14 +63,14 @@ class TaskRead(TaskCreate):
     is_locked: bool
 
 
-class TaskUpdate(TaskBase):
-    include: Optional[str]
-    exclude: Optional[str]
-    hostname: Optional[str]
-    schedule: Optional[str]
-    retention: Optional[int]
-    prune_schedule: Optional[str]
-    last_run: Optional[datetime]
-    last_exit_code: Optional[int]
-    last_snapshot_id: Optional[str]
-    is_locked: Optional[bool]
+class TaskUpdate(BaseModel):
+    include: Optional[str] = None
+    exclude: Optional[str] = None
+    hostname: Optional[str] = None
+    schedule: Optional[str] = None
+    retention: Optional[int] = None
+    prune_schedule: Optional[str] = None
+    last_run: Optional[datetime] = None
+    last_exit_code: Optional[int] = None
+    last_snapshot_id: Optional[str] = None
+    is_locked: Optional[bool] = None
