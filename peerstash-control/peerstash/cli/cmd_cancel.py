@@ -22,7 +22,7 @@ app = typer.Typer()
 
 
 @app.command(name="cancel")
-def backup(
+def cancel(
     name: str = typer.Argument(..., help="Name of the backup task to remove.")
 ):
     """
