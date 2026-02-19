@@ -191,7 +191,7 @@ def run_backup(name: str, dry_run: bool = False) -> dict[str, Any]:
 
     # initialize repo
     init = False
-    if task.last_run is None:
+    if task.last_run is None and not dry_run:
         init = True
         print("First run, initializing repo...")
         _init_repo(name)
