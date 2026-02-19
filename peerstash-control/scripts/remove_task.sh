@@ -35,7 +35,7 @@ esac
 # Update crontab
 if ! (
     # Get current crontab, hide errors if empty, and strip out existing jobs for this task
-    crontab -l 2>/dev/null | grep -v "peerstash .* tester [0-9]* >> /var/log/peerstash-cron.log 2>&1$"
+    crontab -l 2>/dev/null | grep -v "peerstash .* $TASK_NAME [0-9]* >> /var/log/peerstash-cron.log 2>&1$"
 ) | crontab - ; then
     echo "Failed to remove '$TASK_NAME' from crontab." >&2
     exit 1
