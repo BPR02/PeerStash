@@ -151,3 +151,15 @@ def db_delete_task(name: str) -> bool:
         cursor.execute("DELETE FROM tasks WHERE name = ? RETURNING name", (name,))
         res = cursor.fetchone()
         return res is not None
+
+
+def db_list_tasks() -> list[TaskRead]:
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tasks")
+        results = cursor.fetchall()
+
+    return [
+        TaskRead(**{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())})
+        for res in results
+    ]

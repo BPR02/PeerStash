@@ -20,6 +20,7 @@ from peerstash.cli import (
     cmd_backup,
     cmd_cancel,
     cmd_id,
+    cmd_list,
     cmd_prune,
     cmd_register,
     cmd_schedule,
@@ -33,3 +34,4 @@ cli.command(name="schedule")(cmd_schedule.schedule)
 cli.command(name="backup")(cmd_backup.backup)
 cli.command(name="prune")(cmd_prune.prune)
 cli.command(name="cancel")(cmd_cancel.cancel)
+cli.command(name="list")(cmd_list.list)
