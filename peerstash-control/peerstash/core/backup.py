@@ -35,7 +35,9 @@ from peerstash.core.db import (
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import generate_sha1
 
-USER = os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
+USER = os.getenv("PEERSTASH_USER") or (
+    os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
+)
 SFTP_PORT = 2022
 
 
