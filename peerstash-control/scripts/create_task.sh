@@ -66,7 +66,7 @@ PRUNE_JOB="$PRUNE_SCHEDULE PEERSTASH_USER=$PEERSTASH_USER $PEERSTASH_BIN prune $
 # Update crontab (removes old entries for this task to prevent duplicates)
 if ! (
     # Get current crontab, hide errors if empty, and strip out existing jobs for this task
-    crontab -l 2>/dev/null | grep -v "peerstash .* $TASK_NAME$"
+    crontab -l 2>/dev/null | grep -v "peerstash .* tester [0-9]* >> /var/log/peerstash-cron.log 2>&1$"
     # Append the new jobs
     echo "$BACKUP_JOB"
     echo "$PRUNE_JOB"
