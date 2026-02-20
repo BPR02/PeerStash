@@ -78,7 +78,7 @@ def db_add_task(
     exclude: Optional[str],
     hostname: str,
     schedule: str,
-    retention: int,
+    retention: str,
     prune_schedule: str,
 ):
     """Adds the backup task to the DB."""

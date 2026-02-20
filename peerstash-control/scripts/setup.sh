@@ -92,7 +92,7 @@ else
         exclude TEXT,\
         hostname TEXT NOT NULL,\
         schedule TEXT NOT NULL,\
-        retention INT NOT NULL,\
+        retention TEXT NOT NULL,\
         prune_schedule TEXT NOT NULL,\
         last_run DATETIME,\
         last_exit_code INTEGER,\

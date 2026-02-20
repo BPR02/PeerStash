@@ -36,8 +36,9 @@ def schedule(
     schedule: str = typer.Option(
         "0 3 * * *", help="A cron expression to schedule backups."
     ),
-    retention: int = typer.Option(
-        8, help="Number of backup snapshots to keep after pruning."
+    retention: str = typer.Option(
+        "2w2d3r",
+        help="Retention policy for pruning. (e.g. '1y2m3w4d5h6r' = keep 1 from the last year, 1/mo for the last 2 months, ... , 1/hr for the last 5 hours, the 6 most recent).",
     ),
     prune_schedule: str = typer.Option(
         "0 4 * * 0", help="A cron expression to schedule pruning."

@@ -36,7 +36,7 @@ from peerstash.core.db import (
     db_delete_task,
 )
 from peerstash.core.db_schemas import TaskUpdate
-from peerstash.core.utils import generate_sha1
+from peerstash.core.utils import generate_sha1, Retention
 
 USER = os.getenv("PEERSTASH_USER") or (
     os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
@@ -113,7 +113,7 @@ def _init_repo(name: str) -> None:
 def schedule_backup(
     paths: str | list[str],
     peer: str,
-    retention: int = 8,
+    retention: str = "2w2d3r",  # default to 2 weekly, 2 daily, and 3 most recent
     schedule: str = "0 3 * * *",  # default to daily backups at 3AM (local time)
     prune_schedule: str = "0 4 * * 0",  # default to weekly prunes at 4AM (local time)
     exclude_patterns: Optional[str | list[str]] = None,
@@ -164,8 +164,10 @@ def schedule_backup(
         raise ValueError(f"cron schedule '{schedule}' is invalid.")
 
     # validate retention amount
-    if retention < 1:
-        raise ValueError(f"retention must be 1 or more")
+    try:
+        _ = Retention(retention)
+    except ValueError as e:
+        raise ValueError(f"Retention invalid: {e}. E.g. '1y2m3w4d5h6r'")
 
     # insert into db
     if db_task_exists(name):
@@ -215,7 +217,7 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
                 )
             # attempt to prune, leaving only 1 snapshot
             print("Not enough free space, attempting to prune...")
-            prune_repo(name, 1)
+            prune_repo(name, "1r")
             free_space_2, backup_size_2 = _verify_backup_size(name)
             if free_space_2 > backup_size_2:
                 raise RuntimeError(
@@ -253,7 +255,7 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
 
 
 def prune_repo(
-    name: str, forced_retention: Optional[int] = None, offset: int = 0
+    name: str, forced_retention: Optional[str] = None, offset: int = 0
 ) -> None:
     """
     Prunes a repo according to retention policy. Must be run with root permissions to access password file.
@@ -266,13 +268,23 @@ def prune_repo(
     if not task:
         raise ValueError(f"Task with name '{name}' not in DB")
 
+    # get retention policy
     retention = forced_retention if forced_retention else task.retention
+    policy = Retention(retention)
 
     # run forget and prune
     print(f"Running prune for task '{task.name}' (keeping {retention} snapshots)...")
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/tmp/peerstash/password.txt"
-    restic.forget(keep_last=retention, prune=True)
+    restic.forget(
+        keep_last=policy.recent,
+        keep_hourly=policy.hourly,
+        keep_daily=policy.daily,
+        keep_weekly=policy.weekly,
+        keep_monthly=policy.monthly,
+        keep_yearly=policy.yearly,
+        prune=True,
+    )
 
 
 def remove_schedule(name: str) -> None:
@@ -289,7 +301,7 @@ def remove_schedule(name: str) -> None:
         subprocess.run(["/srv/peerstash/bin/remove_task", name], check=True)
     except CalledProcessError as e:
         raise RuntimeError(f"Failed to remove task '{name}' ({e})")
-    
+
     # remove from db
     if not db_delete_task(name):
         raise RuntimeError(f"Failed to remove task '{name}' from database")

@@ -52,7 +52,7 @@ class TaskCreate(TaskBase):
     exclude: Optional[str]
     hostname: str
     schedule: str
-    retention: int
+    retention: str
     prune_schedule: str
 
 
@@ -68,7 +68,7 @@ class TaskUpdate(BaseModel):
     exclude: Optional[str] = None
     hostname: Optional[str] = None
     schedule: Optional[str] = None
-    retention: Optional[int] = None
+    retention: Optional[str] = None
     prune_schedule: Optional[str] = None
     last_run: Optional[datetime] = None
     last_exit_code: Optional[int] = None

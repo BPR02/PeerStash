@@ -16,7 +16,10 @@
 
 import hashlib
 import os
+import re
 from typing import Optional
+
+from pydantic import BaseModel
 
 
 def get_file_content(filepath: str) -> Optional[str]:
@@ -42,3 +45,34 @@ def generate_sha1(input: str) -> str:
 
     # return the hexadecimal digest of the hash
     return sha1_hash.hexdigest()
+
+
+class Retention(BaseModel):
+    def __init__(self, input: str):
+        values = [int(x) for x in (re.split(r"[a-z]", input)[:-1])]
+        units: list[str] = re.split(r"[0-9]+", input)[1:]
+
+        mapping = zip(values, units)
+        for value, unit in mapping:
+            match unit:
+                case "y":
+                    self.yearly = value
+                case "m":
+                    self.monthly = value
+                case "w":
+                    self.weekly = value
+                case "d":
+                    self.daily = value
+                case "h":
+                    self.hourly = value
+                case "r":
+                    self.recent = value
+                case _:
+                    raise ValueError(f"invalid input string '{input}'")
+
+    recent: Optional[int] = None
+    hourly: Optional[int] = None
+    daily: Optional[int] = None
+    weekly: Optional[int] = None
+    monthly: Optional[int] = None
+    yearly: Optional[int] = None
