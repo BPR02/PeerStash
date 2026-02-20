@@ -37,7 +37,7 @@ def schedule(
         "0 3 * * *", help="A cron expression to schedule backups."
     ),
     retention: str = typer.Option(
-        "2m2d",
+        "4w3d",
         help="Retention policy for pruning. (e.g. '1y2m3w4d5h6r' = keep 1 from the last year, 1/mo for the last 2 months, ... , 1/hr for the last 5 hours, the 6 most recent).",
     ),
     prune_schedule: str = typer.Option(

@@ -113,7 +113,7 @@ def _init_repo(name: str) -> None:
 def schedule_backup(
     paths: str | list[str],
     peer: str,
-    retention: str = "2m2d",  # default to 2 monthly, 2 daily
+    retention: str = "4w3d",  # default to 4 weekly, 3 daily
     schedule: str = "0 3 * * *",  # default to daily backups at 3AM (local time)
     prune_schedule: str = "0 4 * * 0",  # default to weekly prunes at 4AM (local time)
     exclude_patterns: Optional[str | list[str]] = None,
