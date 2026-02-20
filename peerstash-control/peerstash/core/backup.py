@@ -25,6 +25,8 @@ from pathlib import Path
 from typing import Any, Optional
 
 from cron_validator import CronValidator
+
+import paramiko
 import restic
 
 from peerstash.core.db import (
@@ -287,6 +289,32 @@ def prune_repo(
     )
 
 
+def _sftp_recursive_remove(hostname: str, path: str):
+    def _rm(path: str):
+        files = sftp.listdir(path)
+
+        for f in files:
+            filepath = os.path.join(path, f)
+            try:
+                sftp.remove(filepath)
+            except IOError:
+                _rm(filepath)
+
+        sftp.rmdir(path)
+
+    if not USER:
+        raise ValueError("Unknown USER")
+
+    ssh = paramiko.SSHClient()
+    ssh.load_host_keys(f"/home/{USER}/.ssh/known_hosts")
+    ssh.connect(
+        hostname, port=2022, username=USER, key_filename=f"/home/{USER}/.ssh/id_ed25519"
+    )
+    sftp = ssh.open_sftp()
+
+    _rm(path)
+
+
 def remove_schedule(name: str) -> None:
     """
     Removes a backup task from the scheduler.
@@ -305,3 +333,6 @@ def remove_schedule(name: str) -> None:
     # remove from db
     if not db_delete_task(name):
         raise RuntimeError(f"Failed to remove task '{name}' from database")
+
+    # remove from sftp server
+    _sftp_recursive_remove(task.hostname, task.name)
