@@ -335,4 +335,5 @@ def remove_schedule(name: str) -> None:
         raise RuntimeError(f"Failed to remove task '{name}' from database")
 
     # remove from sftp server
-    _sftp_recursive_remove(task.hostname, task.name)
+    if task.last_run is not None:
+        _sftp_recursive_remove(task.hostname, task.name)
