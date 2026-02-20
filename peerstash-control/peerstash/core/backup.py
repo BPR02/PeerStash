@@ -206,7 +206,13 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
     if task.last_run is None and not dry_run:
         init = True
         print("First run, initializing repo...")
-        _init_repo(name)
+        try:
+            _init_repo(name)
+        except Exception as e:
+            _sftp_recursive_remove(task.hostname, task.name)
+            raise RuntimeError(
+                f"Failed to initialize repo ({e})"
+            )
 
     # dry run first to see if there's enough storage
     if not dry_run:
@@ -214,6 +220,7 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
         free_space, backup_size = _verify_backup_size(name)
         if free_space < backup_size:
             if init:
+                _sftp_recursive_remove(task.hostname, task.name)
                 raise RuntimeError(
                     f"Not enough storage to create initial backup for task '{name}' (only {free_space} bytes available, but size is {backup_size})"
                 )
