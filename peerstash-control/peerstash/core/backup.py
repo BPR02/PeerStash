@@ -219,7 +219,7 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
                 )
             # attempt to prune, leaving only 1 snapshot
             print("Not enough free space, attempting to prune...")
-            prune_repo(name, "1r")
+            prune_repo(name, "1r", repack=False)
             free_space_2, backup_size_2 = _verify_backup_size(name)
             if free_space_2 < backup_size_2:
                 raise RuntimeError(
@@ -257,7 +257,10 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
 
 
 def prune_repo(
-    name: str, forced_retention: Optional[str] = None, offset: int = 0
+    name: str,
+    forced_retention: Optional[str] = None,
+    offset: int = 0,
+    repack: bool = True,
 ) -> None:
     """
     Prunes a repo according to retention policy. Must be run with root permissions to access password file.
@@ -285,8 +288,19 @@ def prune_repo(
         keep_weekly=policy.weekly,
         keep_monthly=policy.monthly,
         keep_yearly=policy.yearly,
-        prune=True,
+        prune=repack,
     )
+
+    if repack:
+        return
+
+    try:
+        # resticpy does not have support for the prune command, call it directly
+        subprocess.run(
+            ["/usr/bin/restic", "prune", "--max-repack-size", "0"], check=True
+        )
+    except CalledProcessError as e:
+        raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
 
 
 def _sftp_recursive_remove(hostname: str, path: str):
