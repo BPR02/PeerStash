@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 import typer
 
 from peerstash.core.db import db_list_tasks
@@ -23,6 +25,9 @@ app = typer.Typer()
 
 @app.command(name="list")
 def list(
+    name: str = typer.Argument(
+        None, help="Name of the task(s) to list. Supports regex."
+    ),
     long: bool = typer.Option(False, "--long", "-l", help="List attributes"),
     all: bool = typer.Option(False, "--all", "-a", help="Show all attributes"),
     human_readable: bool = typer.Option(
@@ -39,11 +44,16 @@ def list(
         typer.secho(f"System Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
 
+    if name:
+        tasks = [t for t in tasks if re.match(name, t.name)]
+
     for task in tasks:
         if not long:
             typer.secho(
                 f"{task.name}",
-                fg=(typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE),
+                fg=(
+                    typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE
+                ),
             )
             continue
 
@@ -62,7 +72,9 @@ def list(
                 parsed += f" [{task.last_snapshot_id}]"
             typer.secho(
                 f"{parsed}",
-                fg=(typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE),
+                fg=(
+                    typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE
+                ),
             )
             continue
 
