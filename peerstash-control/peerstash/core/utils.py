@@ -17,9 +17,10 @@
 import hashlib
 import os
 import re
+from enum import StrEnum
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 def get_file_content(filepath: str) -> Optional[str]:
@@ -47,32 +48,65 @@ def generate_sha1(input: str) -> str:
     return sha1_hash.hexdigest()
 
 
+class RetentionUnit(StrEnum):
+    YEAR = "y"
+    MONTH = "m"
+    WEEK = "w"
+    DAY = "d"
+    HOUR = "h"
+    RECENT = "r"
+
+
+RETENTION_PATTERN = re.compile(r"(?P<value>\d+)(?P<unit>[ymwdhr])")
+
+
 class Retention(BaseModel):
-    def __init__(self, input: str):
-        values = [int(x) for x in (re.split(r"[a-z]", input)[:-1])]
-        units: list[str] = re.split(r"[0-9]+", input)[1:]
-
-        mapping = zip(values, units)
-        for value, unit in mapping:
-            match unit:
-                case "y":
-                    self.yearly = value
-                case "m":
-                    self.monthly = value
-                case "w":
-                    self.weekly = value
-                case "d":
-                    self.daily = value
-                case "h":
-                    self.hourly = value
-                case "r":
-                    self.recent = value
-                case _:
-                    raise ValueError(f"invalid input string '{input}'")
-
     recent: Optional[int] = None
     hourly: Optional[int] = None
     daily: Optional[int] = None
     weekly: Optional[int] = None
     monthly: Optional[int] = None
     yearly: Optional[int] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def parse_string(cls, value):
+        if isinstance(value, str):
+            matches = list(RETENTION_PATTERN.finditer(value))
+
+            if not matches or "".join(m.group(0) for m in matches) != value:
+                raise ValueError(f"Invalid retention string '{value}'")
+
+            field_map: dict[RetentionUnit, str] = {
+                RetentionUnit.YEAR: "yearly",
+                RetentionUnit.MONTH: "monthly",
+                RetentionUnit.WEEK: "weekly",
+                RetentionUnit.DAY: "daily",
+                RetentionUnit.HOUR: "hourly",
+                RetentionUnit.RECENT: "recent",
+            }
+
+            data: dict[str, int] = {}
+
+            for match in matches:
+                amount = int(match.group("value"))
+                unit_str = match.group("unit")
+
+                if unit_str not in field_map:
+                    raise ValueError(f"Invalid unit '{unit_str}'")
+
+                unit = RetentionUnit(unit_str)
+                field_name = field_map[unit]
+
+                if field_name in data:
+                    raise ValueError(f"Duplicate unit '{unit}'")
+
+                data[field_name] = amount
+
+            return data
+
+        return value
+
+    @classmethod
+    def from_string(cls, value: str) -> "Retention":
+        return cls.model_validate(value)

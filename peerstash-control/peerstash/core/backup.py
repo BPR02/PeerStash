@@ -165,9 +165,9 @@ def schedule_backup(
 
     # validate retention amount
     try:
-        _ = Retention(retention)
+        _ = Retention.from_string(retention)
     except ValueError as e:
-        raise ValueError(f"Retention invalid: {e}. E.g. '1y2m3w4d5h6r'")
+        raise ValueError(f"Retention '{retention}' invalid: {e}. E.g. '1y2m3w4d5h6r'")
 
     # insert into db
     if db_task_exists(name):
@@ -270,7 +270,7 @@ def prune_repo(
 
     # get retention policy
     retention = forced_retention if forced_retention else task.retention
-    policy = Retention(retention)
+    policy = Retention.from_string(retention)
 
     # run forget and prune
     print(f"Running prune for task '{task.name}' (keeping {retention} snapshots)...")
