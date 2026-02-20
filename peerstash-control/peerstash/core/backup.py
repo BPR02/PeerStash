@@ -212,7 +212,7 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
     if not dry_run:
         print("Verifying free space...")
         free_space, backup_size = _verify_backup_size(name)
-        if free_space > backup_size:
+        if free_space < backup_size:
             if init:
                 raise RuntimeError(
                     f"Not enough storage to create initial backup for task '{name}' (only {free_space} bytes available, but size is {backup_size})"
@@ -221,7 +221,7 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
             print("Not enough free space, attempting to prune...")
             prune_repo(name, "1r")
             free_space_2, backup_size_2 = _verify_backup_size(name)
-            if free_space_2 > backup_size_2:
+            if free_space_2 < backup_size_2:
                 raise RuntimeError(
                     f"Not enough storage to complete task '{name}' (only {free_space_2} bytes available, but size is {backup_size_2})"
                 )
