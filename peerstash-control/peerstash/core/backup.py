@@ -247,7 +247,7 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
 
     if not dry_run:
         print(f"Checking repo '{task.name}'...")
-        if not restic.check(read_data=True):
+        if not restic.check():
             raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
         print(f"Repo for '{task.name}' healthy. Backup complete.")
 
