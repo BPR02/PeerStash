@@ -19,8 +19,9 @@ import os
 import typer
 
 from peerstash.core import registration
+from peerstash.core.db import db_host_exists
 
-DEFAULT_QUOTA_GB = os.environ.get("DEFAULT_QUOTA_GB", "10")
+DEFAULT_QUOTA_GB = os.getenv("DEFAULT_QUOTA_GB", "10")
 
 app = typer.Typer()
 
@@ -41,10 +42,9 @@ def register_peer(
         user_data = registration.parse_share_key(share_key)
         username = user_data["username"]
 
-        # check if peer already exists in database
-        exists = registration.check_peer_exists(username)
+        exists = db_host_exists(f"peerstash-{username}")
 
-        # ask if overwriting is okay
+        # ask if overwriting is okay if host exists already
         if exists:
             if not yes:
                 confirm = typer.confirm(

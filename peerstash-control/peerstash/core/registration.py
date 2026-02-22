@@ -17,16 +17,17 @@
 import base64
 import json
 import os
-import shutil
-import sqlite3
+import subprocess
 from typing import Dict
 
 import requests
 
-SSH_FOLDER = os.environ.get("SSH_FOLDER", "~/.ssh")
-DB_PATH = os.environ.get("DB_PATH", "peerstash.db")
+from peerstash.core.db import db_add_host, db_host_exists, db_update_host
+
+SSH_FOLDER = os.getenv("SSH_FOLDER", "~/.ssh")
+DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
 SFTPGO_URL = "http://localhost:8080/api/v2"
-API_KEY = os.environ.get("API_KEY", "")
+API_KEY = os.getenv("API_KEY", "")
 
 
 class PeerExistsError(Exception):
@@ -70,29 +71,8 @@ def _update_known_hosts(
         with open(hosts_file, "a") as f:
             f.write(f"\n{host_entry}\n")
 
-    # sync to bind mount
-    bind_mount = os.path.join(SSH_FOLDER, "known_hosts")
-    if os.path.abspath(hosts_file) != os.path.abspath(bind_mount):
-        try:
-            shutil.copy2(hosts_file, bind_mount)
-        except Exception as e:
-            raise Exception(
-                f"Could not copy known_hosts to bind mount {bind_mount}: {e}"
-            )
-
-
-def _db_add_host(username) -> None:
-    """Adds the peerstash hostname to the db."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO hosts (hostname, port) VALUES (?, ?)",
-            (f"peerstash-{username}", "2022"),
-        )
-        conn.commit()
-    except sqlite3.Error as e:
-        raise Exception(f"Database error {e}")
+    # sync to root user
+    subprocess.run("/srv/peerstash/bin/sync_hosts")
 
 
 def parse_share_key(share_key: str) -> Dict[str, str]:
@@ -112,16 +92,6 @@ def parse_share_key(share_key: str) -> Dict[str, str]:
         raise ValueError(f"Invalid share key: {e}")
 
 
-def check_peer_exists(username: str) -> bool:
-    """Checks the local DB to see if we know this peer."""
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT 1 FROM hosts WHERE hostname=?", (f"peerstash-{username}",)
-        )
-        return cursor.fetchone() is not None
-
-
 def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = False):
     """
     Creates or Updates a peer in SFTPGo and the System.
@@ -129,7 +99,7 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
     username = user_data["username"]
 
     # check if this peer already exists (DB-SFTPGo desync, requires manual fix)
-    if check_peer_exists(username) and not allow_update:
+    if db_host_exists(f"peerstash-{username}") and not allow_update:
         raise PeerExistsError(f"User {username} already exists.")
 
     # set up sftpgo request
@@ -148,13 +118,21 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
     url = f"{SFTPGO_URL}/users/{username}" if allow_update else f"{SFTPGO_URL}/users"
 
     resp = method(url, json=payload, headers=headers)
-    resp.raise_for_status()
+    if resp.status_code == 409:
+        # DB-SFTPGo desync, requires manual fix
+        raise RuntimeError(
+            f"User '{username}' already exists in SFTPGo. Database might be corrupted."
+        )
+    else:
+        resp.raise_for_status()
 
     # update known_hosts file for ssh
     _update_known_hosts(username, user_data["server_public_key"], allow_update)
 
     # update hosts table
     if not allow_update:
-        _db_add_host(username)
+        db_add_host(f"peerstash-{username}", user_data["server_public_key"])
+    else:
+        db_update_host(f"peerstash-{username}", user_data["server_public_key"])
 
     return True
