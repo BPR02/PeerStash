@@ -1,3 +1,10 @@
+# [0.8.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.7.0...peerstash-v0.8.0) (2026-02-22)
+
+
+### Features
+
+* **control, compose:** add backup scheduling ([#25](https://github.com/BPR02/PeerStash/issues/25)) ([8d6ec71](https://github.com/BPR02/PeerStash/commit/8d6ec71770d735eb16e8a31dad1451153fa9eddb))
+
 # [0.7.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.6.2...peerstash-v0.7.0) (2026-02-12)
 
 
