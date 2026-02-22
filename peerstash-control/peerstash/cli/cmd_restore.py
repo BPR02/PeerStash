@@ -38,6 +38,9 @@ def restore(
     except ValueError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
+    except RuntimeError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
     except Exception as e:
         typer.secho(f"System Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)

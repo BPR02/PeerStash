@@ -380,13 +380,14 @@ def restore_snapshot(name: str, snapshot: str = "latest") -> str:
                 folder,
             ],
             check=True,
+            capture_output=True,
         )
     except CalledProcessError as e:
         raise RuntimeError(
-            f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
+            f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e.stderr})"
         )
     except Exception as e:
-        raise RuntimeError(
+        raise Exception(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
         )
 
