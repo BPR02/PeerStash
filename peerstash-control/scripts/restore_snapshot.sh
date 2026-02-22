@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Peerstash
 # Copyright (C) 2026 BPR02
 
@@ -14,26 +16,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import typer
 
-from peerstash.cli import (
-    cmd_backup,
-    cmd_cancel,
-    cmd_id,
-    cmd_list,
-    cmd_prune,
-    cmd_register,
-    cmd_restore,
-    cmd_schedule,
-)
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+    echo "Usage: $(basename "$0") REPO SNAPSHOT FOLDER" >&2
+    exit 1
+fi
 
-# Create the main cli app
-cli = typer.Typer(help="PeerStash CLI Tool")
-cli.command(name="id")(cmd_id.print_id)
-cli.command(name="register")(cmd_register.register_peer)
-cli.command(name="schedule")(cmd_schedule.schedule)
-cli.command(name="backup")(cmd_backup.backup)
-cli.command(name="prune")(cmd_prune.prune)
-cli.command(name="cancel")(cmd_cancel.cancel)
-cli.command(name="list")(cmd_list.list)
-cli.command(name="restore")(cmd_restore.restore)
+REPO="$1"
+SNAPSHOT="$2"
+FOLDER="$3"
+
+# restore into temporary location
+restic restore "$SNAPSHOT" -r "$REPO" --password-file /tmp/peerstash/password.txt --target /tmp/peerstash/restore
+
+# move to bind mount
+mv /tmp/peerstash/restore/mnt/peerstash_root /mnt/peerstash_restore/"$FOLDER"
+rm -rf /tmp/peerstash/restore

@@ -210,9 +210,7 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
             _init_repo(name)
         except Exception as e:
             _sftp_recursive_remove(task.hostname, task.name)
-            raise RuntimeError(
-                f"Failed to initialize repo ({e})"
-            )
+            raise RuntimeError(f"Failed to initialize repo ({e})")
 
     # dry run first to see if there's enough storage
     if not dry_run:
@@ -358,3 +356,32 @@ def remove_schedule(name: str) -> None:
     # remove from sftp server
     if task.last_run is not None:
         _sftp_recursive_remove(task.hostname, task.name)
+
+
+def restore_snapshot(name: str, snapshot: str = "latest") -> str:
+    # pull info from DB
+    task = db_get_task(name)
+    if not task:
+        raise ValueError(f"Task with name '{name}' not in DB")
+
+    # restore using custom binary for password file read
+    t = (
+        task.last_run.strftime("%Y-%m-%d_%H-%M-%S")
+        if snapshot == "latest" and task.last_run
+        else snapshot
+    )
+    folder = f"{name}_{t}"
+    try:
+        subprocess.run(
+            [
+                "/srv/peerstash/bin/restore_snapshot",
+                f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}",
+                snapshot,
+                folder,
+            ],
+            check=True,
+        )
+    except CalledProcessError as e:
+        raise RuntimeError(f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})")
+
+    return folder

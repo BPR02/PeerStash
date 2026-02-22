@@ -41,6 +41,7 @@ RUN mkdir -p /srv/peerstash/bin && \
     gcc -o /srv/peerstash/bin/create_task /srv/peerstash/scripts/create_task.c && \
     gcc -o /srv/peerstash/bin/remove_task /srv/peerstash/scripts/remove_task.c && \
     gcc -o /srv/peerstash/bin/sync_hosts /srv/peerstash/scripts/sync_hosts.c && \
+    gcc -o /srv/peerstash/bin/restore_snapshot /srv/peerstash/scripts/restore_snapshot.c && \
     chown root /srv/peerstash/bin/* && \
     chmod 4755 /srv/peerstash/bin/*
 
