@@ -372,7 +372,7 @@ def restore_snapshot(name: str, snapshot: str = "latest") -> str:
     )
     folder = f"{name}_{t}"
     try:
-        res = subprocess.run(
+        subprocess.run(
             [
                 "/srv/peerstash/bin/restore_snapshot",
                 f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}",
@@ -380,11 +380,12 @@ def restore_snapshot(name: str, snapshot: str = "latest") -> str:
                 folder,
             ],
             check=True,
-            text=True,
             capture_output=True,
         )
-        if res.returncode != 0:
-            raise RuntimeError(res.stderr)
+    except CalledProcessError as e:
+        raise RuntimeError(
+            f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e.stderr})"
+        )
     except Exception as e:
         raise RuntimeError(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
