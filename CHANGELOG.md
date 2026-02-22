@@ -1,3 +1,10 @@
+# [0.9.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.8.0...peerstash-v0.9.0) (2026-02-22)
+
+
+### Features
+
+* **compose, control:** restore command ([#26](https://github.com/BPR02/PeerStash/issues/26)) ([466ad18](https://github.com/BPR02/PeerStash/commit/466ad183b48a1401a1aead3262880e60476a0bfe))
+
 # [0.8.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.7.0...peerstash-v0.8.0) (2026-02-22)
 
 
