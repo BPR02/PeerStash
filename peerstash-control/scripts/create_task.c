@@ -27,7 +27,14 @@ int main(int argc, char *argv[]) {
         setuid(0);
         char command[255];
         sprintf(command, "/srv/peerstash/scripts/create_task.sh \"%s\" \"%s\" \"%s\"", argv[1], argv[2], argv[3]); 
-        return system(command); 
+        int status = system(command); 
+        if (status == -1) {
+            fprintf(stderr, "Failed to execute system()\n");
+            return 1;
+        }
+        if (WIFEXITED(status)) {
+            return WEXITSTATUS(status);
+        }
     }
     fprintf(stderr, "Usage: /srv/peerstash/scripts/create_task TASK_NAME SCHEDULE PRUNE_SCHEDULE\n");
     return 1;
