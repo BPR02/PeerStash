@@ -380,6 +380,7 @@ def restore_snapshot(name: str, snapshot: str = "latest") -> str:
                 folder,
             ],
             check=True,
+            text=True,
             capture_output=True,
         )
     except CalledProcessError as e:
