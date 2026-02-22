@@ -89,6 +89,11 @@ services:
         bind:
           create_host_path: true
       - type: bind
+        source: ${PEERSTASH_CONTROL}/restored_data
+        target: /mnt/peerstash_restore
+        bind:
+          create_host_path: true
+      - type: bind
         source: ${PEERSTASH_CONTROL}/data/restic_cache
         target: /root/.cache/restic
         bind:

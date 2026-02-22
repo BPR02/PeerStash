@@ -25,8 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 int main(int argc, char *argv[]) {
     if (argc == 4) {
         setuid(0);
-        char command[255];
-        sprintf(command, "/srv/peerstash/scripts/create_task.sh \"%s\" \"%s\" \"%s\"", argv[1], argv[2], argv[3]); 
+        char command[1024];
+        sprintf(command, "/srv/peerstash/scripts/restore_snapshot.sh \"%s\" \"%s\" \"%s\"", argv[1], argv[2], argv[3]); 
         int status = system(command); 
         if (status == -1) {
             fprintf(stderr, "Failed to execute system()\n");
@@ -36,6 +36,6 @@ int main(int argc, char *argv[]) {
             return WEXITSTATUS(status);
         }
     }
-    fprintf(stderr, "Usage: /srv/peerstash/scripts/create_task TASK_NAME SCHEDULE PRUNE_SCHEDULE\n");
+    fprintf(stderr, "Usage: /srv/peerstash/scripts/restore_snapshot REPO SNAPSHOT FOLDER\n");
     return 1;
 }

@@ -27,7 +27,14 @@ int main(int argc, char *argv[]) {
         setuid(0);
         char command[255];
         sprintf(command, "/srv/peerstash/scripts/remove_task.sh \"%s\"", argv[1]); 
-        return system(command); 
+        int status = system(command); 
+        if (status == -1) {
+            fprintf(stderr, "Failed to execute system()\n");
+            return 1;
+        }
+        if (WIFEXITED(status)) {
+            return WEXITSTATUS(status);
+        }
     }
     fprintf(stderr, "Usage: /srv/peerstash/scripts/remove_task TASK_NAME\n");
     return 1;
