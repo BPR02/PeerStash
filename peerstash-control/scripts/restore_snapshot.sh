@@ -28,14 +28,14 @@ FOLDER="$3"
 
 # restore into temporary location
 if ! restic restore "$SNAPSHOT" -r "$REPO" --password-file /tmp/peerstash/password.txt --target /tmp/peerstash/restore; then
-    exit $?
+    exit 2
 fi
 
 # move to bind mount
 if ! mv /tmp/peerstash/restore/mnt/peerstash_root /mnt/peerstash_restore/"$FOLDER"; then
-    exit $?
+    exit 3
 fi
 
 if ! rm -rf /tmp/peerstash/restore; then
-    exit $?
+    exit 3
 fi
