@@ -68,7 +68,7 @@ def _get_free_space(hostname: str, port: int) -> int:
         # Parse output with Regex like the subprocess method
         numbers = re.findall(r"[0-9]+", output)
         if len(numbers) >= 3:
-            free = int(numbers[2])
+            free = int(numbers[2]) * 1024 # df returns number of free KiB
         else:
             raise Exception("Unable to parse output.")
     except Exception as e:
@@ -91,7 +91,7 @@ def _verify_backup_size(name: str) -> tuple[int, int]:
 
     # get added bytes
     res = run_backup(name, True)
-    added_bytes: int = res["total_bytes_processed"]
+    added_bytes: int = res["data_added"]
 
     # return true if there will be space after the backup (for pruning purposes)
     return (free_bytes, added_bytes)
