@@ -1,3 +1,10 @@
+## [0.9.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.9.0...peerstash-v0.9.1) (2026-02-23)
+
+
+### Bug Fixes
+
+* **control:** free space checker ([#27](https://github.com/BPR02/PeerStash/issues/27)) ([73db14f](https://github.com/BPR02/PeerStash/commit/73db14f2fb4a86cd0b88d9f3855a7638ce56b148))
+
 # [0.9.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.8.0...peerstash-v0.9.0) (2026-02-22)
 
 
