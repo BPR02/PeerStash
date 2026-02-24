@@ -96,8 +96,7 @@ else
         prune_schedule TEXT NOT NULL,\
         last_run DATETIME,\
         last_exit_code INTEGER,\
-        last_snapshot_id TEXT,\
-        is_locked BOOLEAN DEFAULT 0,\
+        status TEXT DEFAULT new,\
         FOREIGN KEY (hostname) REFERENCES hosts(hostname)\
     );"
     chown "$USERNAME":"$USERNAME" "$DB_PATH"

@@ -59,8 +59,7 @@ class TaskCreate(TaskBase):
 class TaskRead(TaskCreate):
     last_run: Optional[datetime]
     last_exit_code: Optional[int]
-    last_snapshot_id: Optional[str]
-    is_locked: bool
+    status: str
 
 
 class TaskUpdate(BaseModel):
@@ -72,5 +71,4 @@ class TaskUpdate(BaseModel):
     prune_schedule: Optional[str] = None
     last_run: Optional[datetime] = None
     last_exit_code: Optional[int] = None
-    last_snapshot_id: Optional[str] = None
-    is_locked: Optional[bool] = None
+    status: Optional[str] = None

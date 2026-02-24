@@ -68,7 +68,7 @@ def _get_free_space(hostname: str, port: int) -> int:
         # Parse output with Regex like the subprocess method
         numbers = re.findall(r"[0-9]+", output)
         if len(numbers) >= 3:
-            free = int(numbers[2]) * 1024 # df returns number of free KiB
+            free = int(numbers[2]) * 1024  # df returns number of free KiB
         else:
             raise Exception("Unable to parse output.")
     except Exception as e:
@@ -91,6 +91,8 @@ def _verify_backup_size(name: str) -> tuple[int, int]:
 
     # get added bytes
     res = run_backup(name, True)
+    if res is None:
+        raise RuntimeError("Failed to get added bytes from dry run.")
     added_bytes: int = res["data_added"]
 
     # return true if there will be space after the backup (for pruning purposes)
@@ -189,7 +191,9 @@ def schedule_backup(
     return name
 
 
-def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, Any]:
+def run_backup(
+    name: str, dry_run: bool = False, offset: int = 0
+) -> Optional[dict[str, Any]]:
     """
     Runs a backup. Must be run with root permissions to access password file.
     """
@@ -201,62 +205,85 @@ def run_backup(name: str, dry_run: bool = False, offset: int = 0) -> dict[str, A
     if not task:
         raise ValueError(f"Task with name '{name}' not in DB")
 
-    # initialize repo
-    init = False
-    if task.last_run is None and not dry_run:
-        init = True
-        print("First run, initializing repo...")
-        try:
-            _init_repo(name)
-        except Exception as e:
-            _sftp_recursive_remove(task.hostname, task.name)
-            raise RuntimeError(f"Failed to initialize repo ({e})")
-
-    # dry run first to see if there's enough storage
-    if not dry_run:
-        print("Verifying free space...")
-        free_space, backup_size = _verify_backup_size(name)
-        if free_space < backup_size:
-            if init:
-                _sftp_recursive_remove(task.hostname, task.name)
-                raise RuntimeError(
-                    f"Not enough storage to create initial backup for task '{name}' (only {free_space} bytes available, but size is {backup_size})"
-                )
-            # attempt to prune, leaving only 1 snapshot
-            print("Not enough free space, attempting to prune...")
-            prune_repo(name, "1r", repack=False)
-            free_space_2, backup_size_2 = _verify_backup_size(name)
-            if free_space_2 < backup_size_2:
-                raise RuntimeError(
-                    f"Not enough storage to complete task '{name}' (only {free_space_2} bytes available, but size is {backup_size_2})"
-                )
-
     # parse include and exclude delimited strings
     paths = task.include.split("|")
     exclude_patterns = task.exclude.split("|") if task.exclude else None
 
-    # run backup
+    # if dry run, just return the added bytes
     if dry_run:
         print(f"Calculating added bytes for backup task '{task.name}'...")
-    else:
-        print(f"Running backup task '{task.name}'...")
-    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-    restic.password_file = "/tmp/peerstash/password.txt"
-    res = restic.backup(
-        paths=paths,
-        exclude_patterns=exclude_patterns,
-        dry_run=dry_run,
-        scan=dry_run,
-        skip_if_unchanged=True,
+        restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+        restic.password_file = "/tmp/peerstash/password.txt"
+        res = restic.backup(
+            paths=paths, exclude_patterns=exclude_patterns, dry_run=True
+        )
+        return res
+
+    # initialize repo
+    init = False
+    if not task.status == "new":
+        init = True
+        print("First run, initializing repo...")
+        db_update_task(task.name, TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="init"))
+        try:
+            _init_repo(name)
+        except Exception as e:
+            db_update_task(task.name, TaskUpdate(last_exit_code=1, status="idle"))
+            _sftp_recursive_remove(task.hostname, task.name)
+            raise RuntimeError(f"Failed to initialize repo ({e})")
+
+    db_update_task(
+        task.name,
+        TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="started"),
     )
 
-    if not dry_run:
-        print(f"Checking repo '{task.name}'...")
-        if not restic.check():
-            raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
-        print(f"Repo for '{task.name}' healthy. Backup complete.")
+    # dry run first to see if there's enough storage
+    print("Verifying free space...")
+    db_update_task(task.name, TaskUpdate(status="space_check"))
+    free_space, backup_size = _verify_backup_size(name)
+    if free_space < backup_size:
+        if init:
+            _sftp_recursive_remove(task.hostname, task.name)
+            db_update_task(task.name, TaskUpdate(last_exit_code=2, status="idle"))
+            raise RuntimeError(
+                f"Not enough storage to create initial backup for task '{name}' (only {free_space} bytes available, but size is {backup_size})"
+            )
+        # attempt to prune, leaving only 1 snapshot
+        print("Not enough free space, attempting to prune...")
+        prune_repo(name, "1r", repack=False)
+        free_space_2, backup_size_2 = _verify_backup_size(name)
+        if free_space_2 < backup_size_2:
+            db_update_task(task.name, TaskUpdate(last_exit_code=2, status="idle"))
+            raise RuntimeError(
+                f"Not enough storage to complete task '{name}' (only {free_space_2} bytes available, but size is {backup_size_2})"
+            )
 
-        db_update_task(task.name, TaskUpdate(last_run=datetime.now()))
+    # run backup
+    print(f"Running backup task '{task.name}'...")
+    db_update_task(task.name, TaskUpdate(status="running"))
+    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.password_file = "/tmp/peerstash/password.txt"
+    res = None
+    try:
+        res = restic.backup(
+            paths=paths,
+            exclude_patterns=exclude_patterns,
+            dry_run=False,
+            scan=False,
+            skip_if_unchanged=True,
+        )
+    except Exception as e:
+        db_update_task(task.name, TaskUpdate(last_exit_code=3, status="idle"))
+        raise RuntimeError(f"Backup failed! ({e})")
+
+    print(f"Checking repo '{task.name}'...")
+    db_update_task(task.name, TaskUpdate(status="checking"))
+    if not restic.check():
+        db_update_task(task.name, TaskUpdate(last_exit_code=4, status="idle"))
+        raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
+    print(f"Repo for '{task.name}' healthy. Backup complete.")
+
+    db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
 
     return res
 
@@ -278,34 +305,47 @@ def prune_repo(
     if not task:
         raise ValueError(f"Task with name '{name}' not in DB")
 
+    if task.status == "new":
+        raise RuntimeError(f"Repo for task '{name}' has not been backed up yet.")
+
     # get retention policy
     retention = forced_retention if forced_retention else task.retention
     policy = Retention.from_string(retention)
 
     # run forget and prune
     print(f"Running prune for task '{task.name}' (keeping {retention} snapshots)...")
+    db_update_task(task.name, TaskUpdate(last_run=datetime.now(), status="pruning"))
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/tmp/peerstash/password.txt"
-    restic.forget(
-        keep_last=policy.recent,
-        keep_hourly=policy.hourly,
-        keep_daily=policy.daily,
-        keep_weekly=policy.weekly,
-        keep_monthly=policy.monthly,
-        keep_yearly=policy.yearly,
-        prune=repack,
-    )
+    try:
+        restic.forget(
+            keep_last=policy.recent,
+            keep_hourly=policy.hourly,
+            keep_daily=policy.daily,
+            keep_weekly=policy.weekly,
+            keep_monthly=policy.monthly,
+            keep_yearly=policy.yearly,
+            prune=repack,
+        )
+    except Exception as e:
+        db_update_task(task.name, TaskUpdate(last_exit_code=5, status="idle"))
+        raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
 
     if repack:
+        db_update_task(task.name, TaskUpdate(status="idle"))
         return
 
     try:
         # resticpy does not have support for the prune command, call it directly
+        db_update_task(task.name, TaskUpdate(status="pruning_strict"))
         subprocess.run(
             ["/usr/bin/restic", "prune", "--max-repack-size", "0"], check=True
         )
     except CalledProcessError as e:
+        db_update_task(task.name, TaskUpdate(last_exit_code=5, status="idle"))
         raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
+
+    db_update_task(task.name, TaskUpdate(status="idle"))
 
 
 def _sftp_recursive_remove(hostname: str, path: str):
