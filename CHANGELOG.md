@@ -1,3 +1,10 @@
+## [0.10.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.10.0...peerstash-v0.10.1) (2026-02-24)
+
+
+### Bug Fixes
+
+* **control:** prevent concurrent task runs ([#29](https://github.com/BPR02/PeerStash/issues/29)) ([b2e8137](https://github.com/BPR02/PeerStash/commit/b2e81372a7d2237a294c02454a54cd52d4b5f994))
+
 # [0.10.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.9.1...peerstash-v0.10.0) (2026-02-24)
 
 
