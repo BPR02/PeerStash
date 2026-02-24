@@ -314,7 +314,7 @@ def prune_repo(
 
     # run forget and prune
     print(f"Running prune for task '{task.name}' (keeping {retention} snapshots)...")
-    db_update_task(task.name, TaskUpdate(last_run=datetime.now(), status="pruning"))
+    db_update_task(task.name, TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="pruning"))
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/tmp/peerstash/password.txt"
     try:
@@ -332,7 +332,7 @@ def prune_repo(
         raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
 
     if repack:
-        db_update_task(task.name, TaskUpdate(status="idle"))
+        db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
         return
 
     try:
@@ -345,7 +345,7 @@ def prune_repo(
         db_update_task(task.name, TaskUpdate(last_exit_code=5, status="idle"))
         raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
 
-    db_update_task(task.name, TaskUpdate(status="idle"))
+    db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
 
 
 def _sftp_recursive_remove(hostname: str, path: str):
