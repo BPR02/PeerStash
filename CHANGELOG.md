@@ -1,3 +1,10 @@
+# [0.10.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.9.1...peerstash-v0.10.0) (2026-02-24)
+
+
+### Features
+
+* **control:** add exit codes and status ([#28](https://github.com/BPR02/PeerStash/issues/28)) ([81403fb](https://github.com/BPR02/PeerStash/commit/81403fb58409f2cd8bcd40fed410818136ab68cc))
+
 ## [0.9.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.9.0...peerstash-v0.9.1) (2026-02-23)
 
 
