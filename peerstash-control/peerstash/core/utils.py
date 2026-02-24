@@ -14,10 +14,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import fcntl
 import hashlib
 import os
 import re
 from enum import StrEnum
+from io import TextIOWrapper
 from typing import Optional
 
 from pydantic import BaseModel, model_validator
@@ -110,3 +112,38 @@ class Retention(BaseModel):
     @classmethod
     def from_string(cls, value: str) -> "Retention":
         return cls.model_validate(value)
+
+
+def acquire_task_lock(name: str) -> TextIOWrapper:
+    """
+    Attempts to acquire an exclusive, non-blocking lock for a specific backup task.
+    Raises error if the lock is already held by another process.
+    """
+    # Create a unique lock file for this specific task
+    lock_file_path = f"/tmp/peerstash/task_{name}.lock"
+
+    # Open the file. We must keep this file object open for the duration
+    # of the backup, so we return it to prevent Python from garbage collecting it.
+    lock_file = open(lock_file_path, "w")
+
+    try:
+        # LOCK_EX: Exclusive lock (only one process can hold it)
+        # LOCK_NB: Non-blocking (fail immediately instead of waiting in line)
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+        # Write the current Process ID (PID) into the lock file for debugging
+        lock_file.write(str(os.getpid()))
+        lock_file.flush()
+
+        return lock_file
+
+    except BlockingIOError:
+        # If we hit this block, another process has the lock.
+        raise RuntimeError(
+            f"Backup task '{name}' is already running in another process."
+        )
+
+
+def release_lock(lock_file: TextIOWrapper) -> None:
+    fcntl.flock(lock_file, fcntl.LOCK_UN)
+    lock_file.close()

@@ -38,7 +38,12 @@ from peerstash.core.db import (
     db_delete_task,
 )
 from peerstash.core.db_schemas import TaskUpdate
-from peerstash.core.utils import generate_sha1, Retention
+from peerstash.core.utils import (
+    generate_sha1,
+    Retention,
+    acquire_task_lock,
+    release_lock,
+)
 
 USER = os.getenv("PEERSTASH_USER") or (
     os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
@@ -219,6 +224,11 @@ def run_backup(
         )
         return res
 
+    try:
+        _lock = acquire_task_lock(name)
+    except Exception as e:
+        raise RuntimeError(e)
+
     # initialize repo
     init = False
     if task.status == "new":
@@ -228,6 +238,7 @@ def run_backup(
         try:
             _init_repo(name)
         except Exception as e:
+            release_lock(_lock)
             db_update_task(task.name, TaskUpdate(last_exit_code=1, status="idle"))
             _sftp_recursive_remove(task.hostname, task.name)
             raise RuntimeError(f"Failed to initialize repo ({e})")
@@ -244,6 +255,7 @@ def run_backup(
     if free_space < backup_size:
         if init:
             _sftp_recursive_remove(task.hostname, task.name)
+            release_lock(_lock)
             db_update_task(task.name, TaskUpdate(last_exit_code=2, status="idle"))
             raise RuntimeError(
                 f"Not enough storage to create initial backup for task '{name}' (only {free_space} bytes available, but size is {backup_size})"
@@ -253,6 +265,7 @@ def run_backup(
         prune_repo(name, "1r", repack=False)
         free_space_2, backup_size_2 = _verify_backup_size(name)
         if free_space_2 < backup_size_2:
+            release_lock(_lock)
             db_update_task(task.name, TaskUpdate(last_exit_code=2, status="idle"))
             raise RuntimeError(
                 f"Not enough storage to complete task '{name}' (only {free_space_2} bytes available, but size is {backup_size_2})"
@@ -273,16 +286,19 @@ def run_backup(
             skip_if_unchanged=True,
         )
     except Exception as e:
+        release_lock(_lock)
         db_update_task(task.name, TaskUpdate(last_exit_code=3, status="idle"))
         raise RuntimeError(f"Backup failed! ({e})")
 
     print(f"Checking repo '{task.name}'...")
     db_update_task(task.name, TaskUpdate(status="checking"))
     if not restic.check():
+        release_lock(_lock)
         db_update_task(task.name, TaskUpdate(last_exit_code=4, status="idle"))
         raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
     print(f"Repo for '{task.name}' healthy. Backup complete.")
 
+    release_lock(_lock)
     db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
 
     return res
@@ -308,6 +324,11 @@ def prune_repo(
     if task.status == "new":
         raise RuntimeError(f"Repo for task '{name}' has not been backed up yet.")
 
+    try:
+        _lock = acquire_task_lock(name)
+    except Exception as e:
+        raise RuntimeError(e)
+
     # get retention policy
     retention = forced_retention if forced_retention else task.retention
     policy = Retention.from_string(retention)
@@ -328,10 +349,12 @@ def prune_repo(
             prune=repack,
         )
     except Exception as e:
+        release_lock(_lock)
         db_update_task(task.name, TaskUpdate(last_exit_code=5, status="idle"))
         raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
 
     if repack:
+        release_lock(_lock)
         db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
         return
 
@@ -342,9 +365,11 @@ def prune_repo(
             ["/usr/bin/restic", "prune", "--max-repack-size", "0"], check=True
         )
     except CalledProcessError as e:
+        release_lock(_lock)
         db_update_task(task.name, TaskUpdate(last_exit_code=5, status="idle"))
         raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
 
+    release_lock(_lock)
     db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
 
 
