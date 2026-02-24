@@ -221,7 +221,7 @@ def run_backup(
 
     # initialize repo
     init = False
-    if not task.status == "new":
+    if task.status == "new":
         init = True
         print("First run, initializing repo...")
         db_update_task(task.name, TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="init"))
