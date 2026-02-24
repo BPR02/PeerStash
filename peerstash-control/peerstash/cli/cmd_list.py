@@ -51,16 +51,14 @@ def list(
         if not long:
             typer.secho(
                 f"{task.name}",
-                fg=(
-                    typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE
-                ),
+                fg=(typer.colors.BRIGHT_WHITE),
             )
             continue
 
         if not human_readable:
             parsed: str = ""
-            parsed += "[X]" if task.is_locked else ""
             parsed += task.name
+            parsed += f"[{task.status}]"
             parsed += f" | {task.hostname.removeprefix('peerstash-')}"
             parsed += f' "{task.schedule}"'
             parsed += f" +[{task.include}]"
@@ -69,18 +67,15 @@ def list(
             parsed += f" {task.retention}"
             if all:
                 parsed += f" {task.last_run} ({task.last_exit_code})"
-                parsed += f" [{task.last_snapshot_id}]"
             typer.secho(
                 f"{parsed}",
-                fg=(
-                    typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE
-                ),
+                fg=(typer.colors.BRIGHT_WHITE),
             )
             continue
 
         typer.secho(
-            f'{task.name}{" [LOCKED]" if all and task.is_locked else ""}',
-            fg=(typer.colors.WHITE if task.is_locked else typer.colors.BRIGHT_WHITE),
+            f"{task.name} [{task.status}]",
+            fg=(typer.colors.BRIGHT_WHITE),
         )
         typer.secho(
             f'    peer=       {task.hostname.removeprefix("peerstash-")}',
@@ -97,8 +92,4 @@ def list(
                 fg=(
                     typer.colors.GREEN if task.last_exit_code == 0 else typer.colors.RED
                 ),
-            )
-            typer.secho(
-                f"    last id=    {task.last_snapshot_id}",
-                fg=typer.colors.MAGENTA,
             )
