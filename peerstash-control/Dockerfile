@@ -45,6 +45,9 @@ RUN mkdir -p /srv/peerstash/bin && \
     chown root /srv/peerstash/bin/* && \
     chmod 4755 /srv/peerstash/bin/*
 
+# get tailscale binaries
+FROM tailscale/tailscale:stable AS tailscale_bin
+
 # build final image
 FROM python:3.13-slim AS final
 
@@ -59,8 +62,15 @@ RUN apt-get update && \
         fuse \
         cron \
         supervisor \
-        sudo && \
+        sudo \
+        iptables \
+        iproute2 && \
     rm -rf /var/lib/apt/lists/*
+
+# move tailscale binaries
+COPY --from=tailscale_bin /usr/local/bin/tailscaled /usr/local/bin/tailscaled
+COPY --from=tailscale_bin /usr/local/bin/tailscale /usr/local/bin/tailscale
+RUN mkdir -p /var/lib/tailscale /var/run/tailscale
 
 # set up supervisord
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
