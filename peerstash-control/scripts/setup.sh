@@ -108,6 +108,19 @@ cp /home/"$USERNAME"/.ssh/config /root/.ssh/config
 cp /home/"$USERNAME"/.ssh/known_hosts /root/.ssh/known_hosts
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 
+# wait for SFTPGo port to be open
+max_attempts=60
+count=0
+until nc -z localhost 8080 > /dev/null 2>&1 || [ $count -ge $max_attempts ]; do
+  sleep 1
+  ((count++))
+done
+
+if [ $count -ge $max_attempts ]; then
+  echo "SFTPGo port could not be reached within $max_attempts seconds."
+  exit 1
+fi
+
 # get SFTPGo JWT
 TOKEN=$(curl -sS -u "$USERNAME:$PASSWORD" \
     "http://localhost:8080/api/v2/token" | grep -o '"access_token":"[^"]*' | grep -o '[^"]*$')

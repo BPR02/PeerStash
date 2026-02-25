@@ -63,6 +63,7 @@ RUN apt-get update && \
         cron \
         supervisor \
         sudo \
+        netcat-openbsd \
         iptables \
         iproute2 && \
     rm -rf /var/lib/apt/lists/*
