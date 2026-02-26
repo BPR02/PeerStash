@@ -164,5 +164,5 @@ def generate_device_invite(api_token: str) -> Optional[str]:
     response = requests.post(url, auth=(api_token, ""), json=payload)
     response.raise_for_status()
 
-    full_url: Optional[str] = response.json().get("inviteUrl")
+    full_url: Optional[str] = response.json()[0].get("inviteUrl")
     return full_url.split("/")[-1] if full_url else None
