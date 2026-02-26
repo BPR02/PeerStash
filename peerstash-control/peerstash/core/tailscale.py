@@ -160,7 +160,7 @@ def _get_local_device_id() -> str:
 def generate_device_invite(api_token: str) -> Optional[str]:
     device_id = _get_local_device_id()
     url = f"{TAILSCALE_API}/device/{device_id}/device-invites"
-    payload = {"multiUse": True}
+    payload = [{"multiUse": True}]
     response = requests.post(url, auth=(api_token, ""), json=payload)
     response.raise_for_status()
 
