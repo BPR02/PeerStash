@@ -147,9 +147,11 @@ def login(
     try:
         client_id, client_secret = tailscale.get_credentials(admin_pass)
         if typer.confirm(
-            "You are already logged in. Would you like to update your credentials?"
+            "You are already logged in. Would you like to update your credentials?",
+            default=None
         ):
             client_id, client_secret = _setup_oauth(admin_pass, no_policy)
+            typer.echo("Using existing credentials")
     except ValueError as e:
         if "No credentials found" in str(e):
             client_id, client_secret = _setup_oauth(admin_pass, no_policy)
