@@ -99,11 +99,10 @@ else
         status TEXT DEFAULT new,\
         FOREIGN KEY (hostname) REFERENCES hosts(hostname)\
     );"
-    sqlite3 "$DB_PATH" "CREATE TABLE tailscale_auth (\
+    sqlite3 "$DB_PATH" "CREATE TABLE node_data (\
         id INTEGER PRIMARY KEY CHECK (id = 1),\
-        salt BLOB NOT NULL,\
-        encrypted_client_id BLOB NOT NULL,\
-        encrypted_client_secret BLOB NOT NULL\
+        username TEXT DEFAULT $USERNAME,\
+        invite_code TEXT\
     );"
     chown "$USERNAME":"$USERNAME" "$DB_PATH"
     chmod 700 "$DB_PATH"

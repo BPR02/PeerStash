@@ -16,7 +16,8 @@
 
 import os
 import sqlite3
-from typing import Optional, Any
+from contextlib import closing
+from typing import Any, Optional
 
 from peerstash.core.db_schemas import *
 
@@ -163,3 +164,36 @@ def db_list_tasks() -> list[TaskRead]:
         TaskRead(**{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())})
         for res in results
     ]
+
+
+def db_get_user() -> Optional[str]:
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT user FROM node_data WHERE id = 1")
+            res = cursor.fetchone()
+
+    return res[0] if res else None
+
+
+def db_get_invite_code() -> Optional[str]:
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT invite_code FROM node_data WHERE id = 1")
+            res = cursor.fetchone()
+
+    return res[0] if res else None
+
+
+def db_set_invite_code(code: str) -> None:
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            conn.execute(
+                """
+                INSERT INTO node_data (id, invite_code)
+                VALUES (1, ?)
+                ON CONFLICT(id) DO UPDATE SET invite_code=excluded.invite_code
+            """,
+                (code,),
+            )
