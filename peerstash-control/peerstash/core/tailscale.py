@@ -220,11 +220,14 @@ def _generate_auth_key(token: str) -> str:
     return response.json()["key"]
 
 
-def register_device(token: str):
+def register_device(token: str, password: str) -> None:
     """
     Registers a device with an Auth key.
     """
     auth_key = _generate_auth_key(token)
     subprocess.run(
-        ["tailscale", "up", "--authkey", auth_key], check=True, capture_output=True
+        ["sudo", "-S", "tailscale", "up", "--authkey", auth_key],
+        input=f"{password}\n".encode(),
+        check=True,
+        capture_output=True,
     )

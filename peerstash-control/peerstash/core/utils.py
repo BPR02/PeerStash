@@ -19,6 +19,7 @@ import fcntl
 import hashlib
 import os
 import re
+import subprocess
 from enum import StrEnum
 from io import TextIOWrapper
 from typing import Optional
@@ -53,9 +54,7 @@ def generate_sha1(input: str) -> str:
 
 def derive_key(password: str, salt: bytes) -> bytes:
     """Derives a Fernet-compatible key."""
-    key = hashlib.pbkdf2_hmac(
-        "sha256", password.encode(), salt, iterations=480000
-    )
+    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, iterations=480000)
     return base64.urlsafe_b64encode(key)
 
 
@@ -156,3 +155,20 @@ def acquire_task_lock(name: str) -> TextIOWrapper:
 def release_lock(lock_file: TextIOWrapper) -> None:
     fcntl.flock(lock_file, fcntl.LOCK_UN)
     lock_file.close()
+
+
+def verify_sudo_password(password: str):
+    """Verifies the sudo password without executing a persistent command."""
+    try:
+        # -k invalidates the user's cached sudo credentials
+        subprocess.run(["sudo", "-k"], capture_output=True)
+
+        # -S reads from stdin, -v validates the user's credentials
+        subprocess.run(
+            ["sudo", "-S", "-v"],
+            input=f"{password}\n".encode(),
+            check=True,
+            capture_output=True,
+        )
+    except subprocess.CalledProcessError:
+        raise ValueError("Invalid admin password.")

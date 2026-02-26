@@ -20,6 +20,7 @@ import requests
 import typer
 
 from peerstash.core import tailscale
+from peerstash.core.utils import verify_sudo_password
 
 app = typer.Typer()
 
@@ -112,6 +113,12 @@ def login():
     )
 
     try:
+        verify_sudo_password(admin_pass)
+    except ValueError as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+
+    try:
         client_id, client_secret = tailscale.get_credentials(admin_pass)
         if typer.confirm(
             "You are already logged in. Would you like to update your credentials?"
@@ -136,7 +143,7 @@ def login():
         tailscale.modify_policy(token)
 
         typer.echo("Registering device...")
-        tailscale.register_device(token)
+        tailscale.register_device(token, admin_pass)
 
         typer.secho(
             "Success",
