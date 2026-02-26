@@ -104,6 +104,7 @@ else
         username TEXT DEFAULT $USERNAME,\
         invite_code TEXT\
     );"
+    sqlite3 "$DB_PATH" "INSERT INTO node_data (id, username) VALUES (1, $USERNAME)"
     chown "$USERNAME":"$USERNAME" "$DB_PATH"
     chmod 700 "$DB_PATH"
 fi
