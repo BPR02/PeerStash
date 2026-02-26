@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import base64
 import fcntl
 import hashlib
 import os
@@ -48,6 +49,14 @@ def generate_sha1(input: str) -> str:
 
     # return the hexadecimal digest of the hash
     return sha1_hash.hexdigest()
+
+
+def derive_key(password: str, salt: bytes) -> bytes:
+    """Derives a Fernet-compatible key."""
+    key = hashlib.pbkdf2_hmac(
+        "sha256", password.encode(), salt, iterations=480000
+    )
+    return base64.urlsafe_b64encode(key)
 
 
 class RetentionUnit(StrEnum):

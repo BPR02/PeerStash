@@ -405,6 +405,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "cron-validator" },
+    { name = "cryptography" },
     { name = "paramiko" },
     { name = "pydantic" },
     { name = "requests" },
@@ -426,6 +427,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cron-validator", specifier = ">=1.0.8" },
+    { name = "cryptography", specifier = ">=46.0.5" },
     { name = "paramiko", specifier = ">=4.0.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "requests", specifier = ">=2.32.5" },
