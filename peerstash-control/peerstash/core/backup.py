@@ -15,39 +15,27 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import re
 import random
+import re
 import subprocess
 import time
-from subprocess import CalledProcessError
 from datetime import datetime
 from pathlib import Path
+from subprocess import CalledProcessError
 from typing import Any, Optional
-
-from cron_validator import CronValidator
 
 import paramiko
 import restic
+from cron_validator import CronValidator
 
-from peerstash.core.db import (
-    db_add_task,
-    db_get_task,
-    db_host_exists,
-    db_task_exists,
-    db_update_task,
-    db_delete_task,
-)
+from peerstash.core.db import (db_add_task, db_delete_task, db_get_task,
+                               db_get_user, db_host_exists, db_task_exists,
+                               db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
-from peerstash.core.utils import (
-    generate_sha1,
-    Retention,
-    acquire_task_lock,
-    release_lock,
-)
+from peerstash.core.utils import (Retention, acquire_task_lock, generate_sha1,
+                                  release_lock)
 
-USER = os.getenv("PEERSTASH_USER") or (
-    os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
-)
+USER = db_get_user()
 SFTP_PORT = 2022
 
 
@@ -234,7 +222,10 @@ def run_backup(
     if task.status == "new":
         init = True
         print("First run, initializing repo...")
-        db_update_task(task.name, TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="init"))
+        db_update_task(
+            task.name,
+            TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="init"),
+        )
         try:
             _init_repo(name)
         except Exception as e:
@@ -335,7 +326,10 @@ def prune_repo(
 
     # run forget and prune
     print(f"Running prune for task '{task.name}' (keeping {retention} snapshots)...")
-    db_update_task(task.name, TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="pruning"))
+    db_update_task(
+        task.name,
+        TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="pruning"),
+    )
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/tmp/peerstash/password.txt"
     try:
