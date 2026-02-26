@@ -205,3 +205,4 @@ def register_device(token: str):
     auth_key = _generate_auth_key(token)
     subprocess.run(
         ["tailscale", "up", "--authkey", auth_key], check=True, capture_output=True
+    )
