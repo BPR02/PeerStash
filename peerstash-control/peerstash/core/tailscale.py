@@ -99,7 +99,9 @@ def modify_policy(api_token: str):
     # push new policy
     headers["If-Match"] = etag if etag else ""
     post_data = commentjson.dumps(policy, indent=4)
-    post_resp = requests.post(base_url, auth=(api_token, ""), headers=headers, data=post_data)
+    post_resp = requests.post(
+        base_url, auth=(api_token, ""), headers=headers, data=post_data
+    )
     post_resp.raise_for_status()
 
 
@@ -119,7 +121,8 @@ def _generate_auth_key(api_token: str) -> str:
                     "tags": ["tag:peerstash"],
                 }
             }
-        }
+        },
+        "expirySeconds": 60,
     }
 
     response = requests.post(key_url, auth=(api_token, ""), json=payload)
