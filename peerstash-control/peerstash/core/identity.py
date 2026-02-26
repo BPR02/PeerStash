@@ -16,11 +16,11 @@
 
 import base64
 import json
-import os
 
-from .utils import get_file_content
+from peerstash.core.db import db_get_invite_code, db_get_user
+from peerstash.core.utils import get_file_content
 
-USER = os.getenv("SUDO_USER") if os.getenv("USER") == "root" else os.getenv("USER")
+USER = db_get_user()
 
 
 def _generate_identity_payload() -> str:
@@ -30,18 +30,22 @@ def _generate_identity_payload() -> str:
     server_pub_key = get_file_content("/var/lib/sftpgo/id_ed25519.pub")
     client_pub_key = get_file_content("~/.ssh/id_ed25519.pub")
     username = USER
+    invite_code = db_get_invite_code()
 
     if not username:
-        raise ValueError("Username not found. Are you logged in through SSH?")
+        raise ValueError("Username not found")
     if not server_pub_key:
         raise ValueError("Host keys not found (/var/lib/sftpgo/id_ed25519.pub)")
     if not client_pub_key:
         raise ValueError("User keys not found (~/.ssh/id_ed25519.pub)")
+    if not invite_code:
+        raise ValueError("Invite code not found. Did you run 'peerstash setup'?")
 
     data = {
         "username": username,
         "server_public_key": server_pub_key,
         "client_public_key": client_pub_key,
+        "invite_code": invite_code,
     }
 
     json_bytes = json.dumps(data).encode("utf-8")

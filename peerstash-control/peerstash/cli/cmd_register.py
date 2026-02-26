@@ -67,6 +67,15 @@ def register_peer(
             bold=True,
         )
 
+        # open invite url
+        invite_code = user_data["invite_code"]
+        invite_url = f"https://login.tailscale.com/admin/invite/{invite_code}"
+        typer.secho(
+            f"Accept the tailscale invite at {invite_url}.",
+            fg=typer.colors.YELLOW
+        )
+        typer.launch(invite_url)
+
     except RuntimeError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
