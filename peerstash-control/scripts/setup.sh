@@ -96,7 +96,7 @@ else
         prune_schedule TEXT NOT NULL,\
         last_run DATETIME,\
         last_exit_code INTEGER,\
-        status TEXT DEFAULT new,\
+        status TEXT DEFAULT 'new',\
         FOREIGN KEY (hostname) REFERENCES hosts(hostname)\
     );"
     sqlite3 "$DB_PATH" "CREATE TABLE node_data (\
