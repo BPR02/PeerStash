@@ -109,7 +109,7 @@ def setup(
         tailscale.modify_policy(api_token)
 
         typer.echo("Registering device...")
-        tailscale.register_device(token, admin_pass)
+        tailscale.register_device(api_token, admin_pass)
 
         typer.echo("Generating invite code...")
         invite_code = tailscale.generate_device_invite(api_token)

@@ -99,7 +99,7 @@ def modify_policy(api_token: str):
     # push new policy
     headers["If-Match"] = etag if etag else ""
     post_data = commentjson.dumps(policy, indent=4)
-    post_resp = requests.post(base_url, headers=headers, data=post_data)
+    post_resp = requests.post(base_url, auth=(api_token, ""), headers=headers, data=post_data)
     post_resp.raise_for_status()
 
 
