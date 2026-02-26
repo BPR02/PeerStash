@@ -101,7 +101,7 @@ else
     );"
     sqlite3 "$DB_PATH" "CREATE TABLE node_data (\
         id INTEGER PRIMARY KEY CHECK (id = 1),\
-        username TEXT DEFAULT $USERNAME,\
+        username TEXT DEFAULT '$USERNAME',\
         invite_code TEXT\
     );"
     sqlite3 "$DB_PATH" "INSERT INTO node_data (id, username) VALUES (1, '$USERNAME');"
