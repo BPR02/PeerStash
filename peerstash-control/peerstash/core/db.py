@@ -170,7 +170,7 @@ def db_get_user() -> Optional[str]:
     with closing(sqlite3.connect(DB_PATH)) as conn:
         with conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT user FROM node_data WHERE id = 1")
+            cursor.execute("SELECT username FROM node_data WHERE id = 1")
             res = cursor.fetchone()
 
     return res[0] if res else None
