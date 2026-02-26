@@ -75,7 +75,6 @@ def register_peer(
             fg=typer.colors.YELLOW
         )
         typer.secho(invite_url, fg=typer.colors.YELLOW)
-        typer.launch(invite_url)
 
     except RuntimeError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
