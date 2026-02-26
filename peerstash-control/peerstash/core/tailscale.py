@@ -90,6 +90,24 @@ def get_credentials(plaintext_password: str) -> tuple[str, str]:
         ) from e
 
 
+def revoke_api_token(api_token: str) -> bool:
+    """Attempts to revoke the temporary API token to ensure it is immediately invalidated."""
+    try:
+        # Extract the ID from the token (Format: tskey-api-ID-SECRET)
+        parts = api_token.split("-")
+        if len(parts) >= 4 and parts[0] == "tskey" and parts[1] == "api":
+            key_id = parts[2]
+            url = f"{TAILSCALE_API}/tailnet/-/keys/{key_id}"
+
+            # The token authenticates its own deletion
+            response = requests.delete(url, auth=(api_token, ""))
+            response.raise_for_status()
+            return True
+        return False
+    except Exception as e:
+        return False
+
+
 def bootstrap_tag(api_token: str):
     """
     Creates the peerstash tag via a Tailscale API access token.

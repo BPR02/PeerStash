@@ -56,7 +56,13 @@ def _setup_oauth(admin_pass: str) -> tuple[str, str]:
                 err=True,
             )
             raise typer.Exit(code=1)
-
+       
+        # delete API Token
+        typer.echo("Revoking temporary API token...")
+        if tailscale.revoke_api_token(api_token):
+            typer.secho("API token successfully revoked on Tailscale.", fg=typer.colors.GREEN)
+        else:
+            typer.secho("[!] Could not auto-revoke. Please delete the API token manually in the admin console.", fg=typer.colors.YELLOW)
         del api_token
     else:
         typer.secho("\n[Manual Tag Creation]", fg=typer.colors.YELLOW)
