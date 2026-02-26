@@ -19,6 +19,7 @@ import sqlite3
 import subprocess
 from contextlib import closing
 
+import commentjson
 import requests
 from cryptography.fernet import Fernet
 
@@ -95,11 +96,12 @@ def bootstrap_tag(api_token: str):
     """
     base_url = f"{TAILSCALE_API}/tailnet/-/acl"
     auth = (api_token, "")
+    headers = {"Accept": "application/hujson"}
 
-    get_resp = requests.get(base_url, auth=auth)
+    get_resp = requests.get(base_url, auth=auth, headers=headers)
     get_resp.raise_for_status()
     etag = get_resp.headers.get("ETag")
-    policy = get_resp.json()
+    policy = commentjson.loads(get_resp.text)
 
     if "tagOwners" not in policy:
         policy["tagOwners"] = {}
@@ -108,7 +110,8 @@ def bootstrap_tag(api_token: str):
     if "tag:peerstash" not in policy["tagOwners"]:
         policy["tagOwners"]["tag:peerstash"] = ["autogroup:admin"]
         headers = {"If-Match": etag}
-        post_resp = requests.post(base_url, auth=auth, headers=headers, json=policy)
+        post_data = commentjson.dumps(policy, indent=4)
+        post_resp = requests.post(base_url, auth=auth, headers=headers, data=post_data)
         post_resp.raise_for_status()
 
 
@@ -131,12 +134,12 @@ def modify_policy(token: str):
     Updates the Access Control policy to limit the ports viewable by peerstash machines.
     """
     base_url = f"{TAILSCALE_API}/tailnet/-/acl"
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/hujson"}
 
     get_resp = requests.get(base_url, headers=headers)
     get_resp.raise_for_status()
     etag = get_resp.headers.get("ETag")
-    policy = get_resp.json()
+    policy = commentjson.loads(get_resp.text)
 
     if "acls" in policy:
         policy["acls"] = [
@@ -169,7 +172,8 @@ def modify_policy(token: str):
             policy["grants"].append(rule)
 
     headers["If-Match"] = etag if etag else ""
-    post_resp = requests.post(base_url, headers=headers, json=policy)
+    post_data = commentjson.dumps(policy, indent=4)
+    post_resp = requests.post(base_url, headers=headers, data=post_data)
     post_resp.raise_for_status()
 
 
