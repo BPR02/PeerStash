@@ -21,8 +21,9 @@ import requests
 import typer
 
 from peerstash.core import tailscale
+from peerstash.core.db import (db_get_invite_code, db_get_user,
+                               db_set_invite_code)
 from peerstash.core.utils import verify_sudo_password
-from peerstash.core.db import db_get_invite_code, db_get_user, db_set_invite_code
 
 app = typer.Typer()
 
@@ -46,7 +47,7 @@ def _get_sudo_password() -> str:
 @app.command(name="login")
 def setup(
     token: str = typer.Option(
-        ...,
+        None,
         help="API Access Token to use. Skips interactive instructions.",
     ),
     overwrite: bool = typer.Option(
