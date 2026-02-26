@@ -1,3 +1,10 @@
+# [0.11.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.10.1...peerstash-v0.11.0) (2026-02-26)
+
+
+### Features
+
+* **control, compose:** streamline tailscale setup ([#30](https://github.com/BPR02/PeerStash/issues/30)) ([b625261](https://github.com/BPR02/PeerStash/commit/b6252614399cec83c9d612f512605e92eae9a930))
+
 ## [0.10.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.10.0...peerstash-v0.10.1) (2026-02-24)
 
 
