@@ -33,17 +33,18 @@ def _setup_oauth(admin_pass: str) -> tuple[str, str]:
     # Step 1: temporary API access token to create tag
     typer.secho("\n--- STEP 1: Bootstrap Tailnet Tag ---", fg=typer.colors.CYAN)
     typer.echo(
-        "To generate the necessary OAuth scopes, your Tailnet MUST have the 'tag:peerstash' tag created."
+        "To generate the necessary OAuth scopes, your Tailnet MUST have the \n'tag:peerstash' tag created."
     )
 
     auto_bootstrap = typer.confirm(
-        "Would you like to provide a temporary API token to do this automatically? (Recommended)",
+        "Would you like to provide a temporary API token to do this automatically? \nThe key will be revoked after the tag is created (Recommended)",
         default=True,
     )
 
     if auto_bootstrap:
         typer.echo("1. Go to https://login.tailscale.com/admin/settings/keys")
-        typer.echo("2. Generate a short-lived API access token (e.g. 1 day).")
+        typer.echo("2. Click 'Generate access token...'")
+        typer.echo("3. Click 'Generate access token'")
         api_token = typer.prompt("Paste API Access Token", hide_input=True)
 
         try:
@@ -63,13 +64,13 @@ def _setup_oauth(admin_pass: str) -> tuple[str, str]:
         if tailscale.revoke_api_token(api_token):
             typer.secho("API token successfully revoked on Tailscale.", fg=typer.colors.GREEN)
         else:
-            typer.secho("[!] Could not auto-revoke. Please delete the API token manually in the admin console.", fg=typer.colors.YELLOW)
+            typer.secho("[!] Could not auto-revoke API token. \nPlease delete the API token manually in the admin console.", fg=typer.colors.YELLOW)
         del api_token
     else:
         typer.secho("\n[Manual Tag Creation]", fg=typer.colors.YELLOW)
         typer.echo("1. Go to https://login.tailscale.com/admin/acls/visual/tags")
         typer.echo(
-            "2. Click '+ Create tag', name it 'peerstash', and set the owner to 'autogroup:admin'."
+            "2. Click '+ Create tag', name it 'peerstash', \n   and set the owner to 'autogroup:admin'."
         )
         typer.echo("3. Click 'Save tag'.")
         typer.confirm("Have you completed this step?", default=True)
@@ -82,13 +83,13 @@ def _setup_oauth(admin_pass: str) -> tuple[str, str]:
     typer.echo("2. Click '+ Credential'")
     typer.echo("3. Select 'OAuth' and click 'Continue ->'")
     typer.echo("4. Select the following scopes:")
-    typer.secho("   [x] Policy file (Write)", fg=typer.colors.GREEN)
+    typer.secho("   [x] Policy File (Write)", fg=typer.colors.GREEN)
     typer.secho(
-        "   [x] Auth keys (Write) -> Select 'tag:peerstash' from the dropdown",
+        "   [x] Auth Keys (Write) -> Select 'tag:peerstash' from the dropdown",
         fg=typer.colors.GREEN,
     )
     typer.secho(
-        "   [x] Device invites (Write)",
+        "   [x] Device Invites (Write)",
         fg=typer.colors.GREEN,
     )
     typer.echo("5. Click 'Generate credential'.")
