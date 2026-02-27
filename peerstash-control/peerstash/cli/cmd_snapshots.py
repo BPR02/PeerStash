@@ -18,6 +18,7 @@ from datetime import datetime
 
 import typer
 
+from peerstash.cli.utils import check_setup
 from peerstash.core.backup import get_snapshots
 
 app = typer.Typer()
@@ -34,6 +35,7 @@ def snapshots(
     """
     Lists the snapshots taken for a task.
     """
+    check_setup()
     try:
         snapshot_list = get_snapshots(name, snapshot)
     except Exception as e:
