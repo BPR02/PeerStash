@@ -1,3 +1,10 @@
+## [0.11.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.11.0...peerstash-v0.11.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* **control:** misc database fixes ([#31](https://github.com/BPR02/PeerStash/issues/31)) ([ff9cb30](https://github.com/BPR02/PeerStash/commit/ff9cb3047efa37b5617b96b8edbcf5ccb3032d45))
+
 # [0.11.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.10.1...peerstash-v0.11.0) (2026-02-26)
 
 
