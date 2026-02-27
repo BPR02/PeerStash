@@ -18,6 +18,7 @@ import re
 
 import typer
 
+from peerstash.cli.utils import check_setup
 from peerstash.core.db import db_list_tasks
 
 app = typer.Typer()
@@ -37,6 +38,7 @@ def list(
     """
     Lists scheduled backup tasks.
     """
+    check_setup()
     try:
         # update or insert peer
         tasks = db_list_tasks()

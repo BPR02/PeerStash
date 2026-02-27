@@ -16,6 +16,7 @@
 
 import typer
 
+from peerstash.cli.utils import check_setup
 from peerstash.core.backup import remove_schedule
 
 app = typer.Typer()
@@ -28,6 +29,7 @@ def cancel(
     """
     Cancels a backup task.
     """
+    check_setup()
     try:
         remove_schedule(name)
         typer.secho(

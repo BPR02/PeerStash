@@ -16,6 +16,7 @@
 
 import typer
 
+from peerstash.cli.utils import check_setup
 from peerstash.core.backup import run_backup
 
 app = typer.Typer()
@@ -29,6 +30,7 @@ def backup(
     """
     Runs a backup task. Requires root permissions.
     """
+    check_setup()
     try:
         run_backup(name, offset=offset)
         typer.secho(

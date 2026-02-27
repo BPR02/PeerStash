@@ -16,6 +16,7 @@
 
 import typer
 
+from peerstash.cli.utils import check_setup
 from peerstash.core import identity
 
 app = typer.Typer()
@@ -26,6 +27,7 @@ def print_id():
     """
     Generate identity string for this node.
     """
+    check_setup()
     try:
         # write share code to std out
         typer.echo(identity.generate_share_key())

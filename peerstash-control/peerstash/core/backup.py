@@ -103,7 +103,7 @@ def _init_repo(name: str) -> None:
 
     # initialize repo
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-    restic.password_file = "/tmp/peerstash/password.txt"
+    restic.password_file = "/var/lib/peerstash/restic_password"
     restic.init()
 
 
@@ -206,7 +206,7 @@ def run_backup(
     if dry_run:
         print(f"Calculating added bytes for backup task '{task.name}'...")
         restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-        restic.password_file = "/tmp/peerstash/password.txt"
+        restic.password_file = "/var/lib/peerstash/restic_password"
         res = restic.backup(
             paths=paths, exclude_patterns=exclude_patterns, dry_run=True
         )
@@ -266,7 +266,7 @@ def run_backup(
     print(f"Running backup task '{task.name}'...")
     db_update_task(task.name, TaskUpdate(status="running"))
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-    restic.password_file = "/tmp/peerstash/password.txt"
+    restic.password_file = "/var/lib/peerstash/restic_password"
     res = None
     try:
         res = restic.backup(
@@ -331,7 +331,7 @@ def prune_repo(
         TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="pruning"),
     )
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-    restic.password_file = "/tmp/peerstash/password.txt"
+    restic.password_file = "/var/lib/peerstash/restic_password"
     try:
         restic.forget(
             keep_last=policy.recent,

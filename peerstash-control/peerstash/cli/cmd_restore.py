@@ -16,6 +16,7 @@
 
 import typer
 
+from peerstash.cli.utils import check_setup
 from peerstash.core.backup import restore_snapshot
 
 app = typer.Typer()
@@ -29,6 +30,7 @@ def restore(
     """
     Restores files from a backup snapshot.
     """
+    check_setup()
     try:
         folder = restore_snapshot(name, snapshot=snapshot)
         typer.secho(
