@@ -1,3 +1,10 @@
+## [0.11.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.11.1...peerstash-v0.11.2) (2026-02-27)
+
+
+### Bug Fixes
+
+* **control:** generate a hashed password for restic instead of storing the admin password in plaintext ([#32](https://github.com/BPR02/PeerStash/issues/32)) ([38f9c7f](https://github.com/BPR02/PeerStash/commit/38f9c7fd6887821447444dbc24f87911bea5e816))
+
 ## [0.11.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.11.0...peerstash-v0.11.1) (2026-02-27)
 
 
