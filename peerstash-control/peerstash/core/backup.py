@@ -454,6 +454,8 @@ def restore_snapshot(
             target_dir=temp_folder,
         )
         # move the actual backed up items to the folder
+        if os.path.exists(final_folder):
+            final_folder = f"{final_folder}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}"
         shutil.move(f"{temp_folder}/mnt/peerstash_root", final_folder)
     except Exception as e:
         raise Exception(
