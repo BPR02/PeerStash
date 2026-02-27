@@ -29,6 +29,7 @@ class HostBase(BaseModel):
 
 class HostCreate(HostBase):
     port: int
+    public_key: str
 
 
 class HostRead(HostCreate):
@@ -37,6 +38,7 @@ class HostRead(HostCreate):
 
 class HostUpdate(BaseModel):
     port: Optional[int] = None
+    public_key: Optional[str] = None
     last_seen: Optional[datetime] = None
 
 
