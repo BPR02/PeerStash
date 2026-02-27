@@ -1,3 +1,10 @@
+# [0.12.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.11.2...peerstash-v0.12.0) (2026-02-27)
+
+
+### Features
+
+* **compose:** move restore folder to its own defined folder ([#33](https://github.com/BPR02/PeerStash/issues/33)) ([abf7c84](https://github.com/BPR02/PeerStash/commit/abf7c84b9dd18edf40ff1463763b7215866b0285))
+
 ## [0.11.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.11.1...peerstash-v0.11.2) (2026-02-27)
 
 

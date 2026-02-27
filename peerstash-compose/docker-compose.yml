@@ -1,6 +1,6 @@
 name: peerstash
 x-meta:
-  compose_version: 0.7.0
+  compose_version: 0.8.0
 services:
   storage:
     image: drakkan/sftpgo:v2-alpine-slim
