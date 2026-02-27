@@ -462,4 +462,4 @@ def restore_snapshot(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
         )
 
-    return final_folder
+    return folder
