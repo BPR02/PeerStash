@@ -26,51 +26,47 @@ DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
 
 def db_add_host(hostname: str, public_key: str) -> None:
     """Adds the peerstash host to the DB."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO hosts (hostname, port, public_key) VALUES (?, ?, ?)",
-            (hostname, "2022", public_key),
-        )
-        conn.commit()
-    except sqlite3.Error as e:
-        raise Exception(f"Database error {e}")
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO hosts (hostname, port, public_key) VALUES (?, ?, ?)",
+                (hostname, "2022", public_key),
+            )
 
 
 def db_host_exists(hostname: str) -> bool:
     """Checks the DB to see if we know this peer."""
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1 FROM hosts WHERE hostname=?", (hostname,))
-        return cursor.fetchone() is not None
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1 FROM hosts WHERE hostname=?", (hostname,))
+            return cursor.fetchone() is not None
 
 
 def db_get_host(hostname: str) -> Optional[HostRead]:
     """Gets host entry from DB."""
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM hosts WHERE hostname=?", (hostname,))
-        res = cursor.fetchone()
-        if not res:
-            return None
-        return HostRead(
-            **{key: res[i] for i, key in enumerate(HostRead.model_fields.keys())}
-        )
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM hosts WHERE hostname=?", (hostname,))
+            res = cursor.fetchone()
+            if not res:
+                return None
+            return HostRead(
+                **{key: res[i] for i, key in enumerate(HostRead.model_fields.keys())}
+            )
 
 
 def db_update_host(hostname: str, public_key: str) -> None:
     """Updates the peerstash host on the DB."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(
-            "UPDATE hosts SET public_key = ? WHERE hostname = ?",
-            (public_key, hostname),
-        )
-        conn.commit()
-    except sqlite3.Error as e:
-        raise Exception(f"Database error {e}")
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE hosts SET public_key = ? WHERE hostname = ?",
+                (public_key, hostname),
+            )
 
 
 def db_add_task(
@@ -83,39 +79,38 @@ def db_add_task(
     prune_schedule: str,
 ):
     """Adds the backup task to the DB."""
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO tasks (name, include, exclude, hostname, \
-                schedule, retention, prune_schedule) \
-                VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (name, include, exclude, hostname, schedule, retention, prune_schedule),
-        )
-        conn.commit()
-    except sqlite3.Error as e:
-        raise Exception(f"Database error {e}")
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """INSERT INTO tasks 
+                   (name, include, exclude, hostname, schedule, retention, prune_schedule) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (name, include, exclude, hostname, schedule, retention, prune_schedule),
+            )
 
 
 def db_task_exists(name: str) -> bool:
     """Checks the DB to see if there's already a task with this name."""
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1 FROM tasks WHERE name=?", (name,))
-        return cursor.fetchone() is not None
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1 FROM tasks WHERE name=?", (name,))
+            return cursor.fetchone() is not None
 
 
 def db_get_task(name: str) -> Optional[TaskRead]:
     """Checks the DB to see if there's already a task with this name."""
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM tasks WHERE name=?", (name,))
-        res = cursor.fetchone()
-        if not res:
-            return None
-        return TaskRead(
-            **{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())}
-        )
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM tasks WHERE name=?", (name,))
+            res = cursor.fetchone()
+            if not res:
+                return None
+            return TaskRead(
+                **{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())}
+            )
 
 
 def db_update_task(name: str, data: TaskUpdate) -> Optional[TaskRead]:
@@ -125,40 +120,44 @@ def db_update_task(name: str, data: TaskUpdate) -> Optional[TaskRead]:
     )
     if not model_dump:
         return db_get_task(name)
+
     fields = []
     values = list(model_dump.values())
     values.append(name)
     for key in model_dump.keys():
         fields.append(f"{key} = ?")
 
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            f"UPDATE tasks SET {', '.join(fields)} WHERE name = ? RETURNING *;",
-            values,
-        )
-        res = cursor.fetchone()
-        if not res:
-            return None
-        return TaskRead(
-            **{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())}
-        )
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                f"UPDATE tasks SET {', '.join(fields)} WHERE name = ? RETURNING *;",
+                values,
+            )
+            res = cursor.fetchone()
+            if not res:
+                return None
+            return TaskRead(
+                **{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())}
+            )
 
 
 def db_delete_task(name: str) -> bool:
     """Removes the task from the DB."""
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM tasks WHERE name = ? RETURNING name", (name,))
-        res = cursor.fetchone()
-        return res is not None
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM tasks WHERE name = ? RETURNING name", (name,))
+            res = cursor.fetchone()
+            return res is not None
 
 
 def db_list_tasks() -> list[TaskRead]:
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM tasks")
-        results = cursor.fetchall()
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM tasks")
+            results = cursor.fetchall()
 
     return [
         TaskRead(**{key: res[i] for i, key in enumerate(TaskRead.model_fields.keys())})
