@@ -1,6 +1,6 @@
 {
   "name": "peerstash",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "private": true,
   "description": "Peer-to-peer (p2p) backups between NAS machines owned by a group of friends",
   "license": "MIT",

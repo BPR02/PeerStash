@@ -1,3 +1,10 @@
+## [0.12.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.12.0...peerstash-v0.12.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* **control:** don't print internal folder name when restoring ([#34](https://github.com/BPR02/PeerStash/issues/34)) ([20031ec](https://github.com/BPR02/PeerStash/commit/20031ec509b8be5b058ba3328282e346dfe5db30))
+
 # [0.12.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.11.2...peerstash-v0.12.0) (2026-02-27)
 
 
