@@ -17,6 +17,7 @@
 import os
 import random
 import re
+import shutil
 import subprocess
 import time
 from datetime import datetime
@@ -435,19 +436,28 @@ def restore_snapshot(
         else snapshot
     )
     folder = f"{name}_{t}"
-    
-    full_path = f"/mnt/peerstash_restore/{folder}"
+    final_folder = f"/mnt/peerstash_restore/{folder}"
 
-    # restore to the folder
+    # delete temp folder
+    temp_folder = "/tmp/peerstash/restore"
+    if os.path.exists(temp_folder):
+        shutil.rmtree(temp_folder)
+
+    # restore to the temp folder, copy to the final folder
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
     try:
         restic.restore(
-            snapshot_id=snapshot, include=include, exclude=exclude, target_dir=full_path
+            snapshot_id=snapshot,
+            include=include,
+            exclude=exclude,
+            target_dir=temp_folder,
         )
+        # move the actual backed up items to the folder
+        shutil.move(f"{temp_folder}/mnt/peerstash_root", final_folder)
     except Exception as e:
         raise Exception(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
         )
 
-    return full_path
+    return final_folder
