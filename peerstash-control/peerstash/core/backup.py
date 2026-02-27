@@ -17,6 +17,7 @@
 import os
 import random
 import re
+import shutil
 import subprocess
 import time
 from datetime import datetime
@@ -103,7 +104,7 @@ def _init_repo(name: str) -> None:
 
     # initialize repo
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-    restic.password_file = "/tmp/peerstash/password.txt"
+    restic.password_file = "/var/lib/peerstash/restic_password"
     restic.init()
 
 
@@ -206,7 +207,7 @@ def run_backup(
     if dry_run:
         print(f"Calculating added bytes for backup task '{task.name}'...")
         restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-        restic.password_file = "/tmp/peerstash/password.txt"
+        restic.password_file = "/var/lib/peerstash/restic_password"
         res = restic.backup(
             paths=paths, exclude_patterns=exclude_patterns, dry_run=True
         )
@@ -266,7 +267,7 @@ def run_backup(
     print(f"Running backup task '{task.name}'...")
     db_update_task(task.name, TaskUpdate(status="running"))
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-    restic.password_file = "/tmp/peerstash/password.txt"
+    restic.password_file = "/var/lib/peerstash/restic_password"
     res = None
     try:
         res = restic.backup(
@@ -331,7 +332,7 @@ def prune_repo(
         TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="pruning"),
     )
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
-    restic.password_file = "/tmp/peerstash/password.txt"
+    restic.password_file = "/var/lib/peerstash/restic_password"
     try:
         restic.forget(
             keep_last=policy.recent,
@@ -417,38 +418,48 @@ def remove_schedule(name: str) -> None:
         _sftp_recursive_remove(task.hostname, task.name)
 
 
-def restore_snapshot(name: str, snapshot: str = "latest") -> str:
+def restore_snapshot(
+    name: str,
+    snapshot: str = "latest",
+    include: Optional[str] = None,
+    exclude: Optional[list[str]] = None,
+) -> str:
     # pull info from DB
     task = db_get_task(name)
     if not task:
         raise ValueError(f"Task with name '{name}' not in DB")
 
-    # restore using custom binary for password file read
+    # create folder name based on snapshot and task name
     t = (
         task.last_run.strftime("%Y-%m-%d_%H-%M-%S")
         if snapshot == "latest" and task.last_run
         else snapshot
     )
     folder = f"{name}_{t}"
+    final_folder = f"/mnt/peerstash_restore/{folder}"
+
+    # delete temp folder
+    temp_folder = "/tmp/peerstash/restore"
+    if os.path.exists(temp_folder):
+        shutil.rmtree(temp_folder)
+
+    # restore to the temp folder, copy to the final folder
+    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.password_file = "/var/lib/peerstash/restic_password"
     try:
-        subprocess.run(
-            [
-                "/srv/peerstash/bin/restore_snapshot",
-                f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}",
-                snapshot,
-                folder,
-            ],
-            check=True,
-            text=True,
-            capture_output=True,
+        restic.restore(
+            snapshot_id=snapshot,
+            include=include,
+            exclude=exclude,
+            target_dir=temp_folder,
         )
-    except CalledProcessError as e:
-        raise RuntimeError(
-            f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e.stderr})"
-        )
+        # move the actual backed up items to the folder
+        if os.path.exists(final_folder):
+            final_folder = f"{final_folder}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}"
+        shutil.move(f"{temp_folder}/mnt/peerstash_root", final_folder)
     except Exception as e:
         raise Exception(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
         )
 
-    return folder
+    return final_folder

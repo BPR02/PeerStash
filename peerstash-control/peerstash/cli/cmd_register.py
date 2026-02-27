@@ -18,6 +18,7 @@ import os
 
 import typer
 
+from peerstash.cli.utils import check_setup
 from peerstash.core import registration
 from peerstash.core.db import db_host_exists
 
@@ -37,6 +38,7 @@ def register_peer(
     """
     Register a new peer using their Share Key.
     """
+    check_setup()
     try:
         # get username from share key
         user_data = registration.parse_share_key(share_key)

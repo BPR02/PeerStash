@@ -23,7 +23,7 @@ import typer
 from peerstash.core import tailscale
 from peerstash.core.db import (db_get_invite_code, db_get_user,
                                db_set_invite_code)
-from peerstash.core.utils import verify_sudo_password
+from peerstash.core.utils import gen_restic_pass, verify_sudo_password
 
 app = typer.Typer()
 
@@ -67,7 +67,7 @@ def setup(
         )
         raise typer.Exit()
 
-    typer.secho("--- Tailscale Setup ---", fg=typer.colors.MAGENTA, bold=True)
+    typer.secho("--- PeerStash Setup ---", fg=typer.colors.MAGENTA, bold=True)
     admin_pass = _get_sudo_password()
 
     try:
@@ -75,6 +75,14 @@ def setup(
     except ValueError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
+
+    if not USER:
+        typer.secho(
+            f"User not set. Database may be corrupted.", fg=typer.colors.RED, err=True
+        )
+        raise typer.Exit(code=1)
+
+    gen_restic_pass(USER, admin_pass)
 
     if not token:
         typer.secho("OAuth Setup Initialized", fg=typer.colors.CYAN, bold=True)

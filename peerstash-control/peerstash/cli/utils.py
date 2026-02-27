@@ -1,5 +1,3 @@
-#!/bin/sh
-
 # Peerstash
 # Copyright (C) 2026 BPR02
 
@@ -16,26 +14,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import typer
 
-if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
-    echo "Usage: $(basename "$0") REPO SNAPSHOT FOLDER" >&2
-    exit 1
-fi
+from peerstash.core.db import db_get_invite_code
 
-REPO="$1"
-SNAPSHOT="$2"
-FOLDER="$3"
 
-# restore into temporary location
-if ! restic restore "$SNAPSHOT" -r "$REPO" --password-file /tmp/peerstash/password.txt --target /tmp/peerstash/restore; then
-    exit 2
-fi
-
-# move to bind mount
-if ! mv /tmp/peerstash/restore/mnt/peerstash_root /mnt/peerstash_restore/"$FOLDER"; then
-    exit 3
-fi
-
-if ! rm -rf /tmp/peerstash/restore; then
-    exit 3
-fi
+def check_setup():
+    if not db_get_invite_code():
+        typer.secho(
+            "Not initialized. Have you run 'peerstash setup'?",
+            fg=typer.colors.RED,
+            bold=True,
+            err=True,
+        )
+        raise typer.Exit(1)

@@ -18,6 +18,7 @@ from typing import Annotated, Optional
 
 import typer
 
+from peerstash.cli.utils import check_setup
 from peerstash.core.backup import schedule_backup
 
 app = typer.Typer()
@@ -53,6 +54,7 @@ def schedule(
     """
     Schedules a new backup task.
     """
+    check_setup()
     try:
         if not include:
             raise typer.Abort(

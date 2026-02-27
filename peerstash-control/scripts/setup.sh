@@ -38,11 +38,6 @@ useradd -m -s /bin/bash "$USERNAME"
 echo "$USERNAME:$PASSWORD" | chpasswd
 adduser "$USERNAME" sudo
 
-# create password text file
-mkdir -p /tmp/peerstash
-echo "$PASSWORD" > /tmp/peerstash/password.txt
-chmod 400 /tmp/peerstash/password.txt
-
 # Generate SSH user keys
 mkdir -p /home/"$USERNAME"/.ssh
 

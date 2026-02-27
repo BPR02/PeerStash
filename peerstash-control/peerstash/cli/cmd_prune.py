@@ -16,6 +16,7 @@
 
 import typer
 
+from peerstash.cli.utils import check_setup
 from peerstash.core.backup import prune_repo
 
 app = typer.Typer()
@@ -29,6 +30,7 @@ def prune(
     """
     Prunes the repo for a backup task. Respects the retention set by the task. Requires root permissions.
     """
+    check_setup()
     try:
         prune_repo(name, offset=offset)
         typer.secho(

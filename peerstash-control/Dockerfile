@@ -41,7 +41,6 @@ RUN mkdir -p /srv/peerstash/bin && \
     gcc -o /srv/peerstash/bin/create_task /srv/peerstash/scripts/create_task.c && \
     gcc -o /srv/peerstash/bin/remove_task /srv/peerstash/scripts/remove_task.c && \
     gcc -o /srv/peerstash/bin/sync_hosts /srv/peerstash/scripts/sync_hosts.c && \
-    gcc -o /srv/peerstash/bin/restore_snapshot /srv/peerstash/scripts/restore_snapshot.c && \
     chown root /srv/peerstash/bin/* && \
     chmod 4755 /srv/peerstash/bin/*
 
@@ -89,6 +88,7 @@ COPY --from=compiler /srv/peerstash/bin/* /srv/peerstash/bin/
 # move scripts
 COPY ./scripts/*.sh /srv/peerstash/scripts/
 RUN chmod -R 744 /srv/peerstash/scripts
+RUN mkdir -p /tmp/peerstash && chmod 777 /tmp/peerstash
 
 EXPOSE 22
 
