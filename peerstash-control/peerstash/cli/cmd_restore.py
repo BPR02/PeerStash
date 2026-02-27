@@ -43,9 +43,9 @@ def restore(
     """
     check_setup()
     try:
-        folder = restore_snapshot(name, snapshot, include, exclude)
+        restore_path = restore_snapshot(name, snapshot, include, exclude)
         typer.secho(
-            f"Task '{name}' restored. Files in /mnt/peerstash_restore/{folder}",
+            f"Task '{name}' restored. Files in {restore_path}",
             fg=typer.colors.GREEN,
         )
     except ValueError as e:

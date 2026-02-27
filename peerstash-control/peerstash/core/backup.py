@@ -435,17 +435,19 @@ def restore_snapshot(
         else snapshot
     )
     folder = f"{name}_{t}"
+    
+    full_path = f"/mnt/peerstash_restore/{folder}"
 
     # restore to the folder
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
     try:
         restic.restore(
-            snapshot_id=snapshot, include=include, exclude=exclude, target_dir=folder
+            snapshot_id=snapshot, include=include, exclude=exclude, target_dir=full_path
         )
     except Exception as e:
         raise Exception(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
         )
 
-    return folder
+    return full_path
