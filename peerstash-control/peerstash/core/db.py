@@ -69,6 +69,19 @@ def db_update_host(hostname: str, public_key: str) -> None:
             )
 
 
+def db_list_hosts() -> list[HostRead]:
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM hosts")
+            results = cursor.fetchall()
+
+    return [
+        HostRead(**{key: res[i] for i, key in enumerate(HostRead.model_fields.keys())})
+        for res in results
+    ]
+
+
 def db_add_task(
     name: str,
     include: str,
