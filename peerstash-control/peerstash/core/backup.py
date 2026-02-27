@@ -417,34 +417,31 @@ def remove_schedule(name: str) -> None:
         _sftp_recursive_remove(task.hostname, task.name)
 
 
-def restore_snapshot(name: str, snapshot: str = "latest") -> str:
+def restore_snapshot(
+    name: str,
+    snapshot: str = "latest",
+    include: Optional[str] = None,
+    exclude: Optional[list[str]] = None,
+) -> str:
     # pull info from DB
     task = db_get_task(name)
     if not task:
         raise ValueError(f"Task with name '{name}' not in DB")
 
-    # restore using custom binary for password file read
+    # create folder name based on snapshot and task name
     t = (
         task.last_run.strftime("%Y-%m-%d_%H-%M-%S")
         if snapshot == "latest" and task.last_run
         else snapshot
     )
     folder = f"{name}_{t}"
+
+    # restore to the folder
+    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.password_file = "/var/lib/peerstash/restic_password"
     try:
-        subprocess.run(
-            [
-                "/srv/peerstash/bin/restore_snapshot",
-                f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}",
-                snapshot,
-                folder,
-            ],
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-    except CalledProcessError as e:
-        raise RuntimeError(
-            f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e.stderr})"
+        restic.restore(
+            snapshot_id=snapshot, include=include, exclude=exclude, target_dir=folder
         )
     except Exception as e:
         raise Exception(

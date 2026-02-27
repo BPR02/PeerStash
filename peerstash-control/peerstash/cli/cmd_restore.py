@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from typing import Annotated
+
 import typer
 
 from peerstash.cli.utils import check_setup
@@ -26,13 +28,22 @@ app = typer.Typer()
 def restore(
     name: str = typer.Argument(..., help="Name of the backup task to restore."),
     snapshot: str = typer.Argument("latest", help="Snapshot ID to restore."),
+    include: str = typer.Option(
+        None, help="String specifying a regex pattern to include, excluding everything else"
+    ),
+    exclude: Annotated[
+        list[str] | None,
+        typer.Option(
+            help="An exclusion regex pattern to exclude. Use this option multiple times to set multiple exclusion patterns."
+        ),
+    ] = None,
 ):
     """
     Restores files from a backup snapshot.
     """
     check_setup()
     try:
-        folder = restore_snapshot(name, snapshot=snapshot)
+        folder = restore_snapshot(name, snapshot, include, exclude)
         typer.secho(
             f"Task '{name}' restored. Files in /mnt/peerstash_restore/{folder}",
             fg=typer.colors.GREEN,
