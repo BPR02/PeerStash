@@ -59,7 +59,7 @@ services:
         bind:
           create_host_path: true
       - type: bind
-        source: ${PEERSTASH_CONTROL}/restored_data
+        source: PEERSTASH_RESTORE_FOLDER
         target: /mnt/peerstash_restore
         bind:
           create_host_path: true
