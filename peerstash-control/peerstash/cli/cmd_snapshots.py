@@ -60,7 +60,7 @@ def snapshots(
             )
             typer.secho(
                 f"    Date:     {date.strftime("%d %B %Y %I:%M:%S %p %Z")}",
-                fg=typer.colors.BLUE,
+                fg=typer.colors.CYAN,
             )
             typer.secho(f"    Includes: ", fg=typer.colors.BRIGHT_GREEN)
             for p in s["paths"]:
