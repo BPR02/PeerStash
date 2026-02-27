@@ -17,7 +17,8 @@
 import typer
 
 from peerstash.cli import (cmd_backup, cmd_cancel, cmd_id, cmd_list, cmd_prune,
-                           cmd_register, cmd_restore, cmd_schedule, cmd_setup)
+                           cmd_register, cmd_restore, cmd_schedule, cmd_setup,
+                           cmd_snapshots)
 
 # Create the main cli app
 cli = typer.Typer(help="PeerStash CLI Tool")
@@ -30,3 +31,4 @@ cli.command(name="prune")(cmd_prune.prune)
 cli.command(name="cancel")(cmd_cancel.cancel)
 cli.command(name="list")(cmd_list.list)
 cli.command(name="restore")(cmd_restore.restore)
+cli.command(name="snapshots")(cmd_snapshots.snapshots)

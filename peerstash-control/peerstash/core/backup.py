@@ -455,7 +455,9 @@ def restore_snapshot(
         )
         # move the actual backed up items to the folder
         if os.path.exists(final_folder):
-            final_folder = f"{final_folder}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}"
+            final_folder = (
+                f"{final_folder}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}"
+            )
         shutil.move(f"{temp_folder}/mnt/peerstash_root", final_folder)
     except Exception as e:
         raise Exception(
@@ -463,3 +465,20 @@ def restore_snapshot(
         )
 
     return folder
+
+
+def get_snapshots(name: str, snapshot: Optional[str] = None) -> list[dict[Any,Any]]:
+    # pull info from DB
+    task = db_get_task(name)
+    if not task:
+        raise ValueError(f"Task with name '{name}' not in DB")
+
+    # get snapshots
+    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.password_file = "/var/lib/peerstash/restic_password"
+    try:
+        return restic.snapshots(snapshot_id=snapshot)
+    except Exception as e:
+        raise Exception(
+            f"Failed to get snapshots for task '{name}' ({e})"
+        )
