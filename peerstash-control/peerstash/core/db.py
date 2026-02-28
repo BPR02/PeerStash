@@ -76,7 +76,7 @@ def db_delete_host(hostname: str) -> None:
             cursor = conn.cursor()
             cursor.execute(
                 "DELETE FROM hosts WHERE hostname = ?",
-                (hostname),
+                (hostname,),
             )
 
 
