@@ -17,7 +17,8 @@
 import typer
 
 from peerstash.cli.utils import check_setup
-from peerstash.core.db import db_list_hosts
+from peerstash.core.db import db_get_user, db_list_hosts
+from peerstash.core.utils import get_disk_usage, sizeof_fmt
 
 app = typer.Typer()
 
@@ -35,5 +36,10 @@ def peers():
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
 
+    user = db_get_user()
+    if not user:
+        typer.secho(f"Error: unknown user.", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
     for host in hosts:
-        typer.echo(host.hostname.removeprefix("peerstash-"))
+        total, used, _ = get_disk_usage(user, host.hostname, 2022)
+        typer.echo(f"{host.hostname.removeprefix("peerstash-")} ({sizeof_fmt(used)} used / {sizeof_fmt(total)})")

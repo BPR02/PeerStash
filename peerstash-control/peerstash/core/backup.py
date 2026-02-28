@@ -34,41 +34,10 @@ from peerstash.core.db import (db_add_task, db_delete_task, db_get_task,
                                db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import (Retention, acquire_task_lock, generate_sha1,
-                                  release_lock)
+                                  get_disk_usage, release_lock)
 
 USER = db_get_user()
 SFTP_PORT = 2022
-
-
-def _get_free_space(hostname: str, port: int) -> int:
-    """
-    Get the amount of free bytes in the sftpgo server.
-    """
-    try:
-        # connect to the server (SSH keys should already be set up in ~/.ssh/)
-        process = subprocess.run(
-            ["sftp", "-P", f"{port}", f"{USER}@{hostname}"],
-            input="df\nbye\n",
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        output = process.stdout
-
-        # get output
-        if not output.strip():
-            raise Exception("Output returned nothing.")
-
-        # Parse output with Regex like the subprocess method
-        numbers = re.findall(r"[0-9]+", output)
-        if len(numbers) >= 3:
-            free = int(numbers[2]) * 1024  # df returns number of free KiB
-        else:
-            raise Exception("Unable to parse output.")
-    except Exception as e:
-        raise RuntimeError(f"Could not get quota from SFTP server. ({e})")
-
-    return free
 
 
 def _verify_backup_size(name: str) -> tuple[int, int]:
@@ -81,7 +50,7 @@ def _verify_backup_size(name: str) -> tuple[int, int]:
         raise ValueError(f"Task with name '{name}' not in DB")
 
     # get free space in SFTP server
-    free_bytes = _get_free_space(task.hostname, SFTP_PORT)
+    free_bytes = get_disk_usage(USER, task.hostname, SFTP_PORT)[2]
 
     # get added bytes
     res = run_backup(name, True)
