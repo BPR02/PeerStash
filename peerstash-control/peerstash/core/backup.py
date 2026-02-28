@@ -526,7 +526,8 @@ def mount_task(name: str) -> None:
                 "--password-file",
                 restic_password_file,
                 mount_point,
-            ]
+            ],
+            stdout=subprocess.DEVNULL, # ignore stdout
         )
     except Exception as e:
         raise RuntimeError(f"Failed to mount repo for task '{task.name}' ({e})")
