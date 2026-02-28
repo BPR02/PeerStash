@@ -169,10 +169,21 @@ def schedule_backup(
 
     # insert into db
     if db_task_exists(name):
-        raise ValueError(f"Backup task with name '{name}' already exists")
-    db_add_task(name, include, exclude, hostname, schedule, retention, prune_schedule)
+        db_update_task(
+            name,
+            TaskUpdate(
+                include=include,
+                exclude=exclude,
+                hostname=hostname,
+                schedule=schedule,
+                retention=retention,
+                prune_schedule=prune_schedule,
+            ),
+        )
+    else:
+        db_add_task(name, include, exclude, hostname, schedule, retention, prune_schedule)
 
-    # create systemd task
+    # create or update cronjob
     try:
         subprocess.run(
             ["/srv/peerstash/bin/create_task", name, schedule, prune_schedule],
@@ -181,7 +192,7 @@ def schedule_backup(
     except CalledProcessError as e:
         raise RuntimeError(f"Failed to create backup task ({e})")
 
-    # return name and next elapse for output
+    # return name
     return name
 
 
@@ -467,7 +478,7 @@ def restore_snapshot(
     return folder
 
 
-def get_snapshots(name: str, snapshot: Optional[str] = None) -> list[dict[Any,Any]]:
+def get_snapshots(name: str, snapshot: Optional[str] = None) -> list[dict[Any, Any]]:
     # pull info from DB
     task = db_get_task(name)
     if not task:
@@ -479,6 +490,4 @@ def get_snapshots(name: str, snapshot: Optional[str] = None) -> list[dict[Any,An
     try:
         return restic.snapshots(snapshot_id=snapshot)
     except Exception as e:
-        raise Exception(
-            f"Failed to get snapshots for task '{name}' ({e})"
-        )
+        raise Exception(f"Failed to get snapshots for task '{name}' ({e})")
