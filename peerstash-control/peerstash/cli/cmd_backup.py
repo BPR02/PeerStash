@@ -28,7 +28,7 @@ def backup(
     offset: int = typer.Argument(0, help="Random delay in minutes."),
 ):
     """
-    Runs a backup task. Requires root permissions.
+    Runs a backup task. This is run automatically when scheduling a task.
     """
     check_setup()
     try:

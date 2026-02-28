@@ -28,7 +28,7 @@ def prune(
     offset: int = typer.Argument(0, help="Random delay in minutes."),
 ):
     """
-    Prunes the repo for a backup task. Respects the retention set by the task. Requires root permissions.
+    Prunes the repo for a backup task. Respects the retention set by the task.. This is run automatically when scheduling a task.
     """
     check_setup()
     try:
