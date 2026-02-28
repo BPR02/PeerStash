@@ -510,8 +510,7 @@ def mount_task(name: str) -> None:
     # create folder name based on task name
     mount_point = f"/tmp/peerstash_mnt/{name}"
     if not os.path.exists(mount_point):
-        with open(mount_point, "w") as _:
-            pass
+        os.mkdir(mount_point)
 
     # mount the repo
     restic_repo = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
@@ -544,4 +543,4 @@ def unmount_task(name: str) -> None:
 
     # delete the file if exists
     if os.path.exists(mount_point):
-        os.remove(mount_point)
+        shutil.rmtree(mount_point)
