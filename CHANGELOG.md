@@ -1,3 +1,10 @@
+# [0.13.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.12.1...peerstash-v0.13.0) (2026-02-28)
+
+
+### Features
+
+* **control, compose:** Add QoL commands: snapshots, peers, evict, mount, unmount ([#35](https://github.com/BPR02/PeerStash/issues/35)) ([1884281](https://github.com/BPR02/PeerStash/commit/1884281f20e79de7b10262e205277a4a3e6684c7))
+
 ## [0.12.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.12.0...peerstash-v0.12.1) (2026-02-27)
 
 
