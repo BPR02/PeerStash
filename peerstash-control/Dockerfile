@@ -89,6 +89,7 @@ COPY --from=compiler /srv/peerstash/bin/* /srv/peerstash/bin/
 COPY ./scripts/*.sh /srv/peerstash/scripts/
 RUN chmod -R 744 /srv/peerstash/scripts
 RUN mkdir -p /tmp/peerstash && chmod 777 /tmp/peerstash
+RUN mkdir -p /tmp/peerstash_mnt && chmod 777 /tmp/peerstash_mnt
 
 EXPOSE 22
 

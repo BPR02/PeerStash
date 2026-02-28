@@ -73,6 +73,11 @@ services:
         target: /var/lib/tailscale
         bind:
           create_host_path: true
+      - type: bind
+        source: ${PEERSTASH_MOUNTS}
+        target: /tmp/peerstash_mnt
+        bind:
+          create_host_path: true
     restart: unless-stopped
     privileged: false
     cpu_shares: 90
