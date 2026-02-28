@@ -69,6 +69,17 @@ def db_update_host(hostname: str, public_key: str) -> None:
             )
 
 
+def db_delete_host(hostname: str) -> None:
+    """Deletes the peerstash host from the DB."""
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "DELETE hosts WHERE hostname = ?",
+                (hostname),
+            )
+
+
 def db_list_hosts() -> list[HostRead]:
     with closing(sqlite3.connect(DB_PATH)) as conn:
         with conn:

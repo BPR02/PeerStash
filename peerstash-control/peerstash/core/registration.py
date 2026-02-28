@@ -22,7 +22,8 @@ from typing import Dict
 
 import requests
 
-from peerstash.core.db import db_add_host, db_host_exists, db_update_host
+from peerstash.core.db import (db_add_host, db_delete_host, db_host_exists,
+                               db_update_host)
 
 SSH_FOLDER = os.getenv("SSH_FOLDER", "~/.ssh")
 DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
@@ -70,6 +71,36 @@ def _update_known_hosts(
         # append a new line into the hosts file
         with open(hosts_file, "a") as f:
             f.write(f"\n{host_entry}\n")
+
+    # sync to root user
+    subprocess.run("/srv/peerstash/bin/sync_hosts")
+
+
+def _delete_known_host(
+    username: str
+) -> None:
+    """
+    Removes host with username from ~/.ssh/known_hosts.
+    """
+    hosts_file = os.path.expanduser("~/.ssh/known_hosts")
+
+    # ensure directory exists
+    os.makedirs(os.path.dirname(hosts_file), exist_ok=True)
+
+    # create file if it doesn't exist
+    if not os.path.exists(hosts_file):
+        with open(hosts_file, "w") as f:
+            pass
+
+    # get each line of hosts file
+    with open(hosts_file, "r") as f:
+        lines = f.readlines()
+
+    # write back, ignoring the specific host line
+    with open(hosts_file, "w") as f:
+        for line in lines:
+            if not line.strip().startswith(f"[peerstash-{username}]"):
+                f.write(line)
 
     # sync to root user
     subprocess.run("/srv/peerstash/bin/sync_hosts")
@@ -136,3 +167,20 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
         db_update_host(f"peerstash-{username}", user_data["server_public_key"])
 
     return True
+
+
+def delete_peer(username: str) -> None:
+    """
+    Deletes a peer from SFTPGo and the System.
+    """
+    # make sftpgo api request
+    headers = {"X-SFTPGO-API-KEY": API_KEY}
+    url = f"{SFTPGO_URL}/users/{username}"
+    resp = requests.delete(url, headers=headers)
+    resp.raise_for_status()
+    
+    # remove from known_hosts file
+    _delete_known_host(username)
+
+    # update hosts table
+    db_delete_host(f"peerstash-{username}")
