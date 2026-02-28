@@ -35,7 +35,7 @@ def evict_peer(
     ),
 ):
     """
-    Removes a peer entirely.
+    Removes a peer from the lists. Does not delete their data.
     """
     check_setup()
     try:
@@ -46,7 +46,7 @@ def evict_peer(
         # verify the action should be taken
         if not force:
             confirm = typer.confirm(
-                f"Are you sure you want to evict '{username}'? This will delete their stored backups.",
+                f"Are you sure you want to evict '{username}'? This will not delete their stored backups.",
                 default=False,
             )
             if not confirm:
@@ -56,8 +56,13 @@ def evict_peer(
         registration.delete_peer(username)
 
         typer.secho(
-            f"Deleted data for '{username}' and removed from peers list.",
+            f"Removed from '{username}' peers list.",
             fg=typer.colors.BRIGHT_RED,
+            bold=True,
+        )
+        typer.secho(
+            f"Data for '{username}' still exists in the SFTPGo folder and can be manually deleted.",
+            fg=typer.colors.YELLOW,
             bold=True,
         )
 
