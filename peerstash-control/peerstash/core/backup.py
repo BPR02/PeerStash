@@ -524,7 +524,7 @@ def mount_task(name: str) -> None:
                 "mount",
                 "-r",
                 restic_repo,
-                "--password_file",
+                "--password-file",
                 restic_password_file,
                 mount_point,
             ]
@@ -540,7 +540,7 @@ def unmount_task(name: str) -> None:
     mount_point = f"/tmp/peerstash_mnt/{name}"
 
     # lazy unmount, errors do not need to be caught
-    subprocess.run(["fusermount", "-uz", mount_point, ">", "/dev/null", "2>&1"])
+    subprocess.run(["fusermount", "-uz", mount_point], capture_output=True)
 
     # delete the file if exists
     if os.path.exists(mount_point):
