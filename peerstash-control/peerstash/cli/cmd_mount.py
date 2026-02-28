@@ -27,7 +27,7 @@ def mount(
     name: str = typer.Argument(..., help="Name of the backup task to mount."),
 ):
     """
-    Mounts the repo for a backup task.
+    Mounts the repo for a backup task. Uncomment "user_allow_other" on your host /etc/fuse.conf file to view the FUSE mount on your host machine.
     """
     check_setup()
     try:

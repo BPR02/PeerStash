@@ -78,6 +78,7 @@ services:
         target: /tmp/peerstash_mnt
         bind:
           create_host_path: true
+          propagation: shared
     restart: unless-stopped
     privileged: false
     cpu_shares: 90
