@@ -515,9 +515,20 @@ def mount_task(name: str) -> None:
 
     # mount the repo
     restic_repo = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic_password_file = "/var/lib/peerstash/restic_password"
     try:
         # resticpy does not have support for the mount command, call it directly (in the background)
-        subprocess.Popen(["/usr/bin/restic", "mount", "-r", restic_repo, mount_point])
+        subprocess.Popen(
+            [
+                "/usr/bin/restic",
+                "mount",
+                "-r",
+                restic_repo,
+                "--password_file",
+                restic_password_file,
+                mount_point,
+            ]
+        )
     except Exception as e:
         raise RuntimeError(f"Failed to mount repo for task '{task.name}' ({e})")
 
@@ -529,8 +540,8 @@ def unmount_task(name: str) -> None:
     mount_point = f"/tmp/peerstash_mnt/{name}"
 
     # lazy unmount, errors do not need to be caught
-    subprocess.run(["fusermount", "-uz", mount_point])
+    subprocess.run(["fusermount", "-uz", mount_point, ">", "/dev/null", "2>&1"])
 
-    # delete the folder if exists
+    # delete the file if exists
     if os.path.exists(mount_point):
-        shutil.rmtree(mount_point)
+        os.remove(mount_point)
