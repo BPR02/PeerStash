@@ -76,9 +76,7 @@ def _update_known_hosts(
     subprocess.run("/srv/peerstash/bin/sync_hosts")
 
 
-def _delete_known_host(
-    username: str
-) -> None:
+def _delete_known_host(username: str) -> None:
     """
     Removes host with username from ~/.ssh/known_hosts.
     """
@@ -178,7 +176,7 @@ def delete_peer(username: str) -> None:
     url = f"{SFTPGO_URL}/users/{username}"
     resp = requests.delete(url, headers=headers)
     resp.raise_for_status()
-    
+
     # remove from known_hosts file
     _delete_known_host(username)
 
