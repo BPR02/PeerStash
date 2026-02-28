@@ -54,6 +54,7 @@ RUN apt-get update && \
     apt-get install -y \
         openssh-server \
         openssh-client \
+        locales \
         curl \
         jq \
         sqlite3 \
@@ -93,6 +94,7 @@ RUN chmod -R 744 /srv/peerstash/scripts
 RUN mkdir -p /tmp/peerstash && chmod 777 /tmp/peerstash
 RUN mkdir -p /tmp/peerstash_mnt && chmod 777 /tmp/peerstash_mnt
 RUN echo "user_allow_other" >> /etc/fuse.conf
+RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 EXPOSE 22
 
