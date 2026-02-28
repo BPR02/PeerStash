@@ -176,6 +176,11 @@ unset PASSWORD
 # set up logging
 touch /var/log/peerstash-cron.log
 
+# prevent indexing FUSE mounts
+touch /tmp/peerstash_mnt/.nomedia
+touch /tmp/peerstash_mnt/.trackerignore
+touch /tmp/peerstash_mnt/.hidden
+
 # start supervisord management
 echo "Starting SSH service for remote machines..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
