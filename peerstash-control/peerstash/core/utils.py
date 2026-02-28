@@ -27,6 +27,42 @@ from typing import Optional
 from pydantic import BaseModel, model_validator
 
 
+def get_disk_usage(user, hostname: str, port: int) -> tuple[int,int,int]:
+    """
+    Get the amount of total, used, and free bytes in a sftp server.
+    Written to work with `df` sftp command used by SFTPGo and may not work
+    with other SFTP servers that return information in different formats.
+    """
+    try:
+        # connect to the server (SSH keys should already be set up in ~/.ssh/)
+        process = subprocess.run(
+            ["sftp", "-P", f"{port}", f"{user}@{hostname}"],
+            input="df\nbye\n",
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        output = process.stdout
+
+        # get output
+        if not output.strip():
+            raise Exception("Output returned nothing.")
+
+        # Parse output with Regex like the subprocess method
+        numbers = re.findall(r"[0-9]+", output)
+        if len(numbers) >= 3:
+            # get values in bytes (SFTPGo formats the values in KiB)
+            total = int(numbers[0]) * 1024
+            used = int(numbers[1]) * 1024
+            free = int(numbers[2]) * 1024
+        else:
+            raise Exception("Unable to parse output.")
+    except Exception as e:
+        raise RuntimeError(f"Could not get quota from SFTP server. ({e})")
+
+    return (total, used, free)
+
+
 def get_file_content(filepath: str) -> Optional[str]:
     """Reads file content safely, handling ~ expansion and errors."""
     try:
@@ -184,3 +220,19 @@ def gen_restic_pass(username: str, admin_pass: str) -> None:
 
     # set permissions
     os.chmod(pass_file, 0o400)
+
+
+def sizeof_fmt(num: float, suffix="B") -> str:
+    """
+    Formats number of bytes to be human readable
+    
+    Source - https://stackoverflow.com/a/1094933
+    Posted by Sridhar Ratnakumar, modified by community. See post 'Timeline' for change history
+    Retrieved 2026-02-28, License - CC BY-SA 4.0
+    """
+    for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
+        if abs(num) < 1024.0:
+            return f"{num:3.1f}{unit}{suffix}"
+        num /= 1024.0
+    return f"{num:.1f}Yi{suffix}"
+

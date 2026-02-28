@@ -17,29 +17,29 @@
 import typer
 
 from peerstash.cli.utils import check_setup
-from peerstash.core.backup import prune_repo
+from peerstash.core.db import db_get_user, db_list_hosts
+from peerstash.core.utils import get_disk_usage, sizeof_fmt
 
 app = typer.Typer()
 
 
-@app.command(name="prune")
-def prune(
-    name: str = typer.Argument(..., help="Name of the backup task to prune."),
-    offset: int = typer.Argument(0, help="Random delay in minutes."),
-):
+@app.command(name="peers")
+def peers():
     """
-    Prunes the repo for a backup task. Respects the retention set by the task.. This is run automatically when scheduling a task.
+    Lists known peers.
     """
     check_setup()
     try:
-        prune_repo(name, offset=offset)
-        typer.secho(
-            f"Repository for task '{name}' has been pruned.",
-            fg=typer.colors.GREEN,
-        )
-    except ValueError as e:
+        # get hosts list
+        hosts = db_list_hosts()
+    except Exception as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
-    except Exception as e:
-        typer.secho(f"System Error: {e}", fg=typer.colors.RED, err=True)
+
+    user = db_get_user()
+    if not user:
+        typer.secho(f"Error: unknown user.", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
+    for host in hosts:
+        total, used, _ = get_disk_usage(user, host.hostname, 2022)
+        typer.echo(f"{host.hostname.removeprefix("peerstash-")} ({sizeof_fmt(used)} used / {sizeof_fmt(total)})")

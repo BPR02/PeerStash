@@ -17,25 +17,28 @@
 import typer
 
 from peerstash.cli.utils import check_setup
-from peerstash.core.backup import prune_repo
+from peerstash.core.backup import mount_task
 
 app = typer.Typer()
 
 
-@app.command(name="prune")
-def prune(
-    name: str = typer.Argument(..., help="Name of the backup task to prune."),
-    offset: int = typer.Argument(0, help="Random delay in minutes."),
+@app.command(name="mount")
+def mount(
+    name: str = typer.Argument(..., help="Name of the backup task to mount."),
 ):
     """
-    Prunes the repo for a backup task. Respects the retention set by the task.. This is run automatically when scheduling a task.
+    Mounts the repo for a backup task.
     """
     check_setup()
     try:
-        prune_repo(name, offset=offset)
+        mount_task(name)
         typer.secho(
-            f"Repository for task '{name}' has been pruned.",
+            f"Repo for task '{name}' mounted in mounts folder.",
             fg=typer.colors.GREEN,
+        )
+        typer.secho(
+            f"Use 'peerstash unmount {name}' to unmount the repo.",
+            fg=typer.colors.YELLOW,
         )
     except ValueError as e:
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)

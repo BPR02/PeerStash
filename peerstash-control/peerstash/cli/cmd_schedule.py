@@ -20,6 +20,7 @@ import typer
 
 from peerstash.cli.utils import check_setup
 from peerstash.core.backup import schedule_backup
+from peerstash.core.db import db_get_task
 
 app = typer.Typer()
 
@@ -50,6 +51,9 @@ def schedule(
             help="An exclusion regex pattern to ignore in the backup. Use this option multiple times to set multiple exclusion patterns."
         ),
     ] = None,
+    update: bool = typer.Option(
+        False, "--update", "-u", help="Update the backup task if it exists."
+    ),
 ):
     """
     Schedules a new backup task.
@@ -60,6 +64,20 @@ def schedule(
             raise typer.Abort(
                 "At least one file or directory must be included. Use --include <directory or file name>"
             )
+
+        if name and db_get_task(name):
+            if not update:
+                confirm = typer.confirm(
+                    f"Task '{name}' already exists. Do you want to update it?",
+                    default=False,
+                )
+                if not confirm:
+                    raise typer.Abort("Aborted task update.")
+
+            typer.secho(f"Updating task {name}...", fg=typer.colors.YELLOW)
+        else:
+            typer.secho(f"Creating new task {name}...", fg=typer.colors.GREEN)
+
         task_name = schedule_backup(
             include, peer, retention, schedule, prune_schedule, exclude, name
         )

@@ -34,41 +34,10 @@ from peerstash.core.db import (db_add_task, db_delete_task, db_get_task,
                                db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import (Retention, acquire_task_lock, generate_sha1,
-                                  release_lock)
+                                  get_disk_usage, release_lock)
 
 USER = db_get_user()
 SFTP_PORT = 2022
-
-
-def _get_free_space(hostname: str, port: int) -> int:
-    """
-    Get the amount of free bytes in the sftpgo server.
-    """
-    try:
-        # connect to the server (SSH keys should already be set up in ~/.ssh/)
-        process = subprocess.run(
-            ["sftp", "-P", f"{port}", f"{USER}@{hostname}"],
-            input="df\nbye\n",
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        output = process.stdout
-
-        # get output
-        if not output.strip():
-            raise Exception("Output returned nothing.")
-
-        # Parse output with Regex like the subprocess method
-        numbers = re.findall(r"[0-9]+", output)
-        if len(numbers) >= 3:
-            free = int(numbers[2]) * 1024  # df returns number of free KiB
-        else:
-            raise Exception("Unable to parse output.")
-    except Exception as e:
-        raise RuntimeError(f"Could not get quota from SFTP server. ({e})")
-
-    return free
 
 
 def _verify_backup_size(name: str) -> tuple[int, int]:
@@ -81,7 +50,7 @@ def _verify_backup_size(name: str) -> tuple[int, int]:
         raise ValueError(f"Task with name '{name}' not in DB")
 
     # get free space in SFTP server
-    free_bytes = _get_free_space(task.hostname, SFTP_PORT)
+    free_bytes = get_disk_usage(USER, task.hostname, SFTP_PORT)[2]
 
     # get added bytes
     res = run_backup(name, True)
@@ -169,10 +138,23 @@ def schedule_backup(
 
     # insert into db
     if db_task_exists(name):
-        raise ValueError(f"Backup task with name '{name}' already exists")
-    db_add_task(name, include, exclude, hostname, schedule, retention, prune_schedule)
+        db_update_task(
+            name,
+            TaskUpdate(
+                include=include,
+                exclude=exclude,
+                hostname=hostname,
+                schedule=schedule,
+                retention=retention,
+                prune_schedule=prune_schedule,
+            ),
+        )
+    else:
+        db_add_task(
+            name, include, exclude, hostname, schedule, retention, prune_schedule
+        )
 
-    # create systemd task
+    # create or update cronjob
     try:
         subprocess.run(
             ["/srv/peerstash/bin/create_task", name, schedule, prune_schedule],
@@ -181,7 +163,7 @@ def schedule_backup(
     except CalledProcessError as e:
         raise RuntimeError(f"Failed to create backup task ({e})")
 
-    # return name and next elapse for output
+    # return name
     return name
 
 
@@ -455,7 +437,9 @@ def restore_snapshot(
         )
         # move the actual backed up items to the folder
         if os.path.exists(final_folder):
-            final_folder = f"{final_folder}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}"
+            final_folder = (
+                f"{final_folder}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}"
+            )
         shutil.move(f"{temp_folder}/mnt/peerstash_root", final_folder)
     except Exception as e:
         raise Exception(
@@ -463,3 +447,75 @@ def restore_snapshot(
         )
 
     return folder
+
+
+def get_snapshots(name: str, snapshot: Optional[str] = None) -> list[dict[Any, Any]]:
+    # pull info from DB
+    task = db_get_task(name)
+    if not task:
+        raise ValueError(f"Task with name '{name}' not in DB")
+
+    # get snapshots
+    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.password_file = "/var/lib/peerstash/restic_password"
+    try:
+        return restic.snapshots(snapshot_id=snapshot)
+    except Exception as e:
+        raise Exception(f"Failed to get snapshots for task '{name}' ({e})")
+
+
+def mount_task(name: str) -> None:
+    """
+    Mounts the repo for a task.
+    """
+    # unmount to prevent conflicts
+    unmount_task(name)
+
+    # pull info from DB
+    task = db_get_task(name)
+    if not task:
+        raise ValueError(f"Task with name '{name}' not in DB")
+
+    # create folder name based on task name
+    mount_point = f"/tmp/peerstash_mnt/{name}"
+    if not os.path.exists(mount_point):
+        os.mkdir(mount_point)
+
+    # mount the repo
+    restic_repo = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic_password_file = "/var/lib/peerstash/restic_password"
+    try:
+        # resticpy does not have support for the mount command, call it directly (in the background)
+        subprocess.Popen(
+            [
+                "/usr/bin/restic",
+                "mount",
+                "--allow-other",
+                "--no-lock",
+                "-r",
+                restic_repo,
+                "--password-file",
+                restic_password_file,
+                mount_point,
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+    except Exception as e:
+        raise RuntimeError(f"Failed to mount repo for task '{task.name}' ({e})")
+
+
+def unmount_task(name: str) -> None:
+    """
+    Unmounts the repo for a task.
+    """
+    mount_point = f"/tmp/peerstash_mnt/{name}"
+
+    # lazy unmount, errors do not need to be caught
+    subprocess.run(["fusermount", "-uz", mount_point], capture_output=True)
+
+    # delete the file if exists
+    if os.path.exists(mount_point):
+        shutil.rmtree(mount_point)
