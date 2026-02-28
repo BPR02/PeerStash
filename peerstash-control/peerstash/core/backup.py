@@ -181,7 +181,9 @@ def schedule_backup(
             ),
         )
     else:
-        db_add_task(name, include, exclude, hostname, schedule, retention, prune_schedule)
+        db_add_task(
+            name, include, exclude, hostname, schedule, retention, prune_schedule
+        )
 
     # create or update cronjob
     try:
@@ -491,3 +493,44 @@ def get_snapshots(name: str, snapshot: Optional[str] = None) -> list[dict[Any, A
         return restic.snapshots(snapshot_id=snapshot)
     except Exception as e:
         raise Exception(f"Failed to get snapshots for task '{name}' ({e})")
+
+
+def mount_task(name: str) -> None:
+    """
+    Mounts the repo for a task.
+    """
+    # unmount to prevent conflicts
+    unmount_task(name)
+
+    # pull info from DB
+    task = db_get_task(name)
+    if not task:
+        raise ValueError(f"Task with name '{name}' not in DB")
+
+    # create folder name based on task name
+    mount_point = f"/tmp/peerstash_mnt/{name}"
+    if not os.path.exists(mount_point):
+        with open(mount_point, "w") as _:
+            pass
+
+    # mount the repo
+    restic_repo = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    try:
+        # resticpy does not have support for the mount command, call it directly (in the background)
+        subprocess.Popen(["/usr/bin/restic", "mount", "-r", restic_repo, mount_point])
+    except Exception as e:
+        raise RuntimeError(f"Failed to mount repo for task '{task.name}' ({e})")
+
+
+def unmount_task(name: str) -> None:
+    """
+    Unmounts the repo for a task.
+    """
+    mount_point = f"/tmp/peerstash_mnt/{name}"
+
+    # lazy unmount, errors do not need to be caught
+    subprocess.run(["fusermount", "-uz", mount_point])
+
+    # delete the folder if exists
+    if os.path.exists(mount_point):
+        shutil.rmtree(mount_point)
