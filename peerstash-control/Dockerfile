@@ -88,8 +88,11 @@ COPY --from=compiler /srv/peerstash/bin/* /srv/peerstash/bin/
 # move scripts
 COPY ./scripts/*.sh /srv/peerstash/scripts/
 RUN chmod -R 744 /srv/peerstash/scripts
+
+# set up files and folders
 RUN mkdir -p /tmp/peerstash && chmod 777 /tmp/peerstash
 RUN mkdir -p /tmp/peerstash_mnt && chmod 777 /tmp/peerstash_mnt
+RUN echo "user_allow_other" >> /etc/fuse.conf
 
 EXPOSE 22
 
