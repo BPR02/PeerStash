@@ -522,6 +522,7 @@ def mount_task(name: str) -> None:
                 "/usr/bin/restic",
                 "mount",
                 "--allow-other",
+                "--no-lock",
                 "-r",
                 restic_repo,
                 "--password-file",
