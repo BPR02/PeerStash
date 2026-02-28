@@ -498,7 +498,10 @@ def mount_task(name: str) -> None:
                 restic_password_file,
                 mount_point,
             ],
-            stdout=subprocess.DEVNULL, # ignore stdout
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            start_new_session=True,
         )
     except Exception as e:
         raise RuntimeError(f"Failed to mount repo for task '{task.name}' ({e})")
