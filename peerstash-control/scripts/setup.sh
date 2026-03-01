@@ -17,8 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-export SSH_FOLDER="/var/lib/peerstash"
-export DB_PATH="/var/lib/peerstash/peerstash.db"
+SSH_FOLDER="/var/lib/peerstash"; export SSH_FOLDER
+DB_PATH="/var/lib/peerstash/peerstash.db"; export DB_PATH
+
 
 # Generate SSH host keys
 mkdir -p /var/run/sshd
@@ -163,10 +164,12 @@ curl -sS --request PUT \
     --data '{"allow_api_key_auth": true}'
 
 # share environment variables
-echo "export API_KEY=$API_KEY" >> /home/"$USERNAME"/.bashrc
-echo "export DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB" >> /home/"$USERNAME"/.bashrc
-echo "export SSH_FOLDER=/var/lib/peerstash" >> /home/"$USERNAME"/.bashrc
-echo "export DB_PATH=/var/lib/peerstash/peerstash.db" >> /home/"$USERNAME"/.bashrc
+{
+    echo "API_KEY=$API_KEY; export API_KEY" 
+    echo "DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB; export DEFAULT_QUOTA_GB" 
+    echo "SSH_FOLDER=/var/lib/peerstash; export SSH_FOLDER"
+    echo "DB_PATH=/var/lib/peerstash/peerstash.db; export DB_PATH"
+} >> /home/"$USERNAME"/.bashrc
 
 # clear password environment variable
 unset PASSWORD
