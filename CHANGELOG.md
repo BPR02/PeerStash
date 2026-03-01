@@ -1,3 +1,10 @@
+## [0.13.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.0...peerstash-v0.13.1) (2026-03-01)
+
+
+### Bug Fixes
+
+* **control:** SSH login message ([#36](https://github.com/BPR02/PeerStash/issues/36)) ([ec06f47](https://github.com/BPR02/PeerStash/commit/ec06f4795adce94707bac24bc73cf520626070a8))
+
 # [0.13.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.12.1...peerstash-v0.13.0) (2026-02-28)
 
 
