@@ -19,7 +19,6 @@
 
 export SSH_FOLDER="/var/lib/peerstash"
 export DB_PATH="/var/lib/peerstash/peerstash.db"
-export PEERSTASH_USER="$USERNAME"
 
 # Generate SSH host keys
 mkdir -p /var/run/sshd
@@ -168,7 +167,6 @@ echo "export API_KEY=$API_KEY" >> /home/"$USERNAME"/.bashrc
 echo "export DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB" >> /home/"$USERNAME"/.bashrc
 echo "export SSH_FOLDER=/var/lib/peerstash" >> /home/"$USERNAME"/.bashrc
 echo "export DB_PATH=/var/lib/peerstash/peerstash.db" >> /home/"$USERNAME"/.bashrc
-echo "export PEERSTASH_USER=$USERNAME" >> /home/"$USERNAME"/.bashrc
 
 # clear password environment variable
 unset PASSWORD
