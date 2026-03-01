@@ -54,7 +54,7 @@ fi
 {
     echo "" 
     echo "Host *" 
-    echo "	IdentityFile /home/"$USERNAME"/.ssh/id_ed25519"
+    echo "	IdentityFile /home/$USERNAME/.ssh/id_ed25519"
 } > /home/"$USERNAME"/.ssh/config
 echo "" > /home/"$USERNAME"/.ssh/known_hosts
 
