@@ -112,9 +112,9 @@ chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 # wait for SFTPGo port to be open
 max_attempts=60
 count=0
-until nc -z localhost 8080 > /dev/null 2>&1 || [ $count -ge $max_attempts ]; do
+until nc -z localhost 8080 > /dev/null 2>&1 || [ "$count" -ge "$max_attempts" ]; do
   sleep 1
-  ((count++))
+  count=$((count + 1))
 done
 
 if [ $count -ge $max_attempts ]; then
