@@ -136,7 +136,7 @@ KEYS=$(curl -sS --request GET \
     --url http://localhost:8080/api/v2/apikeys \
     --header "Authorization: Bearer $TOKEN")
 
-for row in $(echo "$KEYS" | jq -c '.[]'); do
+echo "$KEYS" | jq -c '.[]' | while read -r row; do
     id=$(echo "${row}" | jq -r '.id')
     name=$(echo "${row}" | jq -r '.name')
 
