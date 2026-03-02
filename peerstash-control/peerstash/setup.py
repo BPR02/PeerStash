@@ -139,7 +139,7 @@ def setup_sftpgo():
 
     # create new API key
     data = {"name": "host", "scope": 1, "admin": USERNAME}
-    resp = requests.post(f"{SFTPGO_URL}/apikeys", headers=headers, data=data)
+    resp = requests.post(f"{SFTPGO_URL}/apikeys", headers=headers, json=data)
     resp.raise_for_status()
     api_key: str = resp.json()["key"]
 
