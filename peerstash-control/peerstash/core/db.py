@@ -14,14 +14,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import sqlite3
 from contextlib import closing
 from typing import Any, Optional
 
 from peerstash.core.db_schemas import *
 
-DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
+DB_PATH = "/var/lib/peerstash/peerstash.db"
 
 
 def db_add_host(hostname: str, public_key: str) -> None:
