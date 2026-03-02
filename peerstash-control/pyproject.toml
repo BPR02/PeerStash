@@ -31,6 +31,7 @@ build = [
 [project.scripts]
 peerstash = "peerstash.cli:main"
 peerstashd = "peerstash.daemon:main"
+peerstash-init = "peerstash.setup:main"
 
 [build-system]
 requires = ["hatchling"]

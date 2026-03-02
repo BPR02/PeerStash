@@ -17,8 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-SSH_FOLDER="/var/lib/peerstash"; export SSH_FOLDER
-DB_PATH="/var/lib/peerstash/peerstash.db"; export DB_PATH
+SSH_FOLDER="/var/lib/peerstash"
+DB_PATH="/var/lib/peerstash/peerstash.db"
 
 
 # Generate SSH host keys
@@ -58,121 +58,10 @@ fi
 } > /home/"$USERNAME"/.ssh/config
 echo "" > /home/"$USERNAME"/.ssh/known_hosts
 
-# Check if the database exists
-if [ -f "$DB_PATH" ]; then
-    echo "SQLite database found. Restoring backup tasks..."
-    # create known_hosts file from DB
-    sqlite3 "$DB_PATH" "SELECT * FROM hosts;" | while IFS='|' read -r hostname port public_key; do
-        {
-            echo ""
-            echo "[$hostname]:$port $public_key"
-            echo ""
-        } >> /home/"$USERNAME"/.ssh/known_hosts
-    done
-    # start up existing backup tasks
-    sqlite3 "$DB_PATH" "SELECT name, schedule, prune_schedule FROM tasks;" | while IFS='|' read -r name schedule prune_schedule; do
-        /srv/peerstash/bin/create_task "$name" "$schedule" "$prune_schedule"
-    done
-else
-    echo "No database found. Creating a new empty database..."
-    sqlite3 "$DB_PATH" "CREATE TABLE hosts (\
-        hostname TEXT PRIMARY KEY,\
-        port INTEGER DEFAULT 2022,\
-        public_key TEXT NOT NULL,\
-        last_seen DATETIME\
-    );"
-    sqlite3 "$DB_PATH" "CREATE TABLE tasks (\
-        name TEXT PRIMARY KEY,\
-        include TEXT NOT NULL,\
-        exclude TEXT,\
-        hostname TEXT NOT NULL,\
-        schedule TEXT NOT NULL,\
-        retention TEXT NOT NULL,\
-        prune_schedule TEXT NOT NULL,\
-        last_run DATETIME,\
-        last_exit_code INTEGER,\
-        status TEXT DEFAULT 'new',\
-        FOREIGN KEY (hostname) REFERENCES hosts(hostname)\
-    );"
-    sqlite3 "$DB_PATH" "CREATE TABLE node_data (\
-        id INTEGER PRIMARY KEY CHECK (id = 1),\
-        username TEXT DEFAULT '$USERNAME',\
-        invite_code TEXT\
-    );"
-    sqlite3 "$DB_PATH" "INSERT INTO node_data (id, username) VALUES (1, '$USERNAME');"
-    chown "$USERNAME":"$USERNAME" "$DB_PATH"
-    chmod 700 "$DB_PATH"
-fi
-
 # copy user ssh keys to root user
 cp /home/"$USERNAME"/.ssh/config /root/.ssh/config
 cp /home/"$USERNAME"/.ssh/known_hosts /root/.ssh/known_hosts
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
-
-# wait for SFTPGo port to be open
-max_attempts=60
-count=0
-until nc -z localhost 8080 > /dev/null 2>&1 || [ "$count" -ge "$max_attempts" ]; do
-  sleep 1
-  count=$((count + 1))
-done
-
-if [ $count -ge $max_attempts ]; then
-  echo "SFTPGo port could not be reached within $max_attempts seconds."
-  exit 1
-fi
-
-# get SFTPGo JWT
-TOKEN=$(curl -sS -u "$USERNAME:$PASSWORD" \
-    "http://localhost:8080/api/v2/token" | grep -o '"access_token":"[^"]*' | grep -o '[^"]*$')
-
-if [ -z "$TOKEN" ]; then
-    echo "Error: Authentication failed."
-    exit 1
-fi
-
-# delete existing SFTPGo API keys
-KEYS=$(curl -sS --request GET \
-    --url http://localhost:8080/api/v2/apikeys \
-    --header "Authorization: Bearer $TOKEN")
-
-echo "$KEYS" | jq -c '.[]' | while read -r row; do
-    id=$(echo "${row}" | jq -r '.id')
-    name=$(echo "${row}" | jq -r '.name')
-
-    if [ "$name" = "host" ]; then
-        curl -sS --request DELETE \
-            --url "http://localhost:8080/api/v2/apikeys/${id}" \
-            --header "Authorization: Bearer $TOKEN"
-    fi
-done
-
-# create new SFTPGo API key
-API_KEY=$(curl -sS --request POST \
-    --url http://localhost:8080/api/v2/apikeys \
-    --header "Authorization: Bearer $TOKEN" \
-    --data '{
-        "name": "host",
-        "scope": 1,
-        "admin": "'"$USERNAME"'"
-}' | grep -o '"key":"[^"]*' | grep -o '[^"]*$')
-
-# enable API key auth
-curl -sS --request PUT \
-    --url http://localhost:8080/api/v2/admin/profile \
-    --header "Authorization: Bearer $TOKEN" \
-    --data '{"allow_api_key_auth": true}'
-
-# share environment variables
-{
-    echo "API_KEY=$API_KEY; export API_KEY" 
-    echo "DEFAULT_QUOTA_GB=$DEFAULT_QUOTA_GB; export DEFAULT_QUOTA_GB" 
-    echo "SSH_FOLDER=/var/lib/peerstash; export SSH_FOLDER"
-    echo "DB_PATH=/var/lib/peerstash/peerstash.db; export DB_PATH"
-} >> /home/"$USERNAME"/.bashrc
-
-# clear password environment variable
-unset PASSWORD
 
 # set up logging
 touch /var/log/peerstash-cron.log
@@ -182,6 +71,13 @@ touch /tmp/peerstash_mnt/.nomedia
 touch /tmp/peerstash_mnt/.trackerignore
 touch /tmp/peerstash_mnt/.hidden
 
+# Run the python init script as root before starting services
+echo "Updating SFPTGo and Database..."
+/usr/local/bin/peerstash-init
+
+# clear password from environment
+unset PASSWORD
+
 # start supervisord management
-echo "Starting SSH service for remote machines..."
+echo "Starting Supervisord..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
