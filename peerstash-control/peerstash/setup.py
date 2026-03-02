@@ -145,7 +145,7 @@ def setup_sftpgo():
 
     # enable API key auth
     data = {"allow_api_key_auth": True}
-    resp = requests.put(f"{SFTPGO_URL}/admin/profile", headers=headers, data=data)
+    resp = requests.put(f"{SFTPGO_URL}/admin/profile", headers=headers, json=data)
     resp.raise_for_status()
 
     return api_key
