@@ -44,7 +44,7 @@ def _get_sudo_password() -> str:
     return typer.prompt(f"[peerstash] enter password for {USER}", hide_input=True)
 
 
-@app.command(name="login")
+@app.command(name="setup")
 def setup(
     token: str = typer.Option(
         None,
