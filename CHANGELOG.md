@@ -1,3 +1,10 @@
+## [0.13.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.1...peerstash-v0.13.2) (2026-03-02)
+
+
+### Bug Fixes
+
+* **control:** setup script POSIX compliance ([#37](https://github.com/BPR02/PeerStash/issues/37)) ([e3fe2dd](https://github.com/BPR02/PeerStash/commit/e3fe2dd751a8a38884677fbfa941ac413808dcf5))
+
 ## [0.13.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.0...peerstash-v0.13.1) (2026-03-01)
 
 
