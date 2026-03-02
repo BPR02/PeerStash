@@ -16,19 +16,26 @@
 
 import fcntl
 import hashlib
+import json
 import os
 import re
+import socket
 import subprocess
 from enum import StrEnum
 from io import TextIOWrapper
 from pathlib import Path
 from typing import Optional
 
+import requests
 from cron_validator import CronValidator
 from pydantic import BaseModel, model_validator
 
 
-def get_disk_usage(user, hostname: str, port: int) -> tuple[int,int,int]:
+CRON_LOG = "/var/log/peerstash-cron.log"
+SOCKET_PATH = "/var/run/peerstash.sock"
+
+
+def get_disk_usage(user, hostname: str, port: int) -> tuple[int, int, int]:
     """
     Get the amount of total, used, and free bytes in a sftp server.
     Written to work with `df` sftp command used by SFTPGo and may not work
@@ -240,6 +247,38 @@ def sizeof_fmt(num: float, suffix="B") -> str:
     return f"{num:.1f}Yi{suffix}"
 
 
+def update_crontab(task_name: str, new_jobs: Optional[list] = None) -> tuple[bool, str]:
+    """
+    Updates crontab by filtering out old jobs and appending new ones.
+    If new_jobs is None, it will just remove the task from the crontab.
+
+    Returns a tuple with the success status and status message (e.g. reason for failure).
+    """
+    try:
+        # get current crontab
+        result = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+        current_crontab = result.stdout if result.returncode == 0 else ""
+
+        # remove existing jobs for this task
+        pattern = re.compile(
+            rf"peerstash .* {re.escape(task_name)} [0-9]* >> {re.escape(CRON_LOG)} 2>&1$"
+        )
+        lines = [
+            line for line in current_crontab.splitlines() if not pattern.search(line)
+        ]
+
+        # add new jobs
+        if new_jobs:
+            lines.extend(new_jobs)
+
+        # write back to crontab
+        new_cron_content = "\n".join(lines) + "\n"
+        subprocess.run(["crontab", "-"], input=new_cron_content, text=True, check=True)
+        return (True, "Success")
+    except subprocess.CalledProcessError as e:
+        return (False, f"Crontab update failed: {str(e)}")
+
+
 def validate_task_name(name: str) -> Optional[str]:
     """
     Check if a a task name is alphanumeric, allowing _ and -
@@ -288,3 +327,26 @@ def validate_paths(paths: list[str]) -> Optional[str]:
             return p
 
     return None
+
+
+def send_to_daemon(action: str, kwargs: dict[str, str] = {}) -> dict[str, str]:
+    """Handles IPC communication with the root daemon."""
+    payload = json.dumps({"action": action, "kwargs": kwargs})
+
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+            client.connect(SOCKET_PATH)
+            client.sendall(payload.encode("utf-8"))
+
+            response_data = client.recv(4096).decode("utf-8")
+            response: dict[str, str] = json.loads(response_data)
+
+            if response.get("status") == "error":
+                raise RuntimeError(f"Daemon Error: {response.get('message')}")
+
+            return response
+
+    except FileNotFoundError:
+        raise RuntimeError("Error: Daemon socket not found. Is peerstashd running?")
+    except Exception as e:
+        raise RuntimeError(f"Communication error: {e}")

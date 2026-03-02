@@ -32,7 +32,7 @@ from peerstash.core.db import (db_add_task, db_delete_task, db_get_task,
                                db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import (Retention, acquire_task_lock, generate_sha1,
-                                  get_disk_usage, release_lock, 
+                                  get_disk_usage, release_lock, send_to_daemon,
                                   validate_paths, validate_retention,
                                   validate_schedule, validate_task_name)
 
@@ -153,11 +153,11 @@ def schedule_backup(
 
     # create or update cronjob
     try:
-        subprocess.run(
-            ["/srv/peerstash/bin/create_task", name, schedule, prune_schedule],
-            check=True,
+        send_to_daemon(
+            "create_task",
+            {"task_name": name, "schedule": schedule, "prune_schedule": prune_schedule},
         )
-    except CalledProcessError as e:
+    except RuntimeError as e:
         raise RuntimeError(f"Failed to create backup task ({e})")
 
     # return name
@@ -384,8 +384,11 @@ def remove_schedule(name: str) -> None:
 
     # remove from crontab
     try:
-        subprocess.run(["/srv/peerstash/bin/remove_task", name], check=True)
-    except CalledProcessError as e:
+        send_to_daemon(
+            "remove_task",
+            {"task_name": name},
+        )
+    except RuntimeError as e:
         raise RuntimeError(f"Failed to remove task '{name}' ({e})")
 
     # remove from db
