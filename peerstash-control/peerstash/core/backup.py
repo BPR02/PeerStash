@@ -16,7 +16,6 @@
 
 import os
 import random
-import re
 import shutil
 import subprocess
 import time
@@ -27,14 +26,15 @@ from typing import Any, Optional
 
 import paramiko
 import restic
-from cron_validator import CronValidator
 
 from peerstash.core.db import (db_add_task, db_delete_task, db_get_task,
                                db_get_user, db_host_exists, db_task_exists,
                                db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import (Retention, acquire_task_lock, generate_sha1,
-                                  get_disk_usage, release_lock)
+                                  get_disk_usage, release_lock, 
+                                  validate_paths, validate_retention,
+                                  validate_schedule, validate_task_name)
 
 USER = db_get_user()
 SFTP_PORT = 2022
@@ -94,10 +94,8 @@ def schedule_backup(
         name = generate_sha1(f"{paths}{peer}{schedule}{retention}{datetime.now()}")
 
     # validate name
-    if len(name) > 127:
-        raise ValueError(f"Task name '{name}' is too long (127 character max)")
-    if not re.fullmatch("^[a-zA-Z-_0-9]+$", name):
-        raise ValueError(f"Task name '{name}' contains illegal characters")
+    if name_error := validate_task_name(name):
+        raise ValueError(name_error)
 
     # validate include paths
     if isinstance(paths, str):
@@ -105,9 +103,8 @@ def schedule_backup(
     resolved_paths = [
         str(Path(f"/mnt/peerstash_root/{p}").expanduser().resolve()) for p in paths
     ]
-    for p in resolved_paths:
-        if not p.startswith("/mnt/peerstash"):
-            raise ValueError(f"invalid path included")
+    if invalid_path := validate_paths(resolved_paths):
+        raise ValueError(f"invalid path included {invalid_path}")
 
     # format include into a delimited string
     include = "|".join(resolved_paths)
@@ -127,14 +124,14 @@ def schedule_backup(
         raise ValueError(f"Peer {peer} does not exist")
 
     # validate schedule
-    if CronValidator.parse(schedule) is None:
+    if not validate_schedule(schedule):
         raise ValueError(f"cron schedule '{schedule}' is invalid.")
 
     # validate retention amount
-    try:
-        _ = Retention.from_string(retention)
-    except ValueError as e:
-        raise ValueError(f"Retention '{retention}' invalid: {e}. E.g. '1y2m3w4d5h6r'")
+    if retention_error := validate_retention(retention):
+        raise ValueError(
+            f"Retention '{retention}' invalid: {retention_error}. E.g. '1y2m3w4d5h6r'"
+        )
 
     # insert into db
     if db_task_exists(name):
