@@ -15,10 +15,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import socket
+import sqlite3
 import sys
 import time
-import sqlite3
-import socket
 from typing import Any
 
 import requests

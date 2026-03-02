@@ -21,7 +21,8 @@ import socketserver
 from typing import Any, Optional
 
 from peerstash.core.db import db_get_user
-from peerstash.core.utils import update_crontab, validate_schedule, validate_task_name
+from peerstash.core.utils import (update_crontab, validate_schedule,
+                                  validate_task_name)
 
 SOCKET_PATH = "/var/run/peerstash.sock"
 CRON_LOG = "/var/log/peerstash-cron.log"
