@@ -131,10 +131,10 @@ def setup_sftpgo():
     # delete existing 'host' API keys
     resp = requests.get(f"{SFTPGO_URL}/apikeys", headers=headers)
     resp.raise_for_status()
-    keys: list[dict[str, Any]] = resp.json()["keys"]
+    keys: list[dict[str, Any]] = resp.json()
     for key in keys:
         if key.get("name") == "host":
-            resp = requests.delete(f"{SFTPGO_URL}/apikeys/{key}", headers=headers)
+            resp = requests.delete(f"{SFTPGO_URL}/apikeys/{key.get("id")}", headers=headers)
             resp.raise_for_status()
 
     # create new API key
