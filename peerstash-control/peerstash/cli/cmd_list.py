@@ -52,7 +52,7 @@ def list(
     for task in tasks:
         if not long:
             typer.secho(
-                f"{task.name.removeprefix('/mnt/peerstash_root/')}",
+                f"{task.name}",
                 fg=(typer.colors.BRIGHT_WHITE),
             )
             continue
@@ -63,7 +63,7 @@ def list(
             parsed += f"[{task.status}]"
             parsed += f" | {task.hostname.removeprefix('peerstash-')}"
             parsed += f' "{task.schedule}"'
-            parsed += f" +[{task.include}]"
+            parsed += f" +[{task.include.replace('/mnt/peerstash_root','.')}]"
             parsed += f" -[{task.exclude}]"
             parsed += f' "{task.prune_schedule}"'
             parsed += f" {task.retention}"
@@ -84,7 +84,7 @@ def list(
             fg=typer.colors.BRIGHT_WHITE,
         )
         typer.secho(f"    schedule=   {task.schedule}", fg=typer.colors.CYAN)
-        typer.secho(f"    includes=   {task.include}", fg=typer.colors.BRIGHT_GREEN)
+        typer.secho(f"    includes=   {task.include.replace('/mnt/peerstash_root','.')}", fg=typer.colors.BRIGHT_GREEN)
         typer.secho(f"    exclusions= {task.exclude}", fg=typer.colors.BRIGHT_RED)
         typer.secho(f"    prune=      {task.prune_schedule}", fg=typer.colors.YELLOW)
         typer.secho(f"    retention=  {task.retention}", fg=typer.colors.BRIGHT_YELLOW)
