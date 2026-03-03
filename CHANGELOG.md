@@ -1,3 +1,10 @@
+## [0.13.5](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.4...peerstash-v0.13.5) (2026-03-03)
+
+
+### Bug Fixes
+
+* **control:** fix cli command displays and execution ([#40](https://github.com/BPR02/PeerStash/issues/40)) ([6ecffe6](https://github.com/BPR02/PeerStash/commit/6ecffe62df5e7af9c0d41ffb6db26fe5a74a8885))
+
 ## [0.13.4](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.3...peerstash-v0.13.4) (2026-03-03)
 
 
