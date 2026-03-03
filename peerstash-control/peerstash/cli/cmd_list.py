@@ -52,7 +52,7 @@ def list(
     for task in tasks:
         if not long:
             typer.secho(
-                f"{task.name}",
+                f"{task.name.removeprefix('/mnt/peerstash_root/')}",
                 fg=(typer.colors.BRIGHT_WHITE),
             )
             continue
