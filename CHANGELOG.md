@@ -1,3 +1,10 @@
+## [0.13.4](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.3...peerstash-v0.13.4) (2026-03-03)
+
+
+### Bug Fixes
+
+* **control:** copy known hosts to root upon startup ([#39](https://github.com/BPR02/PeerStash/issues/39)) ([08c78e9](https://github.com/BPR02/PeerStash/commit/08c78e993230c9ff763f2a2622d90663a6bf2f42))
+
 ## [0.13.3](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.2...peerstash-v0.13.3) (2026-03-03)
 
 
