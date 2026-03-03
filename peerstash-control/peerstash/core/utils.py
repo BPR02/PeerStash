@@ -166,11 +166,14 @@ def acquire_task_lock(name: str) -> TextIOWrapper:
     """
     # Create a unique lock file for this specific task
     lock_file_path = f"/tmp/peerstash/task_{name}.lock"
+    if not os.path.exists(lock_file_path):
+        with open(lock_file_path, "a") as _:
+            pass    
+        os.chmod(lock_file_path, 0o666)
 
     # Open the file. We must keep this file object open for the duration
     # of the backup, so we return it to prevent Python from garbage collecting it.
     lock_file = open(lock_file_path, "w")
-    os.chmod(lock_file_path, 0o666)
 
     try:
         # LOCK_EX: Exclusive lock (only one process can hold it)
