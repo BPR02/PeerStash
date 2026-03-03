@@ -210,7 +210,7 @@ def run_backup(
             _init_repo(name)
         except Exception as e:
             release_lock(_lock)
-            db_update_task(task.name, TaskUpdate(last_exit_code=1, status="idle"))
+            db_update_task(task.name, TaskUpdate(last_exit_code=1, status="new"))
             _sftp_recursive_remove(task.hostname, task.name)
             raise RuntimeError(f"Failed to initialize repo ({e})")
 
@@ -396,7 +396,7 @@ def remove_schedule(name: str) -> None:
         raise RuntimeError(f"Failed to remove task '{name}' from database")
 
     # remove from sftp server
-    if task.last_run is not None:
+    if task.status != "new":
         _sftp_recursive_remove(task.hostname, task.name)
 
 
