@@ -20,7 +20,8 @@ import typer
 
 from peerstash.cli.utils import check_setup
 from peerstash.core import registration
-from peerstash.core.db import db_host_exists
+from peerstash.core.backup import remove_schedule
+from peerstash.core.db import db_host_exists, db_get_tasks_for_host
 
 DEFAULT_QUOTA_GB = os.getenv("DEFAULT_QUOTA_GB", "10")
 
@@ -35,7 +36,7 @@ def evict_peer(
     ),
 ):
     """
-    Removes a peer from the lists. Does not delete their data.
+    Removes a peer from the lists and cancels any tasks to that peer. Does not delete their data.
     """
     check_setup()
     try:
@@ -46,7 +47,7 @@ def evict_peer(
         # verify the action should be taken
         if not force:
             confirm = typer.confirm(
-                f"Are you sure you want to evict '{username}'? This will not delete their stored backups.",
+                f"Are you sure you want to evict '{username}'? This will remove all scheduled tasks to that peer.",
                 default=False,
             )
             if not confirm:
@@ -54,6 +55,11 @@ def evict_peer(
 
         # update or insert peer
         registration.delete_peer(username)
+
+        # cancel tasks
+        tasks = db_get_tasks_for_host(f"peerstash-{username}")
+        for task in tasks:
+            remove_schedule(task)
 
         typer.secho(
             f"Removed from '{username}' peers list.",
