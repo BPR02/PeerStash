@@ -26,7 +26,6 @@ from io import TextIOWrapper
 from pathlib import Path
 from typing import Optional
 
-import requests
 from cron_validator import CronValidator
 from pydantic import BaseModel, model_validator
 

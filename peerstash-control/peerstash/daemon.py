@@ -18,7 +18,7 @@ import json
 import os
 import shutil
 import socketserver
-from typing import Any, Optional
+from typing import Any
 
 from peerstash.core.db import db_get_user
 from peerstash.core.utils import (update_crontab, validate_schedule,
