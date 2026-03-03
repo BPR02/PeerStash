@@ -1,3 +1,10 @@
+## [0.13.3](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.2...peerstash-v0.13.3) (2026-03-03)
+
+
+### Bug Fixes
+
+* **control:** remove complicated shell scripts ([#38](https://github.com/BPR02/PeerStash/issues/38)) ([4aeef8d](https://github.com/BPR02/PeerStash/commit/4aeef8d11f5935a322243ec32f0d3d5f817f069f))
+
 ## [0.13.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.1...peerstash-v0.13.2) (2026-03-02)
 
 
