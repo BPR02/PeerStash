@@ -1,20 +1,29 @@
 # Contributing
-Contributions are welcome! Make sure to first open an issue discussing the problem or the new feature before creating a pull request. This project uses [npm](https://www.npmjs.com) to manage development dependencies.
+Contributions are welcome! Make sure to first open an issue discussing the problem or the new feature before creating a pull request. This project uses [uv](https://docs.astral.sh/uv/) to manage development dependencies and [npm](https://www.npmjs.com) to manage workflow dependencies.
 
-## Installation
-While this is a docker project, [nodejs](https://nodejs.org/) is used for certain dev tools.
+## Set Up Development Environment
+[Python](https://www.python.org) and [nodejs](https://nodejs.org/) is used for development. These must be installed before contributing to the project.
+
+### Install Python with uv
+Since this project uses uv for development, the easiest way to install both is to [install uv on your machine](https://docs.astral.sh/uv/getting-started/installation/). Then you can use uv to [install Python](https://docs.astral.sh/uv/guides/install-python/) if not yet installed on your machine.
+```bash
+uv python install 3.13
+```
 
 ### Install NodeJS
-NodeJS can be installed for all systems using from [their website](https://nodejs.org/).
+NodeJS can be installed for all systems from [their website](https://nodejs.org/).
 
 ### Install Dependencies
-Once nodejs is installed, the dependencies can be installed with the following command
+Once nodejs is installed, the workflow dependencies can be installed with the following command
 ```bash
 $ npm install
 ```
-#### Folder Structure
 This command should be run in all folders that have a `package.json` file. Each folder prepended with `peerstash-` is essentially a subproject.
 
+Once uv is installed, the development dependencies can be installed in the `peerstash-control` folder using the following command
+```bash
+uv sync
+```
 
 ## Development Deployment
 To deploy this project, use the `docker-compose-dev.yml` file. A `.env` file must be created to fill out certain fields. An example environment file can be found in the `peerstash-compose` folder. If environment variables aren't working, the fields can be manually replaced in the docker compose file.
@@ -27,10 +36,22 @@ $ docker compose -f peerstash-compose/docker-compose-dev.yml up
 Tailscale needs access to the network tunnel device. The docker compose file has the host device hardcoded to the same path (`/dev/net/tun:/dev/net/tun`), but this appears to be valid only on linux systems. If you know how to make this work on non-linux systems please make an issue and/or pull request.
 
 ## Dev Tools
-There are dev tools available to check the code for syntax errors and other potential issues. Tools are split into each `peerstash-` folder, so you should `cd` into the directory of the service you're updating before running the dev tools.
+There are dev tools available in the `peerstash-control` folder to check the code for syntax errors and other potential issues.
+
+### Python
+`pyright` is used to check for errors in Python files.
+```bash
+uv run pyright
+```
+
+`black` and `isort` are used for formatting to keep files consistent.
+```bash
+uv run black
+uv run isort
+```
 
 ### Shell Checks
-`peerstash-control` has the `shellcheck` node module to check for POSIX compliance in shell scripts. Running the command below should output nothing to the terminal if all scripts are compliant with POSIX.
+The `shellcheck` node module is used to check for POSIX compliance in shell scripts. Running the command below should output nothing to the terminal if all scripts are compliant with POSIX.
 ```bash
 $ cd peerstash-control
 $ npx shellcheck scripts/*.sh
