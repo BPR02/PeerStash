@@ -28,7 +28,6 @@ from peerstash.core.utils import gen_restic_pass, verify_sudo_password
 app = typer.Typer()
 
 
-USER = db_get_user()
 
 
 def _get_sudo_password() -> str:
@@ -41,7 +40,8 @@ def _get_sudo_password() -> str:
         return sys.stdin.read().strip()
 
     # Fall back to the standard interactive hidden prompt
-    return typer.prompt(f"[peerstash] enter password for {USER}", hide_input=True)
+    user = db_get_user()
+    return typer.prompt(f"[peerstash] enter password for {user}", hide_input=True)
 
 
 @app.command(name="setup")
@@ -76,13 +76,14 @@ def setup(
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
-    if not USER:
+    user = db_get_user()
+    if not user:
         typer.secho(
             f"User not set. Database may be corrupted.", fg=typer.colors.RED, err=True
         )
         raise typer.Exit(code=1)
 
-    gen_restic_pass(USER, admin_pass)
+    gen_restic_pass(user, admin_pass)
 
     if not token:
         typer.secho("OAuth Setup Initialized", fg=typer.colors.CYAN, bold=True)

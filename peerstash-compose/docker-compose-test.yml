@@ -1,0 +1,46 @@
+name: peerstash-test
+x-meta:
+  compose_version: 0.9.0
+services:
+  control:
+    build: ../peerstash-control
+    container_name: peerstash-control-test
+    network_mode: bridge
+    hostname: peerstash-test-admin
+    environment:
+      - USERNAME=admin
+      - PASSWORD=adminpass
+      - DEFAULT_QUOTA_GB=10
+      - TZ=UTC
+    volumes:
+      - type: bind
+        source: ../.test/peerstash_test_root
+        target: /mnt/peerstash_root
+      - type: bind
+        source: ../.test/peerstash_test_control/config
+        target: /var/lib/peerstash
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ../.test/peerstash_test_control/data
+        target: /srv/peerstash/data
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ../.test/peerstash_test_restore
+        target: /mnt/peerstash_restore
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ../.test/peerstash_test_control/data/restic_cache
+        target: /root/.cache/restic
+        bind:
+          create_host_path: true
+      # Mount the codebase so we can run tests
+      - type: bind
+        source: ../peerstash-control
+        target: /app/testing
+        bind:
+          create_host_path: true
+    restart: unless-stopped
+    command: ["tail", "-f", "/dev/null"] # Keep container alive for tests
