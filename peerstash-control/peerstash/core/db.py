@@ -188,6 +188,14 @@ def db_list_tasks() -> list[TaskRead]:
     ]
 
 
+def db_get_tasks_for_host(hostname: str) -> list[str]:
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM tasks WHERE hostname = ?", (hostname,))
+            return cursor.fetchall()
+
+
 def db_get_user() -> Optional[str]:
     with closing(sqlite3.connect(DB_PATH)) as conn:
         with conn:

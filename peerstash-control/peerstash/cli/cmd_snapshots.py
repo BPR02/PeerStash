@@ -20,6 +20,7 @@ import typer
 
 from peerstash.cli.utils import check_setup
 from peerstash.core.backup import get_snapshots
+from peerstash.core.db import db_get_task
 
 app = typer.Typer()
 
@@ -36,6 +37,23 @@ def snapshots(
     Lists the snapshots taken for a task.
     """
     check_setup()
+    task = db_get_task(name)
+    if task is None:
+        typer.secho(
+            f"Task '{name}' does not exist.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    if task.status == "new":
+        typer.secho(
+            f"Repo for task '{name}' has not been backed up yet.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
     try:
         snapshot_list = get_snapshots(name, snapshot)
     except Exception as e:
@@ -66,7 +84,7 @@ def snapshots(
             )
             typer.secho(f"    Includes: ", fg=typer.colors.BRIGHT_GREEN)
             for p in s["paths"]:
-                typer.secho(f"      - {p}", fg=typer.colors.GREEN)
+                typer.secho(f"      - {p.replace('/mnt/peerstash_root','.')}", fg=typer.colors.GREEN)
 
     if json:
         typer.echo(f"{final_list}")
