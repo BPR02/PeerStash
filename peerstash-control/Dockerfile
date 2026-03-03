@@ -30,20 +30,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen -vv && \
     uv build --wheel -vv
 
-# build custom binaries
-FROM debian:trixie AS compiler
-
-# build custom binaries
-COPY ./scripts/*.c /srv/peerstash/scripts/
-RUN mkdir -p /srv/peerstash/bin && \
-    apt-get update && \
-    apt-get install -y build-essential && \
-    gcc -o /srv/peerstash/bin/create_task /srv/peerstash/scripts/create_task.c && \
-    gcc -o /srv/peerstash/bin/remove_task /srv/peerstash/scripts/remove_task.c && \
-    gcc -o /srv/peerstash/bin/sync_hosts /srv/peerstash/scripts/sync_hosts.c && \
-    chown root /srv/peerstash/bin/* && \
-    chmod 4755 /srv/peerstash/bin/*
-
 # get tailscale binaries
 FROM tailscale/tailscale:stable AS tailscale_bin
 
@@ -55,15 +41,11 @@ RUN apt-get update && \
         openssh-server \
         openssh-client \
         locales \
-        curl \
-        jq \
-        sqlite3 \
         restic \
         fuse \
         cron \
         supervisor \
         sudo \
-        netcat-openbsd \
         iptables \
         iproute2 && \
     rm -rf /var/lib/apt/lists/*
@@ -83,12 +65,9 @@ RUN pip install --upgrade pip && \
     pip install -vv /app/*.whl && \
     rm -rf /app
 
-# copy create_task binary from compiler
-COPY --from=compiler /srv/peerstash/bin/* /srv/peerstash/bin/
-
-# move scripts
-COPY ./scripts/*.sh /srv/peerstash/scripts/
-RUN chmod -R 744 /srv/peerstash/scripts
+# move setup script
+COPY ./scripts/setup.sh /usr/local/bin/entrypoint.sh
+RUN chmod 744 /usr/local/bin/entrypoint.sh
 
 # set up files and folders
 RUN mkdir -p /tmp/peerstash && chmod 777 /tmp/peerstash
@@ -99,4 +78,4 @@ RUN echo "\nWelcome to PeerStash - The P2P NAS Backup Solution\nUse 'peerstash -
 
 EXPOSE 22
 
-ENTRYPOINT ["/srv/peerstash/scripts/setup.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

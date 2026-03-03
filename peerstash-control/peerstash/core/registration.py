@@ -17,16 +17,14 @@
 import base64
 import json
 import os
-import subprocess
 from typing import Dict
 
 import requests
 
 from peerstash.core.db import (db_add_host, db_delete_host, db_host_exists,
                                db_update_host)
+from peerstash.core.utils import send_to_daemon
 
-SSH_FOLDER = os.getenv("SSH_FOLDER", "~/.ssh")
-DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
 SFTPGO_URL = "http://localhost:8080/api/v2"
 API_KEY = os.getenv("API_KEY", "")
 
@@ -73,7 +71,7 @@ def _update_known_hosts(
             f.write(f"\n{host_entry}\n")
 
     # sync to root user
-    subprocess.run("/srv/peerstash/bin/sync_hosts")
+    send_to_daemon("sync_hosts", {})
 
 
 def _delete_known_host(username: str) -> None:
@@ -101,7 +99,7 @@ def _delete_known_host(username: str) -> None:
                 f.write(line)
 
     # sync to root user
-    subprocess.run("/srv/peerstash/bin/sync_hosts")
+    send_to_daemon("sync_hosts", {})
 
 
 def parse_share_key(share_key: str) -> Dict[str, str]:

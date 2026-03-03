@@ -15,14 +15,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import os
 import subprocess
 from typing import Optional
 
 import commentjson
 import requests
 
-DB_PATH = os.getenv("DB_PATH", "/var/lib/peerstash/peerstash.db")
 TAILSCALE_API = "https://api.tailscale.com/api/v2"
 
 
