@@ -42,4 +42,6 @@ def peers():
         raise typer.Exit(1)
     for host in hosts:
         total, used, _ = get_disk_usage(user, host.hostname, 2022)
-        typer.echo(f"{host.hostname.removeprefix("peerstash-")} ({sizeof_fmt(used)} used / {sizeof_fmt(total)})")
+        typer.echo(
+            f"{host.hostname.removeprefix("peerstash-")} ({sizeof_fmt(used)} used / {sizeof_fmt(total)})"
+        )

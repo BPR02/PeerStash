@@ -29,7 +29,8 @@ def restore(
     name: str = typer.Argument(..., help="Name of the backup task to restore."),
     snapshot: str = typer.Argument("latest", help="Snapshot ID to restore."),
     include: str = typer.Option(
-        None, help="String specifying a regex pattern to include, excluding everything else"
+        None,
+        help="String specifying a regex pattern to include, excluding everything else",
     ),
     exclude: Annotated[
         list[str] | None,

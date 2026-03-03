@@ -18,7 +18,6 @@
 
 
 SSH_FOLDER="/var/lib/peerstash"
-DB_PATH="/var/lib/peerstash/peerstash.db"
 
 
 # Generate SSH host keys

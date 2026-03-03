@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import shutil
 import socket
 import sqlite3
 import sys
@@ -57,13 +56,14 @@ def init_db_and_restore():
             backup_job = (
                 f"{schedule} {PEERSTASH_BIN} backup {name} 10 >> {CRON_LOG} 2>&1"
             )
-            prune_job = f"{prune_schedule} {PEERSTASH_BIN} prune {name} 10 >> {CRON_LOG} 2>&1"
+            prune_job = (
+                f"{prune_schedule} {PEERSTASH_BIN} prune {name} 10 >> {CRON_LOG} 2>&1"
+            )
             update_crontab(name, [backup_job, prune_job])
 
     else:
         print("No database found. Creating a new empty database...")
-        cursor.executescript(
-            f"""
+        cursor.executescript(f"""
             CREATE TABLE hosts (
                 hostname TEXT PRIMARY KEY,
                 port INTEGER DEFAULT 2022,
@@ -89,8 +89,7 @@ def init_db_and_restore():
                 invite_code TEXT
             );
             INSERT INTO node_data (id, username) VALUES (1, '{USERNAME}');
-        """
-        )
+        """)
 
         # Set proper ownership for the new database
         os.chown(
@@ -135,7 +134,9 @@ def setup_sftpgo():
     keys: list[dict[str, Any]] = resp.json()
     for key in keys:
         if key.get("name") == "host":
-            resp = requests.delete(f"{SFTPGO_URL}/apikeys/{key.get("id")}", headers=headers)
+            resp = requests.delete(
+                f"{SFTPGO_URL}/apikeys/{key.get("id")}", headers=headers
+            )
             resp.raise_for_status()
 
     # create new API key
