@@ -50,7 +50,6 @@ def init_db_and_restore():
         with open(known_hosts_path, "a") as f:
             for hostname, port, public_key in cursor.fetchall():
                 f.write(f"\n[{hostname}]:{port} {public_key}\n")
-        shutil.copy2(known_hosts_path, "/root/,ssh/known_hosts")
 
         # Restore crontab tasks
         cursor.execute("SELECT name, schedule, prune_schedule FROM tasks")

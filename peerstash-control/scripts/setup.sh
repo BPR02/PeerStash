@@ -57,10 +57,6 @@ fi
     echo "	IdentityFile /home/$USERNAME/.ssh/id_ed25519"
 } > /home/"$USERNAME"/.ssh/config
 echo "" > /home/"$USERNAME"/.ssh/known_hosts
-
-# copy user ssh keys to root user
-cp /home/"$USERNAME"/.ssh/config /root/.ssh/config
-cp /home/"$USERNAME"/.ssh/known_hosts /root/.ssh/known_hosts
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 
 # set up logging
@@ -74,6 +70,11 @@ touch /tmp/peerstash_mnt/.hidden
 # Run the python init script as root before starting services
 echo "Updating SFPTGo and Database..."
 /usr/local/bin/peerstash-init
+
+# copy user ssh keys to root user
+mkdir -p /root/.ssh
+cp /home/"$USERNAME"/.ssh/config /root/.ssh/config
+cp /home/"$USERNAME"/.ssh/known_hosts /root/.ssh/known_hosts
 
 # clear password from environment
 unset PASSWORD
