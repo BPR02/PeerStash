@@ -170,6 +170,7 @@ def acquire_task_lock(name: str) -> TextIOWrapper:
     # Open the file. We must keep this file object open for the duration
     # of the backup, so we return it to prevent Python from garbage collecting it.
     lock_file = open(lock_file_path, "w")
+    os.chmod(lock_file_path, 0o666)
 
     try:
         # LOCK_EX: Exclusive lock (only one process can hold it)
