@@ -21,7 +21,7 @@ import typer
 from peerstash.cli.utils import check_setup
 from peerstash.core import registration
 from peerstash.core.backup import remove_schedule
-from peerstash.core.db import db_host_exists, db_get_tasks_for_host
+from peerstash.core.db import db_get_tasks_for_host, db_host_exists
 
 DEFAULT_QUOTA_GB = os.getenv("DEFAULT_QUOTA_GB", "10")
 

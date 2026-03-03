@@ -74,7 +74,7 @@ def register_peer(
         invite_url = f"https://login.tailscale.com/admin/invite/{invite_code}"
         typer.secho(
             f"Accept the tailscale invite by visiting this link:",
-            fg=typer.colors.YELLOW
+            fg=typer.colors.YELLOW,
         )
         typer.secho(invite_url, fg=typer.colors.YELLOW)
 

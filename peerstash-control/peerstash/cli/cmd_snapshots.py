@@ -84,7 +84,10 @@ def snapshots(
             )
             typer.secho(f"    Includes: ", fg=typer.colors.BRIGHT_GREEN)
             for p in s["paths"]:
-                typer.secho(f"      - {p.replace('/mnt/peerstash_root','.')}", fg=typer.colors.GREEN)
+                typer.secho(
+                    f"      - {p.replace('/mnt/peerstash_root','.')}",
+                    fg=typer.colors.GREEN,
+                )
 
     if json:
         typer.echo(f"{final_list}")

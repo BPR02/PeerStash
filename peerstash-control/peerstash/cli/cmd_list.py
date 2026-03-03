@@ -84,7 +84,10 @@ def list(
             fg=typer.colors.BRIGHT_WHITE,
         )
         typer.secho(f"    schedule=   {task.schedule}", fg=typer.colors.CYAN)
-        typer.secho(f"    includes=   {task.include.replace('/mnt/peerstash_root','.')}", fg=typer.colors.BRIGHT_GREEN)
+        typer.secho(
+            f"    includes=   {task.include.replace('/mnt/peerstash_root','.')}",
+            fg=typer.colors.BRIGHT_GREEN,
+        )
         typer.secho(f"    exclusions= {task.exclude}", fg=typer.colors.BRIGHT_RED)
         typer.secho(f"    prune=      {task.prune_schedule}", fg=typer.colors.YELLOW)
         typer.secho(f"    retention=  {task.retention}", fg=typer.colors.BRIGHT_YELLOW)

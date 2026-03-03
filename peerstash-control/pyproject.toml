@@ -21,6 +21,7 @@ dependencies = [
 dev = [
     "black>=26.1.0",
     "isort>=7.0.0",
+    "pyright>=1.1.408",
     "pytest>=9.0.2",
 ]
 build = [

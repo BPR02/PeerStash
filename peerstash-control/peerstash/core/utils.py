@@ -167,7 +167,7 @@ def acquire_task_lock(name: str) -> TextIOWrapper:
     lock_file_path = f"/tmp/peerstash/task_{name}.lock"
     if not os.path.exists(lock_file_path):
         with open(lock_file_path, "a") as _:
-            pass    
+            pass
         os.chmod(lock_file_path, 0o666)
 
     # Open the file. We must keep this file object open for the duration
