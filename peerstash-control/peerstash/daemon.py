@@ -27,7 +27,6 @@ from peerstash.core.utils import (update_crontab, validate_schedule,
 SOCKET_PATH = "/var/run/peerstash.sock"
 CRON_LOG = "/var/log/peerstash-cron.log"
 PEERSTASH_BIN = "/usr/local/bin/peerstash"
-PEERSTASH_BIN = "/usr/local/bin/peerstash"
 
 class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
     def handle(self):
