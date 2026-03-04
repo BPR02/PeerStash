@@ -36,7 +36,7 @@ def keys_post_callback(request: PreparedRequest) -> tuple[int, dict[str, str], s
     return (200, {}, json.dumps(resp))
 
 
-def device_invite_callback(request: PreparedRequest) -> tuple[int, dict[str, str], str]:
+def invite_device_callback(request: PreparedRequest) -> tuple[int, dict[str, str], str]:
     """Callback to validate the device ID from the URL."""
     # Extract the device ID from the URL using regex
     if not request.url:
@@ -129,7 +129,7 @@ def mocked_tailscale_api():
         rsps.add_callback(
             responses.POST,
             re.compile(rf"^{base_url}/device/[^/]+/device-invites$"),
-            callback=device_invite_callback,
+            callback=invite_device_callback,
             content_type="application/json",
         )
 
