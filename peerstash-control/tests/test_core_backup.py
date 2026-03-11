@@ -146,14 +146,14 @@ def test_prune_repo_new_task(mock_db, mock_daemon_and_locks):
 
 
 # --- Snapshots, Mount, Unmount ---
-def test_get_snapshots_success(mock_db, mock_restic):
+def test_get_snapshots_success(mock_db, mock_daemon_and_locks, mock_restic):
     schedule_backup(paths=["/test"], peer="node1", name="test_bkp")
     snaps = get_snapshots("test_bkp")
     assert len(snaps) > 0
     assert snaps[0]["id"] == "snap123"
 
 
-def test_mount_and_unmount_task(mock_db, mock_subprocess, mock_popen: MockType):
+def test_mount_and_unmount_task(mock_db, mock_daemon_and_locks, mock_subprocess, mock_popen: MockType):
     schedule_backup(paths=["/test"], peer="node1", name="test_bkp")
 
     mount_task("test_bkp")
