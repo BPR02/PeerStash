@@ -55,13 +55,25 @@ def subprocess_router(args, **kwargs):
         # Magic input to simulate Tailscale daemon being down
         import os
 
-        if os.environ.get("MOCK_TAILSCALE_DOWN") == "1":
+        if os.getenv("MOCK_TAILSCALE_DOWN") == "1":
             raise generate_subprocess_error(
                 args, 1, "failed to connect to local tailscaled"
             )
 
-        # Return a valid JSON string as requested by text=True
-        mock_status = {"TailscaleIPs": ["100.100.100.100"], "BackendState": "Running"}
+        # Magic input to simulate a connected node that is missing an ID
+        if os.getenv("MOCK_TAILSCALE_MISSING_ID") == "1":
+            mock_status = {
+                "TailscaleIPs": ["100.100.100.100"],
+                "BackendState": "Running",
+            }
+            return subprocess.CompletedProcess(args, 0, stdout=json.dumps(mock_status))
+
+        # Default: Return a valid JSON string with a Self.ID
+        mock_status = {
+            "TailscaleIPs": ["100.100.100.100"],
+            "BackendState": "Running",
+            "Self": {"ID": "12346"},
+        }
         return subprocess.CompletedProcess(args, 0, stdout=json.dumps(mock_status))
 
     # sftp (checking disk space)
