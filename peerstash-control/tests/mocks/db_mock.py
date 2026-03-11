@@ -47,6 +47,16 @@ def mock_db(mocker: MockerFixture):
     mocker.patch(
         "peerstash.core.db.db_host_exists", side_effect=lambda h: h in db_state["hosts"]
     )
+    mocker.patch("peerstash.core.db.db_get_invite_code", return_value="invite_xyz")
+    mocker.patch(
+        "peerstash.core.db.db_add_host",
+        side_effect=lambda h, k: db_state["hosts"].update({h: True}),
+    )
+    mocker.patch("peerstash.core.db.db_update_host")
+    mocker.patch(
+        "peerstash.core.db.db_delete_host",
+        side_effect=lambda h: db_state["hosts"].pop(h, None),
+    )
 
     # Task Mocks
     def mock_get_task(name):
