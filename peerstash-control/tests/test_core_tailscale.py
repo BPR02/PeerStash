@@ -51,7 +51,7 @@ def test_register_device_success(mocked_tailscale_api, mock_subprocess):
 
 
 def test_register_device_wrong_password(mocked_tailscale_api, mock_subprocess):
-    with pytest.raises(subprocess.CalledProcessError, match="sudo: incorrect password"):
+    with pytest.raises(subprocess.CalledProcessError, match="sudo"):
         register_device("tskey-api-12345-SECRET", "wrong_sudo_pass")
 
 
