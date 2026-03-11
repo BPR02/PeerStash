@@ -30,7 +30,7 @@ def users_post_callback(request: PreparedRequest) -> tuple[int, dict[str, str], 
     headers = request.headers
 
     # check if authorization matches `the key given by the mock POST /apikeys`
-    if headers.get("Authorization", "") != "Bearer abcDEF987":
+    if headers.get("X-SFTPGO-API-KEY", "") != "abcDEF987":
         return (
             401,
             {},
@@ -85,7 +85,7 @@ def users_put_callback(request: PreparedRequest) -> tuple[int, dict[str, str], s
     headers = request.headers
 
     # check if authorization matches `the key given by the mock POST /apikeys`
-    if headers.get("Authorization", "") != "Bearer abcDEF987":
+    if headers.get("X-SFTPGO-API-KEY", "") != "abcDEF987":
         return (
             401,
             {},
