@@ -2,7 +2,7 @@ import json
 import subprocess
 
 import pytest
-from pytest_mock import MockerFixture
+from pytest_mock import MockerFixture, MockType
 
 
 def generate_subprocess_error(
@@ -88,10 +88,21 @@ def subprocess_router(args, **kwargs):
 
         # Simulated 'df' output for SFTP
         # text=True is passed in the application, so stdout should be a string
-        mock_df_output = """
-        Size     Used    Avail   (root)    %Capacity
-        1000000  500000  500000  500000    50%
-        """
+        import os
+
+        if os.getenv("MOCK_DISK_FULL") == "1":
+            # Magic input: trigger full disk output via environment variable
+            mock_df_output = """
+            Size     Used    Avail   (root)    %Capacity
+            1000000  998976  1024    1024      99%
+            """
+        else:
+            # Default output simulating ~50GB free space
+            mock_df_output = """
+            Size     Used    Avail   (root)    %Capacity
+            1000000  500000  500000  500000    50%
+            """
+
         return subprocess.CompletedProcess(args, 0, stdout=mock_df_output)
 
     # sudo -k (invalidate credentials)
@@ -129,3 +140,8 @@ def subprocess_router(args, **kwargs):
 def mock_subprocess(mocker: MockerFixture):
     """Globally patches subprocess.run with our router."""
     mocker.patch("subprocess.run", side_effect=subprocess_router)
+
+@pytest.fixture
+def mock_popen(mocker: MockerFixture) -> MockType:
+    """Patches Popen globally and returns the mock object for type-safe assertions."""
+    return mocker.patch("subprocess.Popen")

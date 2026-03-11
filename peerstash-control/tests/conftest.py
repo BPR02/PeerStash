@@ -1,5 +1,6 @@
-import pytest
 from pathlib import Path
+
+import pytest
 from pytest import MonkeyPatch
 from pytest_mock import MockerFixture
 from typer.testing import CliRunner
@@ -31,3 +32,6 @@ def mock_daemon_and_locks(mocker: MockerFixture):
     mocker.patch("peerstash.core.utils.acquire_task_lock", return_value="mock_lock")
     mocker.patch("peerstash.core.utils.release_lock")
     mocker.patch("peerstash.core.backup._sftp_recursive_remove")
+    mocker.patch("peerstash.core.backup.shutil.rmtree")
+    mocker.patch("peerstash.core.backup.shutil.move")
+    mocker.patch("os.makedirs", return_value=True)
