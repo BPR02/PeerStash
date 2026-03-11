@@ -1,4 +1,5 @@
 import pytest
+import requests
 import subprocess
 from peerstash.core.tailscale import (
     revoke_api_token,
@@ -19,6 +20,15 @@ def test_revoke_api_token_success(mocked_tailscale_api):
 def test_revoke_api_token_invalid_format(mocked_tailscale_api):
     token = "invalid-token-format"
     result = revoke_api_token(token)
+    assert result is False
+
+
+def test_revoke_api_token_network_error(mocker):
+    mocker.patch(
+        "requests.delete",
+        side_effect=requests.exceptions.ConnectionError("Network down"),
+    )
+    result = revoke_api_token("tskey-api-12345-SECRET")
     assert result is False
 
 
@@ -65,3 +75,22 @@ def test_generate_device_invite_success(mocked_tailscale_api, mock_subprocess):
     invite_code = generate_device_invite(token)
 
     assert invite_code == "abcXYZ"
+
+
+def test_get_local_device_id_daemon_down(mock_subprocess, monkeypatch):
+    monkeypatch.setenv("MOCK_TAILSCALE_DOWN", "1")
+    with pytest.raises(RuntimeError, match="Failed to query local Tailscale status"):
+        _get_local_device_id()
+
+
+def test_generate_device_invite_missing_url(mocker):
+    mocker.patch("peerstash.core.tailscale._get_local_device_id", return_value="12346")
+
+    mock_response = mocker.Mock()
+    mock_response.json.return_value = [{"id": "12346", "multiUse": True}]
+    mocker.patch("requests.post", return_value=mock_response)
+
+    token = "tskey-api-12345-SECRET"
+    invite_code = generate_device_invite(token)
+
+    assert invite_code is None
