@@ -9,6 +9,7 @@ def test_docker_environment_vars():
 
 def test_cli_execution_in_docker():
     from typer.testing import CliRunner
+
     from peerstash.cli import app
 
     runner = CliRunner()

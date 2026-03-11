@@ -1,14 +1,11 @@
+import subprocess
+
 import pytest
 import requests
-import subprocess
-from peerstash.core.tailscale import (
-    revoke_api_token,
-    modify_policy,
-    _generate_auth_key,
-    register_device,
-    _get_local_device_id,
-    generate_device_invite,
-)
+
+from peerstash.core.tailscale import (_generate_auth_key, _get_local_device_id,
+                                      generate_device_invite, modify_policy,
+                                      register_device, revoke_api_token)
 
 
 def test_revoke_api_token_success(mocked_tailscale_api):
