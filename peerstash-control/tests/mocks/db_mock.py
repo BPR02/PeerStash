@@ -42,19 +42,45 @@ def mock_db(mocker: MockerFixture):
         "hosts": {"peerstash-node1": True},
     }
 
+    # Helper function to patch multiple modules at once to avoid "from X import Y" reference bugs.
+    def multi_patch(func_name, target_modules, side_effect=None, return_value=None):
+        for mod in target_modules:
+            patch_target = f"{mod}.{func_name}"
+            if side_effect is not None:
+                mocker.patch(patch_target, side_effect=side_effect, create=True)
+            else:
+                mocker.patch(patch_target, return_value=return_value, create=True)
+
     # DB Helper Mocks
-    mocker.patch("peerstash.core.db.db_get_user", return_value="mockuser")
-    mocker.patch(
-        "peerstash.core.db.db_host_exists", side_effect=lambda h: h in db_state["hosts"]
+    multi_patch(
+        "db_get_user",
+        ["peerstash.core.db", "peerstash.core.backup", "peerstash.core.identity"],
+        return_value="mockuser",
     )
-    mocker.patch("peerstash.core.db.db_get_invite_code", return_value="invite_xyz")
-    mocker.patch(
-        "peerstash.core.db.db_add_host",
+
+    multi_patch(
+        "db_host_exists",
+        ["peerstash.core.db", "peerstash.core.backup", "peerstash.core.registration"],
+        side_effect=lambda h: h in db_state["hosts"],
+    )
+
+    multi_patch(
+        "db_get_invite_code",
+        ["peerstash.core.db", "peerstash.core.identity"],
+        return_value="invite_xyz",
+    )
+
+    multi_patch(
+        "db_add_host",
+        ["peerstash.core.db", "peerstash.core.registration"],
         side_effect=lambda h, k: db_state["hosts"].update({h: True}),
     )
-    mocker.patch("peerstash.core.db.db_update_host")
-    mocker.patch(
-        "peerstash.core.db.db_delete_host",
+
+    multi_patch("db_update_host", ["peerstash.core.db", "peerstash.core.registration"])
+
+    multi_patch(
+        "db_delete_host",
+        ["peerstash.core.db", "peerstash.core.registration"],
         side_effect=lambda h: db_state["hosts"].pop(h, None),
     )
 
@@ -85,11 +111,34 @@ def mock_db(mocker: MockerFixture):
             return True
         return False
 
-    mocker.patch("peerstash.core.db.db_get_task", side_effect=mock_get_task)
-    mocker.patch("peerstash.core.db.db_task_exists", side_effect=mock_task_exists)
-    mocker.patch("peerstash.core.db.db_add_task", side_effect=mock_add_task)
-    mocker.patch("peerstash.core.db.db_update_task", side_effect=mock_update_task)
-    mocker.patch("peerstash.core.db.db_delete_task", side_effect=mock_delete_task)
+    multi_patch(
+        "db_get_task",
+        ["peerstash.core.db", "peerstash.core.backup"],
+        side_effect=mock_get_task,
+    )
 
-    # Return the state dict so tests can inspect or prepopulate it if needed
+    multi_patch(
+        "db_task_exists",
+        ["peerstash.core.db", "peerstash.core.backup"],
+        side_effect=mock_task_exists,
+    )
+
+    multi_patch(
+        "db_add_task",
+        ["peerstash.core.db", "peerstash.core.backup"],
+        side_effect=mock_add_task,
+    )
+
+    multi_patch(
+        "db_update_task",
+        ["peerstash.core.db", "peerstash.core.backup"],
+        side_effect=mock_update_task,
+    )
+
+    multi_patch(
+        "db_delete_task",
+        ["peerstash.core.db", "peerstash.core.backup"],
+        side_effect=mock_delete_task,
+    )
+
     return db_state
