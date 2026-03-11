@@ -42,3 +42,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
     packages = ["peerstash"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    # Ignore Python 3.13 deprecation warnings specifically coming from the lark library
+    "ignore:module 'sre_parse' is deprecated:DeprecationWarning:lark.*",
+    "ignore:module 'sre_constants' is deprecated:DeprecationWarning:lark.*"
+]
