@@ -55,3 +55,5 @@ def mock_daemon_and_locks(mocker: MockerFixture):
     mocker.patch("peerstash.core.backup.shutil.rmtree")
     mocker.patch("peerstash.core.backup.shutil.move")
     mocker.patch("os.makedirs", return_value=True)
+    mocker.patch("os.mkdir")
+    mocker.patch("os.rmdir")
