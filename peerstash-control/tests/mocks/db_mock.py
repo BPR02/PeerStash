@@ -16,7 +16,7 @@ class MockTask:
         schedule,
         retention,
         prune_schedule="0 4 * * 0",
-        status="idle",
+        status="new",
     ):
         self.name = name
         self.include = include
