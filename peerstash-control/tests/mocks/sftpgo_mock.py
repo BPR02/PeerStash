@@ -110,11 +110,11 @@ def users_put_callback(request: PreparedRequest) -> tuple[int, dict[str, str], s
 @pytest.fixture
 def mocked_sftpgo_api():
     """Fixture that uses responses to mock the SFTPGo API."""
-    with responses.RequestsMock() as rsps:
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as rsps:
         base_url = "http://localhost:8080/api/v2"
 
         # Dynamic Mock: GET /token
-        rsps.add(
+        rsps.add_callback(
             responses.GET,
             f"{base_url}/token",
             callback=token_get_callback,
@@ -168,7 +168,7 @@ def mocked_sftpgo_api():
         )
 
         # Dynamic Mock: POST /users
-        rsps.add(
+        rsps.add_callback(
             responses.POST,
             f"{base_url}/users",
             callback=users_post_callback,
@@ -176,7 +176,7 @@ def mocked_sftpgo_api():
         )
 
         # Dynamic Mock: PUT /users/{username}
-        rsps.add(
+        rsps.add_callback(
             responses.PUT,
             re.compile(rf"^{base_url}/users/[^/]+$"),
             callback=users_put_callback,
