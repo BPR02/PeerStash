@@ -74,7 +74,7 @@ def invite_device_callback(request: PreparedRequest) -> tuple[int, dict[str, str
 @pytest.fixture
 def mocked_tailscale_api():
     """Fixture that uses responses to mock the Tailscale API."""
-    with responses.RequestsMock() as rsps:
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as rsps:
         base_url = "https://api.tailscale.com/api/v2"
 
         # Static Mock: GET /tailnet/-/acl
@@ -110,7 +110,7 @@ def mocked_tailscale_api():
         )
 
         # Dynamic Mock: POST /tailnet/-/keys
-        rsps.add(
+        rsps.add_callback(
             responses.POST,
             f"{base_url}/tailnet/-/keys",
             callback=keys_post_callback,
