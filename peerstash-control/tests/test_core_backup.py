@@ -1,16 +1,9 @@
 import pytest
 from pytest_mock import MockType
 
-from peerstash.core.backup import (
-    get_snapshots,
-    mount_task,
-    prune_repo,
-    remove_schedule,
-    restore_snapshot,
-    run_backup,
-    schedule_backup,
-    unmount_task,
-)
+from peerstash.core.backup import (get_snapshots, mount_task, prune_repo,
+                                   remove_schedule, restore_snapshot,
+                                   run_backup, schedule_backup, unmount_task)
 
 
 def test_schedule_backup_valid_new_task(mock_db, mock_daemon_and_locks):
