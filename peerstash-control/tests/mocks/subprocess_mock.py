@@ -94,7 +94,7 @@ def subprocess_router(args, **kwargs):
             # Magic input: trigger full disk output via environment variable
             mock_df_output = """
             Size     Used    Avail   (root)    %Capacity
-            1000000  998976  1024    1024      99%
+            1000000  1000000 0      0          100%
             """
         else:
             # Default output simulating ~50GB free space
