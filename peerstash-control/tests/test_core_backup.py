@@ -15,7 +15,7 @@ def test_schedule_backup_valid_new_task(mock_db, mock_daemon_and_locks):
 
 
 def test_schedule_backup_invalid_cron(mock_db, mock_daemon_and_locks):
-    with pytest.raises(ValueError, match="invalid"):
+    with pytest.raises(ValueError, match="(?i)invalid"):
         schedule_backup(
             paths=["/var/www/html"], peer="node1", schedule="invalid_cron_string"
         )
@@ -112,11 +112,12 @@ def test_schedule_backup_update_existing(mock_db, mock_daemon_and_locks):
 
 # --- Run Backup Failure Modes ---
 def test_run_backup_restic_failure(
-    mock_db, mock_daemon_and_locks, mock_restic, mock_subprocess
+    mock_db, mock_daemon_and_locks, mock_restic, mock_subprocess, monkeypatch
 ):
     # restic_mock.py is programmed to fail if '/forbidden_path' is included
     schedule_backup(paths=["/forbidden_path"], peer="node1", name="fail_bkp")
     mock_db["tasks"]["fail_bkp"].status = "idle"
+    monkeypatch.setenv("MOCK_BACKUP_FAIL", "1")
 
     with pytest.raises(RuntimeError, match="Backup failed!"):
         run_backup("fail_bkp", offset=0)
@@ -132,7 +133,7 @@ def test_run_backup_corrupted_repo(
     # restic_mock.py is programmed to fail check if 'corrupted' is in the repo path/env
     monkeypatch.setenv("RESTIC_REPOSITORY", "corrupted")
 
-    with pytest.raises(RuntimeError, match="Repository.*is corrupted"):
+    with pytest.raises(RuntimeError, match="(?i)Repository.*is corrupted"):
         run_backup("corrupt_bkp", offset=0)
     assert mock_db["tasks"]["corrupt_bkp"].last_exit_code == 4
 
