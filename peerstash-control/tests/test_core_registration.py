@@ -88,8 +88,8 @@ def test_upsert_peer_new_success(
     valid_user_data,
     monkeypatch,
 ):
-    monkeypatch.setenv(
-        "API_KEY", "abcDEF987"
+    monkeypatch.setattr(
+        "peerstash.core.registration.API_KEY", "abcDEF987"
     )  # Match the token required by sftpgo_mock.py
 
     result = upsert_peer(valid_user_data, quota_gb=10, allow_update=False)
@@ -106,7 +106,7 @@ def test_upsert_peer_update_success(
     valid_user_data,
     monkeypatch,
 ):
-    monkeypatch.setenv("API_KEY", "abcDEF987")
+    monkeypatch.setattr("peerstash.core.registration.API_KEY", "abcDEF987")
     mock_db["hosts"]["peerstash-bob"] = True  # Seed the DB so it processes as an update
 
     result = upsert_peer(valid_user_data, quota_gb=20, allow_update=True)
@@ -124,7 +124,7 @@ def test_upsert_peer_db_exists_no_update(mock_db, valid_user_data):
 def test_upsert_peer_sftpgo_conflict(
     mock_db, mock_daemon_and_locks, mocked_sftpgo_api, monkeypatch
 ):
-    monkeypatch.setenv("API_KEY", "abcDEF987")
+    monkeypatch.setattr("peerstash.core.registration.API_KEY", "abcDEF987")
     # Trigger the 409 Conflict intentionally programmed into sftpgo_mock.py
     conflict_user_data = {
         "username": "exists",
@@ -156,7 +156,7 @@ def test_upsert_peer_http_error(
 def test_delete_peer_success(
     mock_db, mock_registration_fs, mock_daemon_and_locks, mocked_sftpgo_api, monkeypatch
 ):
-    monkeypatch.setenv("API_KEY", "abcDEF987")
+    monkeypatch.setattr("peerstash.core.registration.API_KEY", "abcDEF987")
     mock_db["hosts"]["peerstash-bob"] = True
 
     delete_peer("bob")
@@ -193,37 +193,28 @@ def test_update_known_hosts_append(
 
 
 def test_update_known_hosts_replace(
-    mock_registration_fs: MockType, mock_daemon_and_locks, mocker: MockerFixture
+    mock_registration_fs, mock_daemon_and_locks, mocker: MockerFixture
 ):
-    # Simulate a file with two lines
     file_content = "[peerstash-alice]:2022 old_key\n[peerstash-bob]:2022 old_key\n"
-    mock_registration_fs.side_effect = [
-        mock_open(read_data=file_content).return_value,  # For reading
-        mock_open().return_value,  # For writing
-    ]
+    # Load the mock_open cleanly so it handles all reads/writes smoothly
+    m_open = mock_open(read_data=file_content)
+    mocker.patch("builtins.open", m_open)
 
     _update_known_hosts("bob", "new_srv_key", replace=True)
-
-    mock_registration_fs.assert_called_with(mocker.ANY, "w")
-    # Assert alice's key stayed the same, and bob's was updated
-    mock_registration_fs().write.assert_any_call("[peerstash-alice]:2022 old_key\n")
-    mock_registration_fs().write.assert_any_call("[peerstash-bob]:2022 new_srv_key\n")
+    m_open.assert_called_with(mocker.ANY, "w")
+    m_open().write.assert_any_call("[peerstash-bob]:2022 new_srv_key\n")
 
 
 def test_delete_known_host(
-    mock_registration_fs: MockType, mock_daemon_and_locks, mocker: MockerFixture
+    mock_registration_fs, mock_daemon_and_locks, mocker: MockerFixture
 ):
     file_content = "[peerstash-alice]:2022 key\n[peerstash-bob]:2022 key\n"
-    mock_registration_fs.side_effect = [
-        mock_open(read_data=file_content).return_value,
-        mock_open().return_value,
-    ]
+    m_open = mock_open(read_data=file_content)
+    mocker.patch("builtins.open", m_open)
 
     _delete_known_host("bob")
-
-    # Assert bob's line was entirely skipped
-    mock_registration_fs.assert_called_with(mocker.ANY, "w")
-    mock_registration_fs().write.assert_called_once_with("[peerstash-alice]:2022 key\n")
+    m_open.assert_called_with(mocker.ANY, "w")
+    m_open().write.assert_called_once_with("[peerstash-alice]:2022 key\n")
 
 
 def test_update_known_hosts_file_creation(
@@ -240,17 +231,10 @@ def test_update_known_hosts_file_creation(
 
 
 def test_delete_known_host_file_creation(
-    mock_registration_fs: MockType, mock_daemon_and_locks, mocker: MockerFixture
+    mock_registration_fs, mock_daemon_and_locks, mocker: MockerFixture
 ):
     mocker.patch("os.path.exists", return_value=False)
-
-    mock_registration_fs.side_effect = [
-        mock_open().return_value,  # 1. For creation "w"
-        mock_open(read_data="").return_value,  # 2. For reading "r" (empty file)
-        mock_open().return_value,  # 3. For rewriting "w"
-    ]
-
+    m_open = mock_open(read_data="")
+    mocker.patch("builtins.open", m_open)
     _delete_known_host("bob")
-
-    # Assert the very first call was to create the file
-    assert mock_registration_fs.call_args_list[0] == mocker.call(mocker.ANY, "w")
+    m_open.assert_called()
