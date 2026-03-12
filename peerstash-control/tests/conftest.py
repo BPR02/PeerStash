@@ -22,7 +22,31 @@ pytest_plugins = [
 
 @pytest.fixture(autouse=True)
 def mock_setup(mocker: MockerFixture) -> None:
-    # don't check for cli setup before running cli commands
+    # List of all CLI command modules
+    cli_commands = [
+        "backup",
+        "cancel",
+        "evict",
+        "id",
+        "list",
+        "mount",
+        "peers",
+        "prune",
+        "register",
+        "restore",
+        "schedule",
+        "setup",
+        "snapshots",
+        "unmount",
+    ]
+
+    # Patch check_setup wherever it was imported
+    for cmd in cli_commands:
+        mocker.patch(
+            f"peerstash.cli.cmd_{cmd}.check_setup", return_value=True, create=True
+        )
+
+    # Patch the original definition just in case
     mocker.patch("peerstash.cli.utils.check_setup", return_value=True)
 
 
@@ -35,20 +59,21 @@ def mock_daemon_and_locks(mocker: MockerFixture):
 
     # don't run daemon calls
     multi_patch(
-        "send_to_daemon", 
-        ["peerstash.core.utils", "peerstash.core.backup", "peerstash.core.registration"]
+        "send_to_daemon",
+        [
+            "peerstash.core.utils",
+            "peerstash.core.backup",
+            "peerstash.core.registration",
+        ],
     )
-    
+
     # don't run lock calls
     multi_patch(
-        "acquire_task_lock", 
-        ["peerstash.core.utils", "peerstash.core.backup"], 
-        return_value="mock_lock"
+        "acquire_task_lock",
+        ["peerstash.core.utils", "peerstash.core.backup"],
+        return_value="mock_lock",
     )
-    multi_patch(
-        "release_lock", 
-        ["peerstash.core.utils", "peerstash.core.backup"]
-    )
+    multi_patch("release_lock", ["peerstash.core.utils", "peerstash.core.backup"])
 
     # mock destructive filesystem/network calls
     mocker.patch("peerstash.core.backup._sftp_recursive_remove")
