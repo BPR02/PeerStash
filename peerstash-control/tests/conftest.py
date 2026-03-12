@@ -46,9 +46,6 @@ def mock_setup(mocker: MockerFixture) -> None:
             f"peerstash.cli.cmd_{cmd}.check_setup", return_value=True, create=True
         )
 
-    # Patch the original definition just in case
-    mocker.patch("peerstash.cli.utils.check_setup", return_value=True)
-
 
 @pytest.fixture
 def mock_daemon_and_locks(mocker: MockerFixture):
