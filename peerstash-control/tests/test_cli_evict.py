@@ -26,7 +26,7 @@ def test_evict_force_flag_success(
     result = runner.invoke(app, ["bob", "--force"])
 
     assert result.exit_code == 0
-    assert "Removed from 'bob' peers list" in result.stdout
+    assert "Removed 'bob' from peers list" in result.stdout
     mock_delete.assert_called_once_with("bob")
     # Assert remove_schedule was called for both task1 and task2
     assert mock_remove.call_count == 2
