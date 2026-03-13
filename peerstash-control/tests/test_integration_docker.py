@@ -7,23 +7,12 @@ import requests
 import restic
 
 from peerstash.core.backup import remove_schedule, schedule_backup
-from peerstash.core.db import (
-    db_add_host,
-    db_add_task,
-    db_delete_host,
-    db_delete_task,
-    db_get_host,
-    db_get_invite_code,
-    db_get_task,
-    db_get_user,
-    db_host_exists,
-    db_list_hosts,
-    db_list_tasks,
-    db_set_invite_code,
-    db_task_exists,
-    db_update_host,
-    db_update_task,
-)
+from peerstash.core.db import (db_add_host, db_add_task, db_delete_host,
+                               db_delete_task, db_get_host, db_get_invite_code,
+                               db_get_task, db_get_user, db_host_exists,
+                               db_list_hosts, db_list_tasks,
+                               db_set_invite_code, db_task_exists,
+                               db_update_host, db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import send_to_daemon
 
