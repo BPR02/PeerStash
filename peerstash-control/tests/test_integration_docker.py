@@ -371,6 +371,7 @@ def test_restic_binary_installed_and_working(monkeypatch):
     monkeypatch.setenv("RESTIC_PASSWORD", "integration_test_pass")
 
     # 1. Init
+    restic.password_file = None
     restic.repository = repo_dir
     restic.init()
     assert os.path.exists(os.path.join(repo_dir, "config"))
