@@ -3,13 +3,27 @@ import subprocess
 import time
 
 import pytest
+import requests
+import restic
 
-from peerstash.core.db import (db_add_host, db_add_task, db_delete_host,
-                               db_delete_task, db_get_host, db_get_invite_code,
-                               db_get_task, db_get_user, db_host_exists,
-                               db_list_hosts, db_list_tasks,
-                               db_set_invite_code, db_task_exists,
-                               db_update_host, db_update_task)
+from peerstash.core.backup import remove_schedule, schedule_backup
+from peerstash.core.db import (
+    db_add_host,
+    db_add_task,
+    db_delete_host,
+    db_delete_task,
+    db_get_host,
+    db_get_invite_code,
+    db_get_task,
+    db_get_user,
+    db_host_exists,
+    db_list_hosts,
+    db_list_tasks,
+    db_set_invite_code,
+    db_task_exists,
+    db_update_host,
+    db_update_task,
+)
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import send_to_daemon
 
@@ -25,10 +39,44 @@ if not os.path.exists("/.dockerenv"):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def run_real_daemon():
+def run_boot_setup_script():
+    """
+    Executes the real setup.sh script before any tests run.
+    This simulates the container boot sequence, generating SSH keys,
+    initializing the DB, and setting permissions.
+    """
+    script_path = "/app/testing/scripts/setup.sh"
+
+    # Read the script and comment out the hanging supervisord line
+    with open(script_path, "r") as f:
+        script_content = f.read()
+
+    safe_script = script_content.replace(
+        "exec /usr/bin/supervisord", "# exec /usr/bin/supervisord"
+    )
+
+    # Run the modified script safely via bash -c
+    result = subprocess.run(["bash", "-c", safe_script], capture_output=True, text=True)
+
+    if result.returncode != 0:
+        pytest.fail(f"setup.sh failed during test initialization:\n{result.stderr}")
+
+    # Assertions to ensure SSH keys were generated correctly
+    user_key_path = "/home/admin/.ssh/id_ed25519"
+    assert os.path.exists(user_key_path), "setup.sh failed to generate user SSH key"
+
+    stat_info = os.stat(user_key_path)
+    assert (
+        stat_info.st_mode & 0o777 == 0o600
+    ), "setup.sh failed to set strict SSH key permissions"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def run_real_daemon(run_boot_setup_script):
     """
     Spins up the real peerstash daemon in the background so we can
     test IPC socket communication and real crontab modification.
+    Requires the setup script to run first to ensure the DB exists.
     """
     socket_path = "/var/run/peerstash.sock"
 
@@ -53,48 +101,6 @@ def run_real_daemon():
     # Teardown: Kill the daemon after all integration tests finish
     daemon_proc.terminate()
     daemon_proc.wait()
-
-
-@pytest.fixture(autouse=True)
-def init_db_schema():
-    """
-    Ensures the SQLite database schema is initialized.
-    (If your Dockerfile already does this, this fixture is just a safe fallback).
-    """
-    # Create the db directory if it doesn't exist
-    os.makedirs("/var/lib/peerstash", exist_ok=True)
-
-    # We execute a minimal schema creation just in case the container started empty
-    import sqlite3
-
-    with sqlite3.connect("/var/lib/peerstash/peerstash.db") as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS hosts (
-                hostname TEXT PRIMARY KEY,
-                port TEXT NOT NULL,
-                public_key TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS tasks (
-                name TEXT PRIMARY KEY,
-                include TEXT NOT NULL,
-                exclude TEXT,
-                hostname TEXT NOT NULL,
-                schedule TEXT NOT NULL,
-                retention TEXT NOT NULL,
-                prune_schedule TEXT NOT NULL,
-                status TEXT DEFAULT 'new',
-                last_run TEXT,
-                last_exit_code INTEGER
-            );
-            CREATE TABLE IF NOT EXISTS node_data (
-                id INTEGER PRIMARY KEY,
-                username TEXT,
-                invite_code TEXT
-            );
-            INSERT OR IGNORE INTO node_data (id, username) VALUES (1, 'admin');
-        """
-        )
 
 
 # -------------------------------------------------------------------
@@ -232,3 +238,109 @@ def test_docker_environment_vars():
     # Verify we are getting the right environment variables injected from Compose
     result = subprocess.run(["env"], capture_output=True, text=True)
     assert "USERNAME=admin" in result.stdout or "USERNAME=" in result.stdout
+
+
+# -------------------------------------------------------------------
+# End-to-End Orchestration & System Binary Tests
+# -------------------------------------------------------------------
+
+
+def test_e2e_schedule_and_remove():
+    """Tests the orchestration between DB and Daemon for scheduling."""
+    task_name = "e2e_schedule_task"
+    hostname = "peerstash-e2e-node"
+
+    # Prerequisite: Host must exist in DB
+    db_add_host(hostname, "pubkey123")
+
+    # 1. Schedule (Should hit both DB and Daemon)
+    schedule_backup(
+        paths=["/mnt/peerstash_root"],
+        peer="e2e-node",
+        schedule="30 5 * * *",
+        name=task_name,
+    )
+
+    # Verify DB
+    assert db_task_exists(task_name) is True
+
+    # Verify Crontab (via Daemon)
+    cron_result = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
+    assert task_name in cron_result.stdout
+    assert "30 5 * * *" in cron_result.stdout
+
+    # 2. Remove Schedule
+    remove_schedule(task_name)
+
+    # Verify DB scrubbed
+    assert db_task_exists(task_name) is False
+
+    # Verify Crontab scrubbed
+    cron_result_after = subprocess.run(
+        ["crontab", "-l"], capture_output=True, text=True
+    )
+    assert task_name not in cron_result_after.stdout
+
+
+def test_sftpgo_api_key_generation():
+    """
+    Verifies that setup.py successfully contacted SFTPGo,
+    generated a valid API key, and exported it to the bash environment.
+    """
+    # 1. Read the API key that setup.py injected into .bashrc
+    bashrc_path = "/home/admin/.bashrc"
+    assert os.path.exists(bashrc_path), "setup.py did not create .bashrc"
+
+    api_key = None
+    with open(bashrc_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("export API_KEY="):
+                # Extract the value, stripping any quotes.
+                api_key = line.split("=", 1)[1].strip("'\"")
+
+    assert api_key is not None, "API_KEY export not found in .bashrc"
+    assert len(api_key) > 30, f"API Key looks suspiciously short or empty: '{api_key}'"
+
+    # 2. Use the extracted API key to make a real authenticated request to SFTPGo
+    headers = {"X-SFTPGO-API-KEY": api_key}
+    resp = requests.get("http://localhost:8080/api/v2/admins", headers=headers)
+
+    # If the key is valid, SFTPGo will return 200 OK
+    assert (
+        resp.status_code == 200
+    ), f"Expected 200, got {resp.status_code}: {resp.text}"
+
+    # Verify the default admin user exists in the response
+    admins = resp.json()
+    assert any(a.get("username") == "admin" for a in admins)
+
+
+def test_restic_binary_installed_and_working(monkeypatch):
+    """
+    Verifies the restic binary is installed in the container
+    and the python wrapper can successfully execute real commands.
+    """
+    repo_dir = "/tmp/test_restic_repo"
+    source_dir = "/tmp/test_restic_source"
+    os.makedirs(source_dir, exist_ok=True)
+
+    with open(os.path.join(source_dir, "test.txt"), "w") as f:
+        f.write("hello restic")
+
+    # Set environment variable for restic password
+    monkeypatch.setenv("RESTIC_PASSWORD", "integration_test_pass")
+
+    # 1. Init
+    restic.repository = repo_dir
+    restic.init()
+    assert os.path.exists(os.path.join(repo_dir, "config"))
+
+    # 2. Backup
+    backup_result = restic.backup(paths=[source_dir])
+    assert "snapshot_id" in backup_result
+
+    # 3. List Snapshots
+    snaps = restic.snapshots()
+    assert len(snaps) == 1
+    assert snaps[0]["paths"] == [source_dir]

@@ -2,6 +2,34 @@ name: peerstash-test
 x-meta:
   compose_version: 0.9.0
 services:
+  storage:
+    image: drakkan/sftpgo:v2-alpine-slim
+    container_name: peerstash-sftp-test
+    network_mode: service:control
+    environment:
+      - SFTPGO_SFTPD__PASSWORD_AUTHENTICATION=false
+      - SFTPGO_SFTPD__KEYBOARD_INTERACTIVE_AUTHENTICATION=false
+      - SFTPGO_HTTPD__BINDINGS__0__ADDRESS=127.0.0.1
+      - SFTPGO_HTTPD__BINDINGS__0__ENABLE_WEB_ADMIN=0
+      - SFTPGO_HTTPD__BINDINGS__0__ENABLE_WEB_CLIENT=0
+      - SFTPGO_DATA_PROVIDER__CREATE_DEFAULT_ADMIN=true
+      - SFTPGO_DEFAULT_ADMIN_USERNAME=admin
+      - SFTPGO_DEFAULT_ADMIN_PASSWORD=adminpass
+    volumes:
+      - type: bind
+        source: ../.test/peerstash_test_sftp/data
+        target: /srv/sftpgo/data
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ../.test/peerstash_test_sftp/config
+        target: /var/lib/sftpgo
+        bind:
+          create_host_path: true
+    depends_on:
+      - control
+    restart: unless-stopped
+
   control:
     build: ../peerstash-control
     container_name: peerstash-control-test
