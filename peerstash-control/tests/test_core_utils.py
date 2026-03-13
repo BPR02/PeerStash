@@ -1,26 +1,16 @@
 import subprocess
-from unittest.mock import mock_open, MagicMock
+from unittest.mock import MagicMock, mock_open
 
 import pytest
 from pytest_mock import MockerFixture
 
-from peerstash.core.utils import (
-    sizeof_fmt,
-    generate_sha1,
-    validate_task_name,
-    validate_schedule,
-    validate_paths,
-    validate_retention,
-    Retention,
-    get_file_content,
-    get_disk_usage,
-    verify_sudo_password,
-    gen_restic_pass,
-    update_crontab,
-    acquire_task_lock,
-    release_lock,
-    send_to_daemon,
-)
+from peerstash.core.utils import (Retention, acquire_task_lock,
+                                  gen_restic_pass, generate_sha1,
+                                  get_disk_usage, get_file_content,
+                                  release_lock, send_to_daemon, sizeof_fmt,
+                                  update_crontab, validate_paths,
+                                  validate_retention, validate_schedule,
+                                  validate_task_name, verify_sudo_password)
 
 # --- Pure Functions & String Manipulation ---
 
