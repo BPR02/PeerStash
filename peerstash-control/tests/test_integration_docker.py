@@ -1,4 +1,6 @@
+import json
 import os
+import socket
 import subprocess
 import time
 
@@ -9,8 +11,8 @@ import restic
 from peerstash.core.backup import remove_schedule, schedule_backup
 from peerstash.core.db import (db_add_host, db_add_task, db_delete_host,
                                db_delete_task, db_get_host, db_get_invite_code,
-                               db_get_task, db_get_user, db_host_exists,
-                               db_list_hosts, db_list_tasks,
+                               db_get_task, db_get_tasks_for_host, db_get_user,
+                               db_host_exists, db_list_hosts,
                                db_set_invite_code, db_task_exists,
                                db_update_host, db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
@@ -93,6 +95,17 @@ def run_real_daemon(run_boot_setup_script):
 
 
 # -------------------------------------------------------------------
+# Environment Sanity Test
+# -------------------------------------------------------------------
+
+
+def test_docker_environment_vars():
+    # Verify we are getting the right environment variables injected from Compose
+    result = subprocess.run(["env"], capture_output=True, text=True)
+    assert "USERNAME=admin" in result.stdout or "USERNAME=" in result.stdout
+
+
+# -------------------------------------------------------------------
 # Database Integration Tests
 # -------------------------------------------------------------------
 
@@ -172,6 +185,34 @@ def test_db_node_data():
     assert db_get_invite_code() == "tskey-invite-99999"
 
 
+def test_db_get_tasks_for_host_query():
+    """Verifies the relational query between hosts and tasks works."""
+    hostname = "peerstash-rel-node"
+    task_name = "rel_task"
+
+    db_add_host(hostname, "pubkey123")
+    db_add_task(
+        name=task_name,
+        include="/mnt",
+        exclude=None,
+        hostname=hostname,
+        schedule="* * * * *",
+        retention="1d",
+        prune_schedule="* * * * *",
+    )
+
+    # Verify the specific relational query
+    tasks = db_get_tasks_for_host(hostname)
+    assert len(tasks) == 1
+    assert (
+        tasks[0][0] == task_name
+    )  # The query returns a list of tuples: [('rel_task',)]
+
+    # Cleanup
+    db_delete_task(task_name)
+    db_delete_host(hostname)
+
+
 # -------------------------------------------------------------------
 # Daemon & System Integration Tests
 # -------------------------------------------------------------------
@@ -223,10 +264,21 @@ def test_daemon_sync_hosts():
     assert os.path.exists("/root/.ssh/known_hosts")
 
 
-def test_docker_environment_vars():
-    # Verify we are getting the right environment variables injected from Compose
-    result = subprocess.run(["env"], capture_output=True, text=True)
-    assert "USERNAME=admin" in result.stdout or "USERNAME=" in result.stdout
+def test_daemon_socket_error_handling():
+    """Ensures the daemon gracefully rejects bad data without crashing."""
+    # 1. Test sending raw garbage (not JSON) directly to the socket
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+        s.connect("/var/run/peerstash.sock")
+        s.sendall(b"this is just some random string, not json!")
+        raw_response = s.recv(4096).decode("utf-8")
+        response = json.loads(raw_response)
+
+        assert response["status"] == "error"
+        assert response["message"] == "Invalid JSON"
+
+    # 2. Test sending valid JSON but an unknown action
+    with pytest.raises(RuntimeError, match="Unknown action"):
+        send_to_daemon("leak_api_keys", {})
 
 
 # -------------------------------------------------------------------
@@ -296,9 +348,7 @@ def test_sftpgo_api_key_generation():
     resp = requests.get("http://localhost:8080/api/v2/admins", headers=headers)
 
     # If the key is valid, SFTPGo will return 200 OK
-    assert (
-        resp.status_code == 200
-    ), f"Expected 200, got {resp.status_code}: {resp.text}"
+    assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
 
     # Verify the default admin user exists in the response
     admins = resp.json()
