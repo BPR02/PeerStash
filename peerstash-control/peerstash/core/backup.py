@@ -127,6 +127,10 @@ def schedule_backup(
     if not validate_schedule(schedule):
         raise ValueError(f"cron schedule '{schedule}' is invalid.")
 
+    # validate prune schedule
+    if not validate_schedule(prune_schedule):
+        raise ValueError(f"cron prune schedule '{schedule}' is invalid.")
+
     # validate retention amount
     if retention_error := validate_retention(retention):
         raise ValueError(
