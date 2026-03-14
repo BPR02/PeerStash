@@ -1,3 +1,10 @@
+## [0.13.6](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.5...peerstash-v0.13.6) (2026-03-14)
+
+
+### Bug Fixes
+
+* **control:** pass upcoming tests ([#43](https://github.com/BPR02/PeerStash/issues/43)) ([6c7629b](https://github.com/BPR02/PeerStash/commit/6c7629b7c56df6063bcb6ae7c061e41d32d3ff2b))
+
 ## [0.13.5](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.4...peerstash-v0.13.5) (2026-03-03)
 
 

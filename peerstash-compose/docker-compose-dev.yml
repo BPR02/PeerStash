@@ -1,48 +1,17 @@
 name: peerstash
+x-meta:
+  compose_version: 0.9.0
 services:
-  networking:
-    image: tailscale/tailscale:latest
-    container_name: peerstash-tailscale
-    hostname: peerstash-bpr
-    env_file:
-      - .env
-    environment:
-      - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_EXTRA_ARGS=--advertise-tags=tag:peerstash
-      - TS_STATE_DIR=/var/lib/tailscale
-      - TS_USERSPACE=false
-    devices:
-      - /dev/net/tun:/dev/net/tun
-    ports:
-      - target: 22
-        published: "${SSH_PORT}"
-        protocol: tcp
-    restart: unless-stopped
-    volumes:
-      - type: bind
-        source: ${TAILSCALE_DATA}
-        target: /var/lib/tailscale
-        bind:
-          create_host_path: true
-    cap_add:
-      - net_admin
-    privileged: false
-    cpu_shares: 90
-    deploy:
-      resources:
-        limits:
-          memory: 15841M
-    command: []
   storage:
     image: drakkan/sftpgo:v2-alpine-slim
     container_name: peerstash-sftp
-    network_mode: service:networking
+    network_mode: service:control
     environment:
-      - SFTPGO_SFTPD__KEY_AUTH_ONLY=1
-      - SFTPGO_SFTPD__BINDINGS__0__PORT=2022
-      - SFTPGO_SFTPD__BINDINGS__0__ADDRESS=0.0.0.0
-      - SFTPGO_HTTPD__BINDINGS__0__PORT=8080
-      - SFTPGO_HTTPD__BINDINGS__0__ADDRESS=0.0.0.0
+      - SFTPGO_SFTPD__PASSWORD_AUTHENTICATION=false
+      - SFTPGO_SFTPD__KEYBOARD_INTERACTIVE_AUTHENTICATION=false
+      - SFTPGO_HTTPD__BINDINGS__0__ADDRESS=127.0.0.1
+      - SFTPGO_HTTPD__BINDINGS__0__ENABLE_WEB_ADMIN=0
+      - SFTPGO_HTTPD__BINDINGS__0__ENABLE_WEB_CLIENT=0
       - SFTPGO_DATA_PROVIDER__CREATE_DEFAULT_ADMIN=true
       - SFTPGO_DEFAULT_ADMIN_USERNAME=${ADMIN_USERNAME}
       - SFTPGO_DEFAULT_ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -58,17 +27,18 @@ services:
         bind:
           create_host_path: true
     depends_on:
-      - networking
+      - control
     restart: unless-stopped
   control:
     build: ../peerstash-control
     container_name: peerstash-control
-    network_mode: service:networking
-    env_file:
-      - .env
+    network_mode: bridge
+    hostname: peerstash-${ADMIN_USERNAME}
     environment:
       - USERNAME=${ADMIN_USERNAME}
       - PASSWORD=${ADMIN_PASSWORD}
+      - DEFAULT_QUOTA_GB=${DEFAULT_QUOTA_GB}
+      - TZ=${TZ}
     volumes:
       - type: bind
         source: ${PEERSTASH_ROOT_TARGET}
@@ -80,8 +50,17 @@ services:
         bind:
           create_host_path: true
       - type: bind
+        source: ${PEERSTASH_SFTP}/config
+        target: /var/lib/sftpgo
+        read_only: true
+      - type: bind
         source: ${PEERSTASH_CONTROL}/data
         target: /srv/peerstash/data
+        bind:
+          create_host_path: true
+      - type: bind
+        source: PEERSTASH_RESTORE_FOLDER
+        target: /mnt/peerstash_restore
         bind:
           create_host_path: true
       - type: bind
@@ -89,6 +68,17 @@ services:
         target: /root/.cache/restic
         bind:
           create_host_path: true
+      - type: bind
+        source: ${TAILSCALE_DATA}
+        target: /var/lib/tailscale
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${PEERSTASH_MOUNTS}
+        target: /tmp/peerstash_mnt
+        bind:
+          create_host_path: true
+          propagation: shared
     restart: unless-stopped
     privileged: false
     cpu_shares: 90
@@ -97,8 +87,15 @@ services:
         limits:
           memory: 15841M
     command: []
-    devices: []
-    cap_add: []
-    depends_on:
-      - networking
-      - storage
+    ports:
+      - target: 22
+        published: "${SSH_PORT}"
+        protocol: tcp
+    devices:
+      - /dev/fuse:/dev/fuse
+      - /dev/net/tun:/dev/net/tun
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - sys_admin
+      - net_admin
