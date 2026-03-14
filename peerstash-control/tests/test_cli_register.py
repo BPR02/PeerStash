@@ -103,3 +103,27 @@ def test_register_runtime_error(
 
     assert result.exit_code == 1
     assert "Error: SFTPGo connection failed" in result.stderr
+
+
+def test_evict_value_error(runner: CliRunner, mocker: MockerFixture):
+    mocker.patch(
+        "peerstash.cli.cmd_register.registration.parse_share_key",
+        side_effect=ValueError("Invalid share key"),
+    )
+
+    result = runner.invoke(app, ["peerstash.bob#payload"])
+
+    assert result.exit_code == 1
+    assert "Error: Invalid share key" in result.stderr
+
+
+def test_evict_system_error(runner: CliRunner, mocker: MockerFixture):
+    mocker.patch(
+        "peerstash.cli.cmd_register.registration.parse_share_key",
+        side_effect=Exception("Daemon down"),
+    )
+
+    result = runner.invoke(app, ["peerstash.bob#payload"])
+
+    assert result.exit_code == 1
+    assert "System Error: Daemon down" in result.stderr
