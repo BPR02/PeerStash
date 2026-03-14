@@ -1,9 +1,13 @@
+import subprocess
+
 import pytest
+import requests
 import typer
 from pytest_mock import MockerFixture
+from requests import Response
 from typer.testing import CliRunner
 
-from peerstash.cli.cmd_setup import app
+from peerstash.cli.cmd_setup import _get_sudo_password, app
 
 
 @pytest.fixture
@@ -135,6 +139,22 @@ def test_setup_missing_user(runner: CliRunner, mock_setup_deps: MockerFixture):
     assert "User not set. Database may be corrupted." in result.stderr
 
 
+def test_setup_invite_code_failure(
+    runner: CliRunner, mock_setup_deps: MockerFixture
+):
+    mocker = mock_setup_deps
+    mocker.patch("sys.stdin.isatty", return_value=True)
+    # Simulate tailscale failing to create the invite code, returning None
+    mocker.patch(
+        "peerstash.cli.cmd_setup.tailscale.generate_device_invite", return_value=None
+    )
+
+    result = runner.invoke(app, ["--token", "tskey"], input="pass\n")
+
+    assert result.exit_code == 1
+    assert "An unexpected error occurred: Failed to generate invite code." in result.stderr
+
+
 def test_setup_token_revoke_failure_warning(
     runner: CliRunner, mock_setup_deps: MockerFixture
 ):
@@ -150,3 +170,72 @@ def test_setup_token_revoke_failure_warning(
     assert result.exit_code == 0
     assert "API Token could not be automatically revoked" in result.stdout
     assert "Success" in result.stdout
+
+
+def test_setup_http_error(runner: CliRunner, mock_setup_deps: MockerFixture):
+    mocker = mock_setup_deps
+    mocker.patch("sys.stdin.isatty", return_value=True)
+    mocker.patch(
+        "peerstash.cli.cmd_setup.tailscale.modify_policy",
+        side_effect=requests.exceptions.HTTPError(response=Response()),
+    )
+
+    result = runner.invoke(app, ["--token", "tskey"], input="pass\n")
+
+    assert result.exit_code == 1
+    print(result.stderr)
+    assert "API Error: " in result.stderr
+
+
+def test_setup_subprocess_error(runner: CliRunner, mock_setup_deps: MockerFixture):
+    mocker = mock_setup_deps
+    mocker.patch("sys.stdin.isatty", return_value=True)
+    mocker.patch(
+        "peerstash.cli.cmd_setup.tailscale.register_device",
+        side_effect=subprocess.CalledProcessError(
+            1, ["sudo", "-S", "tailscale", "up", "--authkey", "tskey"]
+        ),
+    )
+
+    result = runner.invoke(app, ["--token", "tskey"], input="pass\n")
+
+    assert result.exit_code == 1
+    assert "Failed to run tailscale command: " in result.stderr
+
+
+def test_evict_system_error(runner: CliRunner, mock_setup_deps: MockerFixture):
+    mocker = mock_setup_deps
+    mocker.patch("sys.stdin.isatty", return_value=True)
+    mocker.patch(
+        "peerstash.cli.cmd_setup.tailscale.modify_policy",
+        side_effect=Exception("Daemon down"),
+    )
+
+    result = runner.invoke(app, ["--token", "tskey"], input="pass\n")
+
+    assert result.exit_code == 1
+    assert "An unexpected error occurred: Daemon down" in result.stderr
+
+
+def test_get_sudo_password_piped(mocker):
+    """Verifies it correctly reads and strips piped input."""
+    mocker.patch("sys.stdin.isatty", return_value=False)
+    mocker.patch("sys.stdin.read", return_value="piped_password\n  ")
+    
+    result = _get_sudo_password()
+    
+    # Should strip the newline and spaces
+    assert result == "piped_password"
+
+
+def test_get_sudo_password_interactive(mocker):
+    """Verifies it prompts the user securely when in an interactive terminal."""
+    mocker.patch("sys.stdin.isatty", return_value=True)
+    mocker.patch("peerstash.cli.cmd_setup.db_get_user", return_value="alice")
+    
+    mock_prompt = mocker.patch("peerstash.cli.cmd_setup.typer.prompt", return_value="hidden_pass")
+    
+    result = _get_sudo_password()
+    
+    assert result == "hidden_pass"
+    mock_prompt.assert_called_once_with("[peerstash] enter password for alice", hide_input=True)
