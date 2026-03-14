@@ -65,3 +65,25 @@ def test_evict_unknown_peer(
 
     assert result.exit_code == 1
     assert "Unknown peer" in result.stderr
+
+
+def test_evict_value_error(runner: CliRunner, mocker: MockerFixture):
+    mocker.patch(
+        "peerstash.cli.cmd_evict.db_host_exists", side_effect=ValueError("Peer not found")
+    )
+
+    result = runner.invoke(app, ["bob"])
+
+    assert result.exit_code == 1
+    assert "Error: Peer not found" in result.stderr
+
+
+def test_evict_system_error(runner: CliRunner, mocker: MockerFixture):
+    mocker.patch(
+        "peerstash.cli.cmd_evict.db_host_exists", side_effect=Exception("Daemon down")
+    )
+
+    result = runner.invoke(app, ["bob"])
+
+    assert result.exit_code == 1
+    assert "System Error: Daemon down" in result.stderr
