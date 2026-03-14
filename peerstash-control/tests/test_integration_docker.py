@@ -12,7 +12,7 @@ from peerstash.core.backup import remove_schedule, schedule_backup
 from peerstash.core.db import (db_add_host, db_add_task, db_delete_host,
                                db_delete_task, db_get_host, db_get_invite_code,
                                db_get_task, db_get_tasks_for_host, db_get_user,
-                               db_host_exists, db_list_hosts,
+                               db_host_exists, db_list_hosts, db_list_tasks,
                                db_set_invite_code, db_task_exists,
                                db_update_host, db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
@@ -137,6 +137,10 @@ def test_db_hosts_lifecycle():
     db_delete_host(hostname)
     assert db_host_exists(hostname) is False
 
+    # 6. Read None
+    host = db_get_host(hostname)
+    assert host is None
+
 
 def test_db_tasks_lifecycle():
     task_name = "int_backup_task"
@@ -159,17 +163,37 @@ def test_db_tasks_lifecycle():
     assert task.schedule == "0 0 * * *"
     assert task.status == "new"
 
-    # 3. Update
-    db_update_task(task_name, TaskUpdate(status="running", last_exit_code=0))
-    updated_task = db_get_task(task_name)
+    # 3. List
+    tasks = db_list_tasks()
+    assert tasks is not None
+    assert tasks[0].status == "new"
+
+    # 4. Update
+    updated_task = db_update_task(
+        task_name, TaskUpdate(status="running", last_exit_code=0)
+    )
     assert updated_task is not None
     assert updated_task.status == "running"
     assert updated_task.last_exit_code == 0
 
-    # 4. Delete
+    updated_task = db_update_task(task_name, TaskUpdate())
+    assert updated_task is not None
+    assert updated_task.status == "running"
+
+    # 5. Delete
     result = db_delete_task(task_name)
     assert result is True
     assert db_task_exists(task_name) is False
+
+    # 6. Read None
+    task = db_get_task(task_name)
+    assert task is None
+
+    tasks = db_list_tasks()
+    assert tasks == []
+
+    updated_task = db_update_task(task_name, TaskUpdate(status="running"))
+    assert updated_task is None
 
 
 def test_db_node_data():
