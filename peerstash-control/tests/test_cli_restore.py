@@ -56,6 +56,18 @@ def test_restore_value_error(runner: CliRunner, mocker: MockerFixture):
     assert "Error: Task not in DB" in result.stderr
 
 
+def test_restore_runtime_error(runner: CliRunner, mocker: MockerFixture):
+    mocker.patch(
+        "peerstash.cli.cmd_restore.restore_snapshot",
+        side_effect=RuntimeError("Could not remove folder"),
+    )
+
+    result = runner.invoke(app, ["bad_task"])
+
+    assert result.exit_code == 1
+    assert "Error: Could not remove folder" in result.stderr
+
+
 def test_restore_system_error(runner: CliRunner, mocker: MockerFixture):
     mocker.patch(
         "peerstash.cli.cmd_restore.restore_snapshot", side_effect=Exception("Disk full")
