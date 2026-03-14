@@ -33,6 +33,42 @@ def test_schedule_new_task_success(
     )
 
 
+def test_schedule_new_task_multiple_include(
+    runner: CliRunner, mock_schedule_deps: tuple[MockType, MockType]
+):
+    mock_schedule, mock_get_task = mock_schedule_deps
+    mock_get_task.return_value = None  # Task does not exist yet
+
+    result = runner.invoke(app, ["peer1", "--name", "test_bkp", "--include", "hello.txt", "--include", "goodbye.txt"])
+
+    assert result.exit_code == 0
+    assert "Creating new task test_bkp" in result.stdout
+    assert "Backup task 'test_bkp' created" in result.stdout
+
+    # Verify the core function got the default CLI arguments
+    mock_schedule.assert_called_once_with(
+        (["hello.txt","goodbye.txt"]), "peer1", "4w3d", "0 3 * * *", "0 4 * * 0", None, "test_bkp"
+    )
+
+
+def test_schedule_new_task_multiple_exclude(
+    runner: CliRunner, mock_schedule_deps: tuple[MockType, MockType]
+):
+    mock_schedule, mock_get_task = mock_schedule_deps
+    mock_get_task.return_value = None  # Task does not exist yet
+
+    result = runner.invoke(app, ["peer1", "--name", "test_bkp", "--exclude", "*.txt"])
+
+    assert result.exit_code == 0
+    assert "Creating new task test_bkp" in result.stdout
+    assert "Backup task 'test_bkp' created" in result.stdout
+
+    # Verify the core function got the default CLI arguments
+    mock_schedule.assert_called_once_with(
+        (["."]), "peer1", "4w3d", "0 3 * * *", "0 4 * * 0", ["*.txt"], "test_bkp"
+    )
+
+
 def test_schedule_existing_task_with_update_flag(
     runner: CliRunner, mock_schedule_deps: tuple[MockType, MockType]
 ):
