@@ -62,7 +62,7 @@ def evict_peer(
             remove_schedule(task)
 
         typer.secho(
-            f"Removed from '{username}' peers list.",
+            f"Removed '{username}' from peers list.",
             fg=typer.colors.BRIGHT_RED,
             bold=True,
         )

@@ -300,7 +300,10 @@ def validate_schedule(schedule: str) -> bool:
     """
     Check if a cron schedule is valid
     """
-    return not CronValidator.parse(schedule) is None
+    try:
+        return not CronValidator.parse(schedule) is None
+    except Exception:
+        return False
 
 
 def validate_retention(retention: str) -> Optional[str]:
