@@ -58,13 +58,17 @@ def test_validate_retention():
     assert validate_retention("7d") is None
 
     # Invalid formats
-    res1 = validate_retention("1y2z")
-    assert res1 is not None
-    assert "Invalid unit" in res1
-
     res2 = validate_retention("1y2y")
     assert res2 is not None
     assert "Duplicate unit" in res2
+    
+    res1 = validate_retention("1y2z")
+    assert res1 is not None
+    assert "Invalid retention string" in res1
+    
+    res1 = validate_retention("r")
+    assert res1 is not None
+    assert "Invalid retention string" in res1
 
     res3 = validate_retention("bad_string")
     assert res3 is not None
