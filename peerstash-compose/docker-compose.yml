@@ -1,6 +1,6 @@
 name: peerstash
 x-meta:
-  compose_version: 0.9.0
+  compose_version: 0.9.1
 services:
   init-perms:
     image: alpine:latest
