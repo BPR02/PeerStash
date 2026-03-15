@@ -13,7 +13,7 @@ cleanup() {
     
     # Use sudo in case Docker created files as root inside the bind mount
     if [ -d ".test" ]; then
-        rm -rf ".test"
+        sudo rm -rf ".test" || rm -rf ".test"
     fi
 }
 
@@ -21,8 +21,15 @@ cleanup() {
 trap cleanup EXIT
 
 # Create some dummy directories to satisfy mounts
-mkdir -p ".test/peerstash_test_root" ".test/peerstash_test_control/config" ".test/peerstash_test_control/data" ".test/peerstash_test_restore"
+mkdir -p ".test/peerstash_test_root" \
+         ".test/peerstash_test_control/config" \
+         ".test/peerstash_test_control/data" \
+         ".test/peerstash_test_restore" \
+         ".test/peerstash_test_sftp/config" \
+         ".test/peerstash_test_sftp/data"
+chmod -R 777 .test
 
+# Bring up test container
 echo "Bringing up test environment..."
 docker compose -f peerstash-compose/docker-compose-test.yml build
 docker compose -f peerstash-compose/docker-compose-test.yml up -d
