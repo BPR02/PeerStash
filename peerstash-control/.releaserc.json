@@ -40,6 +40,20 @@
               }
             ],
             "countMatches": true
+          },
+          {
+            "files": ["peerstash/cli/__init__.py"],
+            "from": "__version__ = (.*)",
+            "to": "__version__ = \"${nextRelease.version}\"",
+            "results": [
+              {
+                "file": "peerstash/cli/__init__.py",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
           }
         ]
       }

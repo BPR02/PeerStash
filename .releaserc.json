@@ -46,7 +46,9 @@
           "CHANGELOG.md",
           "package.json",
           "peerstash-*/package.json",
-          "peerstash-compose/docker-compose.yml"
+          "peerstash-compose/docker-compose.yml",
+          "peerstash-control/pyproject.toml",
+          "peerstash-control/peerstash/cli/__init__.py"
         ],
         "message": "chore(release): peerstash-v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
