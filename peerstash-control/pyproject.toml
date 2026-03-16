@@ -1,6 +1,6 @@
 [project]
 name = "peerstash"
-version = "0.1.0"
+version = "0.8.7"
 description = "Peer-to-peer (p2p) backups between NAS machines owned by a group of friends"
 authors = [
     { name = "BPR02", email = "dev@bpr02.com" }

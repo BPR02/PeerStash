@@ -1,3 +1,10 @@
+## [0.13.8](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.7...peerstash-v0.13.8) (2026-03-16)
+
+
+### Bug Fixes
+
+* **control:** use versioning via CI ([#46](https://github.com/BPR02/PeerStash/issues/46)) ([d943d99](https://github.com/BPR02/PeerStash/commit/d943d99b8aca94fb7142d002c3901db7a830ec5f))
+
 ## [0.13.7](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.6...peerstash-v0.13.7) (2026-03-15)
 
 
