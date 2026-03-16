@@ -16,6 +16,8 @@
 
 __version__ = "0.8.7"
 
+from typing import Annotated
+
 import typer
 
 from peerstash.cli import (cmd_backup, cmd_cancel, cmd_evict, cmd_id, cmd_list,
@@ -23,7 +25,28 @@ from peerstash.cli import (cmd_backup, cmd_cancel, cmd_evict, cmd_id, cmd_list,
                            cmd_restore, cmd_schedule, cmd_setup, cmd_snapshots,
                            cmd_unmount)
 
+
+def version_callback(value: bool):
+    if value:
+        print(f"PeerStash {__version__}")
+        raise typer.Exit()
+
+
 # Create the main cli app
+app = typer.Typer(help="PeerStash CLI Tool")
+
+
+@app.command()
+def cli(
+    version: Annotated[
+        bool | None,
+        typer.Option("--version", callback=version_callback, is_eager=True),
+    ] = None,
+):
+    print("Use 'peerstash --help' for available commands")
+
+
+# create subcommands for the main cli app
 app = typer.Typer(help="PeerStash CLI Tool")
 app.command(name="setup")(cmd_setup.setup)
 app.command(name="id")(cmd_id.print_id)
