@@ -47,7 +47,6 @@ def cli(
 
 
 # create subcommands for the main cli app
-app = typer.Typer(help="PeerStash CLI Tool")
 app.command(name="setup")(cmd_setup.setup)
 app.command(name="id")(cmd_id.print_id)
 app.command(name="register")(cmd_register.register_peer)
