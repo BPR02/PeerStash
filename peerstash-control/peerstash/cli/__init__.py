@@ -40,7 +40,12 @@ app = typer.Typer(help="PeerStash CLI Tool")
 def cli(
     version: Annotated[
         bool | None,
-        typer.Option("--version", callback=version_callback, is_eager=True),
+        typer.Option(
+            "--version",
+            callback=version_callback,
+            is_eager=True,
+            help="Show the version and exit.",
+        ),
     ] = None,
 ):
     print("Use 'peerstash --help' for available commands")
