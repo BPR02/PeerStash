@@ -59,7 +59,7 @@ echo "" > /home/"$USERNAME"/.ssh/known_hosts
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 
 # set up logging
-touch /var/log/peerstash
+mkdir -p /var/log/peerstash
 touch /var/log/peerstash/supervisord.log
 touch /var/log/peerstash/cron.log
 touch /var/log/peerstash/cron_err.log
