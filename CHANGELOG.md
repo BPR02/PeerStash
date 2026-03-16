@@ -1,3 +1,10 @@
+# [0.14.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.8...peerstash-v0.14.0) (2026-03-16)
+
+
+### Features
+
+* **control:** add --version cli option ([#47](https://github.com/BPR02/PeerStash/issues/47)) ([38a101e](https://github.com/BPR02/PeerStash/commit/38a101e01aee93b4dd97524e71e6834b9f80923b))
+
 ## [0.13.8](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.7...peerstash-v0.13.8) (2026-03-16)
 
 
