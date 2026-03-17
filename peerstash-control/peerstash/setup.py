@@ -35,20 +35,6 @@ DB_PATH = "/var/lib/peerstash/peerstash.db"
 SFTPGO_URL = "http://localhost:8080/api/v2"
 
 
-# Configure logging
-os.makedirs("/var/log/peerstash", exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[
-        logging.FileHandler("/var/log/peerstash/peerstash.log"),
-        logging.StreamHandler(),  # Keeps output in Docker logs
-    ],
-)
-logger = logging.getLogger(__name__)
-
-
 def init_db_and_restore():
     """Initializes the database or restores tasks/hosts if it exists."""
     db_exists = os.path.exists(DB_PATH)
@@ -56,7 +42,7 @@ def init_db_and_restore():
     cursor = conn.cursor()
 
     if db_exists:
-        logger.info("SQLite database found. Restoring tasks and known_hosts...")
+        print("SQLite database found. Restoring tasks and known_hosts...")
 
         # Restore known_hosts
         known_hosts_path = f"/home/{USERNAME}/.ssh/known_hosts"
@@ -77,7 +63,7 @@ def init_db_and_restore():
             update_crontab(name, [backup_job, prune_job])
 
     else:
-        logger.info("No database found. Creating a new empty database...")
+        print("No database found. Creating a new empty database...")
         cursor.executescript(
             f"""
             CREATE TABLE hosts (
@@ -130,7 +116,7 @@ def wait_for_sftpgo(port=8080, timeout=60):
         except (ConnectionRefusedError, socket.timeout, OSError):
             time.sleep(1)
 
-    logger.error(
+    print(
         f"Error: SFTPGo port {port} could not be reached within {timeout} seconds."
     )
     sys.exit(1)
@@ -143,7 +129,7 @@ def setup_sftpgo():
     resp.raise_for_status()
     token: str = resp.json()["access_token"]
     if not token:
-        logger.error("Error: Authentication failed to get JWT.")
+        print("Error: Authentication failed to get JWT.")
         sys.exit(1)
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -174,10 +160,10 @@ def setup_sftpgo():
 
 def main():
     if USERNAME == "":
-        logger.error("USERNAME not set in environment")
+        print("USERNAME not set in environment")
         sys.exit(1)
     if PASSWORD == "":
-        logger.error("PASSWORD not set in environment")
+        print("PASSWORD not set in environment")
         sys.exit(1)
 
     init_db_and_restore()
@@ -189,7 +175,7 @@ def main():
         f.write(f"\nexport API_KEY='{api_key}'\n")
         f.write(f"export DEFAULT_QUOTA_GB='{DEFAULT_QUOTA_GB}'\n")
 
-    logger.info("Python initialization complete.")
+    print("Python initialization complete.")
 
 
 if __name__ == "__main__":
