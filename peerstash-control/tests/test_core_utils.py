@@ -147,7 +147,7 @@ def test_gen_restic_pass(mocker: MockerFixture):
 def test_update_crontab_success(mocker: MockerFixture):
     mock_run = mocker.patch("subprocess.run")
     # Simulate existing crontab with one unrelated job and one peerstash job
-    mock_run.return_value.stdout = "0 0 * * * unrelated_job\n0 4 * * * peerstash backup my_task 10 >> /var/log/peerstash-cron.log 2>&1"
+    mock_run.return_value.stdout = "0 0 * * * unrelated_job\n0 4 * * * peerstash backup my_task 10"
     mock_run.return_value.returncode = 0
 
     success, msg = update_crontab("my_task", ["0 5 * * * new_job"])

@@ -255,7 +255,7 @@ def test_missing_task_errors(mock_db, mocker):
         mount_task,
     ]
     for func in funcs:
-        with pytest.raises(ValueError, match="not in DB"):
+        with pytest.raises(ValueError, match="not found"):
             func("non_existent_task")
 
 

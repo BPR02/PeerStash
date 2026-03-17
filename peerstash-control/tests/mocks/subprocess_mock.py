@@ -121,8 +121,8 @@ def subprocess_router(args, **kwargs):
         # Return the specific cron list as a string (text=True)
         # dummy crontab for task abcd
         cron_content = (
-            '0 3 * * * /usr/local/bin/peerstash backup abcd 10 >> CRON_LOG = "/var/log/peerstash-cron.log" 2>&1\n'
-            '0 4 * * 0 /usr/local/bin/peerstash prune abcd 10 >> CRON_LOG = "/var/log/peerstash-cron.log" 2>&1\n'
+            '0 3 * * * /usr/local/bin/peerstash backup abcd 10\n'
+            '0 4 * * 0 /usr/local/bin/peerstash prune abcd 10\n'
         )
         return subprocess.CompletedProcess(args, 0, stdout=cron_content)
 
