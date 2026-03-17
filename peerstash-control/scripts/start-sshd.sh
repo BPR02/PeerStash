@@ -18,4 +18,6 @@
 
 # timestamp both standard output and standard error and sent to stdout
 set -o pipefail
-/usr/sbin/sshd -D -e 2>&1 | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0; fflush() }'
+/usr/sbin/sshd -D -e 2>&1 | while IFS= read -r line; do
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"
+done
