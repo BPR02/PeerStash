@@ -25,6 +25,7 @@ mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/peerstash.log"
 
 # Prepend timestamp and log to both stdout and the log file
+exec 3>&1 4>&2
 exec > >(while IFS= read -r line; do echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"; done | tee -a "$LOG_FILE") 2>&1
 
 # Generate SSH host keys
@@ -90,4 +91,5 @@ unset PASSWORD
 
 # start supervisord management
 echo "Starting Supervisord..."
+exec 1>&3 2>&4
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
