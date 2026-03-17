@@ -67,7 +67,7 @@ def setup(
         )
         raise typer.Exit()
 
-    logger.error(f"[Peerstash Setup] Started")
+    logger.info(f"[Peerstash Setup] Started")
     typer.secho("--- PeerStash Setup ---", fg=typer.colors.MAGENTA, bold=True)
     admin_pass = _get_sudo_password()
 
