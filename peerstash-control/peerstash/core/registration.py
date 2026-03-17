@@ -23,7 +23,7 @@ import requests
 
 from peerstash.core.db import (db_add_host, db_delete_host, db_host_exists,
                                db_update_host)
-from peerstash.core.utils import send_to_daemon
+from peerstash.core.utils import logger, send_to_daemon
 
 SFTPGO_URL = "http://localhost:8080/api/v2"
 API_KEY = os.getenv("API_KEY", "")
@@ -127,6 +127,7 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
 
     # check if this peer already exists (DB-SFTPGo desync, requires manual fix)
     if db_host_exists(f"peerstash-{username}") and not allow_update:
+        logger.warning(f"Attempted to add peer '{username}' but peer already exists.")
         raise PeerExistsError(f"User {username} already exists.")
 
     # set up sftpgo request
@@ -147,11 +148,16 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
     resp = method(url, json=payload, headers=headers)
     if resp.status_code == 409:
         # DB-SFTPGo desync, requires manual fix
+        logger.error(f"Attempted to add peer '{username}' but peer already exists in the database. Database may be corrupted.")
         raise RuntimeError(
             f"User '{username}' already exists in SFTPGo. Database might be corrupted."
         )
     else:
-        resp.raise_for_status()
+        try:
+            resp.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"Attempted to add peer '{username}' but failed: {e}")
+            resp.raise_for_status()
 
     # update known_hosts file for ssh
     _update_known_hosts(username, user_data["server_public_key"], allow_update)
@@ -162,6 +168,7 @@ def upsert_peer(user_data: Dict[str, str], quota_gb: int, allow_update: bool = F
     else:
         db_update_host(f"peerstash-{username}", user_data["server_public_key"])
 
+    logger.info(f"Added peer {username} with quota of {quota_gb} GiB.")
     return True
 
 
@@ -173,10 +180,16 @@ def delete_peer(username: str) -> None:
     headers = {"X-SFTPGO-API-KEY": API_KEY}
     url = f"{SFTPGO_URL}/users/{username}"
     resp = requests.delete(url, headers=headers)
-    resp.raise_for_status()
+    try:
+        resp.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        logger.error(f"Attempted to remove peer '{username}' but failed: {e}")
+        resp.raise_for_status()
 
     # remove from known_hosts file
     _delete_known_host(username)
 
     # update hosts table
     db_delete_host(f"peerstash-{username}")
+
+    logger.info(f"Removed '{username}' from peers list.")

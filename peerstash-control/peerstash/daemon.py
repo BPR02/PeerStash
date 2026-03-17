@@ -15,6 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 import os
 import shutil
 import socketserver
@@ -25,8 +26,21 @@ from peerstash.core.utils import (update_crontab, validate_schedule,
                                   validate_task_name)
 
 SOCKET_PATH = "/var/run/peerstash.sock"
-CRON_LOG = "/var/log/peerstash-cron.log"
 PEERSTASH_BIN = "/usr/local/bin/peerstash"
+
+# configure logging
+os.makedirs("/var/log/peerstash", exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[
+        logging.FileHandler("/var/log/peerstash/peerstash.log"),
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
+
 
 class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
     def handle(self):
@@ -72,12 +86,13 @@ class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
             return {"status": "error", "message": "Invalid schedule format."}
 
         backup_job = (
-            f"{schedule} {PEERSTASH_BIN} backup {task_name} 10 >> {CRON_LOG} 2>&1"
+            f"{schedule} {PEERSTASH_BIN} backup {task_name} 10"
         )
         prune_job = (
-            f"{prune_schedule} {PEERSTASH_BIN} prune {task_name} 10 >> {CRON_LOG} 2>&1"
+            f"{prune_schedule} {PEERSTASH_BIN} prune {task_name} 10"
         )
 
+        logger.info(f"Creating recurring tasks for '{task_name}': backup={schedule} prune={prune_schedule}")
         success, msg = update_crontab(task_name, [backup_job, prune_job])
         return {"status": "success" if success else "error", "message": msg}
 
@@ -85,6 +100,7 @@ class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
         if name_error := validate_task_name(task_name):
             return {"status": "error", "message": f"Invalid task name ({name_error})."}
 
+        logger.info(f"Removing recurring tasks for '{task_name}'")
         success, msg = update_crontab(task_name)
         return {"status": "success" if success else "error", "message": msg}
 
@@ -96,13 +112,17 @@ class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
         dest_file = "/root/.ssh/known_hosts"
 
         if not os.path.exists(source_file):
+            logger.warning("Attempted to sync known_hosts from user to root, but user known_hosts does not exist")
             return {"status": "error", "message": "Source known_hosts does not exist."}
 
+        logger.info("Syncing known_hosts from user to root...")
         try:
             shutil.copy2(source_file, dest_file)
             os.chown(dest_file, 0, 0)
+            logger.info(f"Synced known_hosts from user to root.")
             return {"status": "success", "message": "Hosts synced successfully."}
         except Exception as e:
+            logger.info(f"Attempted to sync known_hosts from user to root, but failed: {str(e)}")
             return {"status": "error", "message": str(e)}
 
 
@@ -116,7 +136,7 @@ def main():
     with socketserver.UnixStreamServer(SOCKET_PATH, PeerstashDaemonHandler) as server:
         # open socket to users
         os.chmod(SOCKET_PATH, 0o666)
-        print("Peerstash Daemon listening on", SOCKET_PATH)
+        logger.info(f"Peerstash Daemon listening on {SOCKET_PATH}")
         server.serve_forever()
 
 

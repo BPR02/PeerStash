@@ -23,7 +23,7 @@ import typer
 from peerstash.core import tailscale
 from peerstash.core.db import (db_get_invite_code, db_get_user,
                                db_set_invite_code)
-from peerstash.core.utils import gen_restic_pass, verify_sudo_password
+from peerstash.core.utils import gen_restic_pass, logger, verify_sudo_password
 
 app = typer.Typer()
 
@@ -67,23 +67,34 @@ def setup(
         )
         raise typer.Exit()
 
+    logger.info(f"[Peerstash Setup] Started")
     typer.secho("--- PeerStash Setup ---", fg=typer.colors.MAGENTA, bold=True)
     admin_pass = _get_sudo_password()
 
     try:
         verify_sudo_password(admin_pass)
     except ValueError as e:
+        logger.error(f"[Peerstash Setup] Error: {e}")
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
+
     user = db_get_user()
     if not user:
+        logger.error("[Peerstash Setup] User not set. Database may be corrupted.")
         typer.secho(
             f"User not set. Database may be corrupted.", fg=typer.colors.RED, err=True
         )
         raise typer.Exit(code=1)
 
-    gen_restic_pass(user, admin_pass)
+    try:
+        gen_restic_pass(user, admin_pass)
+    except Exception as e:
+        logger.error(f"[Peerstash Setup] Failed to generate restic password: {e}")
+        typer.secho(
+            f"Failed to generate restic password: {e}", fg=typer.colors.RED, err=True
+        )
+        raise typer.Exit(code=1)
 
     if not token:
         typer.secho("OAuth Setup Initialized", fg=typer.colors.CYAN, bold=True)
@@ -114,12 +125,15 @@ def setup(
             "\n--- Applying Network Configuration ---", fg=typer.colors.CYAN, bold=True
         )
 
+        logger.info("[Peerstash Setup] Setting up access control policies...")
         typer.echo("Setting up access control policies...")
         tailscale.modify_policy(api_token)
 
+        logger.info("[Peerstash Setup] Registering device...")
         typer.echo("Registering device...")
         tailscale.register_device(api_token, admin_pass)
 
+        logger.info("[Peerstash Setup] Generating invite code...")
         typer.echo("Generating invite code...")
         invite_code = tailscale.generate_device_invite(api_token)
         if not invite_code:
@@ -128,6 +142,7 @@ def setup(
 
         typer.echo("Revoking API access token...")
         if not tailscale.revoke_api_token(api_token):
+            logger.warning(f"[Peerstash Setup] API Token could not be automatically revoked.")
             typer.secho(
                 "[!] API Token could not be automatically revoked.",
                 fg=typer.colors.YELLOW,
@@ -137,6 +152,7 @@ def setup(
                 fg=typer.colors.YELLOW,
             )
 
+        logger.info(f"[Peerstash Setup] Success")
         typer.secho(
             "Success! Use 'peerstash id' to view your share code.",
             fg=typer.colors.GREEN,
@@ -144,9 +160,11 @@ def setup(
         )
 
     except requests.exceptions.HTTPError as e:
+        logger.error(f"[Peerstash Setup] API Error: {e.response.text}")
         typer.secho(f"\nAPI Error: {e.response.text}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
     except subprocess.CalledProcessError as e:
+        logger.error(f"[Peerstash Setup] Failed to run tailscale command: {e.stderr.decode() if e.stderr else str(e)}")
         typer.secho(
             f"\nFailed to run tailscale command: {e.stderr.decode() if e.stderr else str(e)}",
             fg=typer.colors.RED,
@@ -154,6 +172,7 @@ def setup(
         )
         raise typer.Exit(code=1)
     except Exception as e:
+        logger.error(f"[Peerstash Setup] An unexpected error occurred: {e}")
         typer.secho(
             f"\nAn unexpected error occurred: {e}", fg=typer.colors.RED, err=True
         )

@@ -65,9 +65,10 @@ RUN pip install --upgrade pip && \
     pip install -vv /app/*.whl && \
     rm -rf /app
 
-# move setup script
-COPY ./scripts/setup.sh /usr/local/bin/entrypoint.sh
-RUN chmod 744 /usr/local/bin/entrypoint.sh
+# move setup scripts
+RUN mkdir -p /srv/peerstash
+COPY ./scripts/ /srv/peerstash/
+RUN chmod -R 744 /srv/peerstash
 
 # set up files and folders
 RUN mkdir -p /tmp/peerstash && chmod 777 /tmp/peerstash
@@ -78,4 +79,4 @@ RUN echo "\nWelcome to PeerStash - The P2P NAS Backup Solution\nUse 'peerstash -
 
 EXPOSE 22
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/srv/peerstash/setup.sh"]

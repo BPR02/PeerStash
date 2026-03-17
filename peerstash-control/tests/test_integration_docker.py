@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import socket
 import subprocess
 import time
@@ -408,3 +409,74 @@ def test_restic_binary_installed_and_working(monkeypatch):
     snaps = restic.snapshots()
     assert len(snaps) == 1
     assert snaps[0]["paths"] == [source_dir]
+
+
+# -------------------------------------------------------------------
+# Logging Architecture Integration Tests
+# -------------------------------------------------------------------
+
+
+def test_logging_directory_and_symlink():
+    """
+    Verifies that the setup script correctly creates the persistent log
+    directory and symlinks /var/log/peerstash to it.
+    """
+    log_dir = "/var/log/peerstash"
+    actual_dir = "/var/lib/peerstash/logs"
+
+    # Verify the persistent directory was created
+    assert os.path.exists(
+        actual_dir
+    ), f"Persistent log directory {actual_dir} was not created"
+
+    # Verify the symlink exists and points to the correct location
+    assert os.path.islink(log_dir), f"{log_dir} is not a symlink"
+    assert (
+        os.readlink(log_dir) == actual_dir
+    ), f"Symlink points to {os.readlink(log_dir)}, expected {actual_dir}"
+
+
+def test_setup_script_logging_timestamps():
+    """
+    Verifies that setup.sh successfully intercepts standard output and
+    prepends the [YYYY-MM-DD HH:MM:SS] timestamp to the log file.
+    """
+    log_file = "/var/log/peerstash/peerstash.log"
+    assert os.path.exists(log_file), "peerstash.log was not created"
+
+    with open(log_file, "r") as f:
+        lines = f.readlines()
+
+    assert len(lines) > 0, "peerstash.log is completely empty"
+
+    # Regex to match the [YYYY-MM-DD HH:MM:SS] format
+    timestamp_pattern = re.compile(r"^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]")
+
+    valid_lines = 0
+    for line in lines:
+        if timestamp_pattern.match(line):
+            valid_lines += 1
+
+    # Ensure at least some lines were successfully timestamped by the bash loop
+    assert (
+        valid_lines > 0
+    ), "No timestamps matching the expected format were found in peerstash.log"
+
+
+def test_daemon_python_logging():
+    """
+    Verifies that the daemon.py process uses the standard Python logging
+    library to output to the log file.
+    """
+    log_file = "/var/log/peerstash/peerstash.log"
+    assert os.path.exists(log_file), "peerstash.log was not created"
+
+    with open(log_file, "r") as f:
+        content = f.read()
+
+    assert len(content) > 0, "peerstash.log is empty"
+
+    # Check for the expected startup message logged by the daemon
+    assert (
+        "Peerstash Daemon listening on" in content
+    ), "Expected daemon startup message not found in peerstash.log"

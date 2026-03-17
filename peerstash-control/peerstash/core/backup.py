@@ -32,9 +32,10 @@ from peerstash.core.db import (db_add_task, db_delete_task, db_get_task,
                                db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import (Retention, acquire_task_lock, generate_sha1,
-                                  get_disk_usage, release_lock, send_to_daemon,
-                                  validate_paths, validate_retention,
-                                  validate_schedule, validate_task_name)
+                                  get_disk_usage, log, logger, release_lock,
+                                  send_to_daemon, validate_paths,
+                                  validate_retention, validate_schedule,
+                                  validate_task_name)
 
 SFTP_PORT = 2022
 
@@ -46,7 +47,7 @@ def _verify_backup_size(name: str) -> tuple[int, int]:
     # pull info from DB
     task = db_get_task(name)
     if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
+        raise ValueError(f"Task '{name}' not found")
 
     # get free space in SFTP server
     free_bytes = get_disk_usage(db_get_user(), task.hostname, SFTP_PORT)[2]
@@ -68,7 +69,7 @@ def _init_repo(name: str) -> None:
     # pull info from DB
     task = db_get_task(name)
     if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
+        raise ValueError(f"Task '{name}' not found")
 
     # initialize repo
     restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
@@ -136,6 +137,8 @@ def schedule_backup(
             f"Retention '{retention}' invalid: {retention_error}. E.g. '1y2m3w4d5h6r'"
         )
 
+    logger.info(f"[{name}] Creating scheduled task: include={include}, exclude={exclude}, hostname={hostname}, schedule={schedule}, retention={retention}, prune_schedule={prune_schedule}")
+
     # insert into db
     if db_task_exists(name):
         db_update_task(
@@ -163,6 +166,7 @@ def schedule_backup(
     except RuntimeError as e:
         raise RuntimeError(f"Failed to create backup task ({e})")
 
+    logger.info(f"[{name}] Scheduled task.")
     # return name
     return name
 
@@ -171,15 +175,19 @@ def run_backup(
     name: str, dry_run: bool = False, offset: int = 0
 ) -> Optional[dict[str, Any]]:
     """
-    Runs a backup. Must be run with root permissions to access password file.
+    Runs a backup. 
     """
     # randomly wait up to <offset> minutes
-    time.sleep(random.randint(0, offset * 60))
+    wait = random.randint(0, offset * 60)
+    if wait > 0:
+        log(f"[{name}] Starting backup in {wait}s")
+    time.sleep(wait)
 
     # pull info from DB
     task = db_get_task(name)
     if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
+        logger.warning(f"Attempted backup task for '{name}' but not found in database.")
+        raise ValueError(f"Task '{name}' not found")
 
     # parse include and exclude delimited strings
     paths = task.include.split("|")
@@ -187,7 +195,7 @@ def run_backup(
 
     # if dry run, just return the added bytes
     if dry_run:
-        print(f"Calculating added bytes for backup task '{task.name}'...")
+        log(f"[{name}] Calculating added bytes...")
         restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
         restic.password_file = "/var/lib/peerstash/restic_password"
         res = restic.backup(
@@ -198,13 +206,16 @@ def run_backup(
     try:
         _lock = acquire_task_lock(name)
     except Exception as e:
+        logger.warning(f"Attempted backup task for '{name}' but could not acquire lock.")
         raise RuntimeError(e)
+
+    logger.info(f"[{name}] Starting backup task...")
 
     # initialize repo
     init = False
     if task.status == "new":
         init = True
-        print("First run, initializing repo...")
+        log(f"[{name}] First run, initializing repo...")
         db_update_task(
             task.name,
             TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="init"),
@@ -215,6 +226,7 @@ def run_backup(
             release_lock(_lock)
             db_update_task(task.name, TaskUpdate(last_exit_code=1, status="new"))
             _sftp_recursive_remove(task.hostname, task.name)
+            logger.error(f"Attempted backup task for '{name}' but could not initialize repo: {e}")
             raise RuntimeError(f"Failed to initialize repo ({e})")
 
     db_update_task(
@@ -223,7 +235,7 @@ def run_backup(
     )
 
     # dry run first to see if there's enough storage
-    print("Verifying free space...")
+    log(f"[{name}] Verifying free space...")
     db_update_task(task.name, TaskUpdate(status="space_check"))
     free_space, backup_size = _verify_backup_size(name)
     if free_space < backup_size:
@@ -231,22 +243,24 @@ def run_backup(
             _sftp_recursive_remove(task.hostname, task.name)
             release_lock(_lock)
             db_update_task(task.name, TaskUpdate(last_exit_code=2, status="idle"))
+            logger.error(f"Attempted backup task for '{name}' but could not create initial backup: only {free_space} bytes available, but size is {backup_size}")
             raise RuntimeError(
                 f"Not enough storage to create initial backup for task '{name}' (only {free_space} bytes available, but size is {backup_size})"
             )
         # attempt to prune, leaving only 1 snapshot
-        print("Not enough free space, attempting to prune...")
+        log(f"[{name}] Not enough free space, attempting to prune...")
         prune_repo(name, "1r", repack=False)
         free_space_2, backup_size_2 = _verify_backup_size(name)
         if free_space_2 < backup_size_2:
             release_lock(_lock)
             db_update_task(task.name, TaskUpdate(last_exit_code=2, status="idle"))
+            logger.error(f"Attempted backup task for '{name}' but not enough storage: only {free_space_2} bytes available, but size is {backup_size_2}")
             raise RuntimeError(
                 f"Not enough storage to complete task '{name}' (only {free_space_2} bytes available, but size is {backup_size_2})"
             )
 
     # run backup
-    print(f"Running backup task '{task.name}'...")
+    log(f"[{name}] Running backup task...")
     db_update_task(task.name, TaskUpdate(status="running"))
     restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
@@ -262,15 +276,17 @@ def run_backup(
     except Exception as e:
         release_lock(_lock)
         db_update_task(task.name, TaskUpdate(last_exit_code=3, status="idle"))
-        raise RuntimeError(f"Backup failed! ({e})")
+        logger.error(f"Attempted backup task for '{name}' but failed: {e}")
+        raise RuntimeError(f"[{name}] Backup failed! ({e})")
 
-    print(f"Checking repo '{task.name}'...")
+    log(f"[{name}] Checking repo...")
     db_update_task(task.name, TaskUpdate(status="checking"))
     if not restic.check():
         release_lock(_lock)
         db_update_task(task.name, TaskUpdate(last_exit_code=4, status="idle"))
-        raise RuntimeError(f"Repository '{restic.repository}' is corrupted.")
-    print(f"Repo for '{task.name}' healthy. Backup complete.")
+        logger.error(f"Repository for '{name}' is not healthy. Check failed.")
+        raise RuntimeError(f"[{name}] Repository '{restic.repository}' is corrupted.")
+    log(f"[{name}] Repo healthy. Backup complete.")
 
     release_lock(_lock)
     db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
@@ -285,22 +301,30 @@ def prune_repo(
     repack: bool = True,
 ) -> None:
     """
-    Prunes a repo according to retention policy. Must be run with root permissions to access password file.
+    Prunes a repo according to retention policy. 
     """
     # randomly wait up to <offset> minutes
-    time.sleep(random.randint(0, offset * 60))
+    wait = random.randint(0, offset * 60)
+    if wait > 0:
+        log(f"[{name}] Starting prune in {wait}s")
+    time.sleep(wait)
 
     # pull info from DB
     task = db_get_task(name)
     if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
+        logger.warning(f"Attempted prune task for '{name}' but not found in database.")
+        raise ValueError(f"Task '{name}' not found")
 
     if task.status == "new":
+        logger.warning(f"Attempted prune task for '{name}' but has not been backed up yet.")
         raise RuntimeError(f"Repo for task '{name}' has not been backed up yet.")
+
+    logger.info(f"[{name}] Starting prune task...")
 
     try:
         _lock = acquire_task_lock(name)
     except Exception as e:
+        logger.warning(f"Attempted prune task for '{name}' but could not acquire lock.")
         raise RuntimeError(e)
 
     # get retention policy
@@ -308,7 +332,7 @@ def prune_repo(
     policy = Retention.from_string(retention)
 
     # run forget and prune
-    print(f"Running prune for task '{task.name}' (keeping {retention} snapshots)...")
+    log(f"[{name}] Running prune (keeping {retention} snapshots)...")
     db_update_task(
         task.name,
         TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="pruning"),
@@ -328,13 +352,16 @@ def prune_repo(
     except Exception as e:
         release_lock(_lock)
         db_update_task(task.name, TaskUpdate(last_exit_code=5, status="idle"))
+        logger.error(f"Attempted prune task for '{name}' but failed: {e}")
         raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
 
     if repack:
         release_lock(_lock)
+        logger.info(f"[{name}] Prune successful.")
         db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
         return
 
+    logger.warning(f"[{name}] Pruning repo with max-repack-size of 0")
     try:
         # resticpy does not have support for the prune command, call it directly
         db_update_task(task.name, TaskUpdate(status="pruning_strict"))
@@ -344,9 +371,11 @@ def prune_repo(
     except CalledProcessError as e:
         release_lock(_lock)
         db_update_task(task.name, TaskUpdate(last_exit_code=5, status="idle"))
+        logger.warning(f"Attempted prune task for '{name}' but failed: {e}")
         raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
 
     release_lock(_lock)
+    logger.info(f"[{name}] Prune successful.")
     db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
 
 
@@ -384,7 +413,10 @@ def remove_schedule(name: str) -> None:
     # pull info from DB
     task = db_get_task(name)
     if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
+        logger.warning(f"Attempted to cancel task '{name}' but not found in database.")
+        raise ValueError(f"Task '{name}' not found")
+    
+    logger.info(f"[{name}] Removing task...")
 
     # remove from crontab
     try:
@@ -393,15 +425,24 @@ def remove_schedule(name: str) -> None:
             {"task_name": name},
         )
     except RuntimeError as e:
+        logger.error(f"Attempted to cancel task '{name}' failed: {e}")
         raise RuntimeError(f"Failed to remove task '{name}' ({e})")
 
     # remove from db
     if not db_delete_task(name):
+        logger.error(f"Attempted to cancel task '{name}' but failed to remove from database.")
         raise RuntimeError(f"Failed to remove task '{name}' from database")
 
     # remove from sftp server
     if task.status != "new":
-        _sftp_recursive_remove(task.hostname, task.name)
+        logger.info(f"[{name}] Removing folder '{task.name}' from {task.hostname}...")
+        try:
+            _sftp_recursive_remove(task.hostname, task.name)
+        except Exception as e:
+            logger.error(f"Attempted to cancel task '{name}' but folder could not be cleared: {e}")
+            raise RuntimeError(f"Failed to remove folder for '{name}' in SFTP server: {e}")
+
+    logger.info(f"[{name}] Removed task.")
 
 
 def restore_snapshot(
@@ -413,7 +454,10 @@ def restore_snapshot(
     # pull info from DB
     task = db_get_task(name)
     if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
+        logger.warning(f"Attempted to restore '{name}' but not found in database.")
+        raise ValueError(f"Task '{name}' not found")
+
+    logger.info(f"[{name}] Restoring snapshot {snapshot}...")
 
     # create folder name based on snapshot and task name
     t = (
@@ -433,6 +477,7 @@ def restore_snapshot(
     restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
     try:
+        logger.info(f"[{name}] Restoring snapshot {snapshot} to {temp_folder}...")
         restic.restore(
             snapshot_id=snapshot,
             include=include,
@@ -440,16 +485,19 @@ def restore_snapshot(
             target_dir=temp_folder,
         )
         # move the actual backed up items to the folder
+        logger.info(f"[{name}] Moving restored files to {final_folder}...")
         if os.path.exists(final_folder):
             final_folder = (
                 f"{final_folder}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}"
             )
         shutil.move(f"{temp_folder}/mnt/peerstash_root", final_folder)
     except Exception as e:
+        logger.error(f"Attempted to restore snapshot '{snapshot}' for task '{name}' but failed: {e}")
         raise Exception(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
         )
 
+    logger.info(f"[{name}] Restored snapshot {snapshot} in {folder}")
     return folder
 
 
@@ -457,7 +505,7 @@ def get_snapshots(name: str, snapshot: Optional[str] = None) -> list[dict[Any, A
     # pull info from DB
     task = db_get_task(name)
     if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
+        raise ValueError(f"Task '{name}' not found")
 
     # get snapshots
     restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
@@ -478,7 +526,10 @@ def mount_task(name: str) -> None:
     # pull info from DB
     task = db_get_task(name)
     if not task:
-        raise ValueError(f"Task with name '{name}' not in DB")
+        logger.warning(f"Attempted to mount repo for task '{name}' but not found in database.")
+        raise ValueError(f"Task '{name}' not found")
+
+    logger.info(f"[{name}] Mounting repo...")
 
     # create folder name based on task name
     mount_point = f"/tmp/peerstash_mnt/{name}"
@@ -508,13 +559,17 @@ def mount_task(name: str) -> None:
             start_new_session=True,
         )
     except Exception as e:
+        logger.warning(f"Attempted to mount repo for task '{name}' but failed: {e}")
         raise RuntimeError(f"Failed to mount repo for task '{task.name}' ({e})")
+
+    logger.info(f"[{name}] Mounted repo.")
 
 
 def unmount_task(name: str) -> None:
     """
     Unmounts the repo for a task.
     """
+    logger.info(f"[{name}] Unmounting repo...")
     mount_point = f"/tmp/peerstash_mnt/{name}"
 
     # lazy unmount, errors do not need to be caught
@@ -523,3 +578,5 @@ def unmount_task(name: str) -> None:
     # delete the file if exists
     if os.path.exists(mount_point):
         shutil.rmtree(mount_point)
+
+    logger.info(f"[{name}] Unmounted repo.")

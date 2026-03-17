@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Peerstash
 # Copyright (C) 2026 BPR02
@@ -19,6 +19,29 @@
 
 SSH_FOLDER="/var/lib/peerstash"
 
+# set up logging
+LOG_DIR="/var/log/peerstash"
+mkdir -p "$LOG_DIR"
+
+BIND_LOG_DIR="/var/lib/peerstash/logs"
+mkdir -p "$BIND_LOG_DIR"
+
+if [ ! -L "$LOG_DIR" ]; then
+    # symlink logs to bind mount
+    rm -rf "$LOG_DIR"
+    ln -s "$BIND_LOG_DIR" "$LOG_DIR"
+fi
+
+LOG_FILE="$LOG_DIR/peerstash.log"
+
+touch "$LOG_DIR/supervisord.log"
+touch "$LOG_DIR/sshd.log"
+touch "$LOG_FILE"
+chmod 666 "$LOG_FILE"
+
+# Prepend timestamp and log to both stdout and the log file
+exec 3>&1 4>&2
+exec > >(while IFS= read -r line; do echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"; done | tee -a "$LOG_FILE") 2>&1
 
 # Generate SSH host keys
 mkdir -p /var/run/sshd
@@ -58,8 +81,6 @@ fi
 echo "" > /home/"$USERNAME"/.ssh/known_hosts
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 
-# set up logging
-touch /var/log/peerstash-cron.log
 
 # prevent indexing FUSE mounts
 touch /tmp/peerstash_mnt/.nomedia
@@ -80,4 +101,5 @@ unset PASSWORD
 
 # start supervisord management
 echo "Starting Supervisord..."
+exec 1>&3 2>&4
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

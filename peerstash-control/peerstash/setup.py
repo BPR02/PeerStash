@@ -24,12 +24,12 @@ from typing import Any
 import requests
 
 from peerstash.core.utils import update_crontab
+from peerstash.cli import __version__
 
 USERNAME = os.getenv("USERNAME", "")
 PASSWORD = os.getenv("PASSWORD", "")
 DEFAULT_QUOTA_GB = os.getenv("DEFAULT_QUOTA_GB", "10")
 PEERSTASH_BIN = "/usr/local/bin/peerstash"
-CRON_LOG = "/var/log/peerstash-cron.log"
 DB_PATH = "/var/lib/peerstash/peerstash.db"
 SFTPGO_URL = "http://localhost:8080/api/v2"
 
@@ -54,16 +54,17 @@ def init_db_and_restore():
         cursor.execute("SELECT name, schedule, prune_schedule FROM tasks")
         for name, schedule, prune_schedule in cursor.fetchall():
             backup_job = (
-                f"{schedule} {PEERSTASH_BIN} backup {name} 10 >> {CRON_LOG} 2>&1"
+                f"{schedule} {PEERSTASH_BIN} backup {name} 10"
             )
             prune_job = (
-                f"{prune_schedule} {PEERSTASH_BIN} prune {name} 10 >> {CRON_LOG} 2>&1"
+                f"{prune_schedule} {PEERSTASH_BIN} prune {name} 10"
             )
             update_crontab(name, [backup_job, prune_job])
 
     else:
         print("No database found. Creating a new empty database...")
-        cursor.executescript(f"""
+        cursor.executescript(
+            f"""
             CREATE TABLE hosts (
                 hostname TEXT PRIMARY KEY,
                 port INTEGER DEFAULT 2022,
@@ -89,7 +90,8 @@ def init_db_and_restore():
                 invite_code TEXT
             );
             INSERT INTO node_data (id, username) VALUES (1, '{USERNAME}');
-        """)
+        """
+        )
 
         # Set proper ownership for the new database
         os.chown(
@@ -113,7 +115,9 @@ def wait_for_sftpgo(port=8080, timeout=60):
         except (ConnectionRefusedError, socket.timeout, OSError):
             time.sleep(1)
 
-    print(f"Error: SFTPGo port {port} could not be reached within {timeout} seconds.")
+    print(
+        f"Error: SFTPGo port {port} could not be reached within {timeout} seconds."
+    )
     sys.exit(1)
 
 
@@ -161,6 +165,7 @@ def main():
         print("PASSWORD not set in environment")
         sys.exit(1)
 
+    print(f"PeerStash {__version__}")
     init_db_and_restore()
     wait_for_sftpgo()
     api_key = setup_sftpgo()
