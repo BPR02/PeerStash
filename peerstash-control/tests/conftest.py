@@ -22,7 +22,11 @@ pytest_plugins = [
 ]
 
 # prevent logging from running in unit tests
-logging.FileHandler = logging.NullHandler  # type: ignore
+class MockFileHandler(logging.NullHandler):
+    def __init__(self, filename, mode='a', encoding=None, delay=False, errors=None):
+        # Ignore the file path entirely and initialize the empty NullHandler
+        super().__init__()
+logging.FileHandler = MockFileHandler  # type: ignore
 _original_makedirs = os.makedirs
 def _mock_makedirs(name, mode=0o777, exist_ok=False):
     if str(name).startswith("/var/log/peerstash"):
