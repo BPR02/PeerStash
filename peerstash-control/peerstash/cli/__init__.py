@@ -36,7 +36,7 @@ def version_callback(value: bool):
 app = typer.Typer(help="PeerStash CLI Tool",no_args_is_help=True)
 
 
-@app.callback()
+@app.callback(invoke_without_command=True)
 def cli(
     version: Annotated[
         bool | None,
