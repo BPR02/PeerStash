@@ -132,7 +132,7 @@ def main():
     with socketserver.UnixStreamServer(SOCKET_PATH, PeerstashDaemonHandler) as server:
         # open socket to users
         os.chmod(SOCKET_PATH, 0o666)
-        logger.info("Peerstash Daemon listening on", SOCKET_PATH)
+        logger.info(f"Peerstash Daemon listening on {SOCKET_PATH}")
         server.serve_forever()
 
 
