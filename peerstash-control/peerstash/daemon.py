@@ -26,7 +26,6 @@ from peerstash.core.utils import (update_crontab, validate_schedule,
                                   validate_task_name)
 
 SOCKET_PATH = "/var/run/peerstash.sock"
-CRON_LOG = "/var/log/peerstash/peerstash.log"
 PEERSTASH_BIN = "/usr/local/bin/peerstash"
 USER = db_get_user()
 
@@ -89,10 +88,10 @@ class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
             return {"status": "error", "message": "Invalid schedule format."}
 
         backup_job = (
-            f"{schedule} {PEERSTASH_BIN} backup {task_name} 10 >> {CRON_LOG} 2>&1"
+            f"{schedule} {PEERSTASH_BIN} backup {task_name} 10"
         )
         prune_job = (
-            f"{prune_schedule} {PEERSTASH_BIN} prune {task_name} 10 >> {CRON_LOG} 2>&1"
+            f"{prune_schedule} {PEERSTASH_BIN} prune {task_name} 10"
         )
 
         logger.info(f"Creating recurring tasks for '{task_name}': backup={schedule} prune={prune_schedule}")

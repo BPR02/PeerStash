@@ -29,7 +29,6 @@ USERNAME = os.getenv("USERNAME", "")
 PASSWORD = os.getenv("PASSWORD", "")
 DEFAULT_QUOTA_GB = os.getenv("DEFAULT_QUOTA_GB", "10")
 PEERSTASH_BIN = "/usr/local/bin/peerstash"
-CRON_LOG = "/var/log/peerstash/peerstash.log"
 DB_PATH = "/var/lib/peerstash/peerstash.db"
 SFTPGO_URL = "http://localhost:8080/api/v2"
 
@@ -54,10 +53,10 @@ def init_db_and_restore():
         cursor.execute("SELECT name, schedule, prune_schedule FROM tasks")
         for name, schedule, prune_schedule in cursor.fetchall():
             backup_job = (
-                f"{schedule} {PEERSTASH_BIN} backup {name} 10 >> {CRON_LOG} 2>&1"
+                f"{schedule} {PEERSTASH_BIN} backup {name} 10"
             )
             prune_job = (
-                f"{prune_schedule} {PEERSTASH_BIN} prune {name} 10 >> {CRON_LOG} 2>&1"
+                f"{prune_schedule} {PEERSTASH_BIN} prune {name} 10"
             )
             update_crontab(name, [backup_job, prune_job])
 

@@ -30,7 +30,6 @@ from typing import Literal, Optional
 from cron_validator import CronValidator
 from pydantic import BaseModel, model_validator
 
-CRON_LOG = "/var/log/peerstash/peerstash.log"
 SOCKET_PATH = "/var/run/peerstash.sock"
 
 
@@ -301,7 +300,7 @@ def update_crontab(task_name: str, new_jobs: Optional[list] = None) -> tuple[boo
 
         # remove existing jobs for this task
         pattern = re.compile(
-            rf"peerstash .* {re.escape(task_name)} [0-9]* >> {re.escape(CRON_LOG)} 2>&1$"
+            rf"peerstash .* {re.escape(task_name)} [0-9]*$"
         )
         lines = [
             line for line in current_crontab.splitlines() if not pattern.search(line)
