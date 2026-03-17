@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import logging
 import os
 import shutil
 import socketserver
@@ -29,20 +28,6 @@ SOCKET_PATH = "/var/run/peerstash.sock"
 CRON_LOG = "/var/log/peerstash-cron.log"
 PEERSTASH_BIN = "/usr/local/bin/peerstash"
 USER = db_get_user()
-
-
-# configure logging
-os.makedirs("/var/log/peerstash", exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[
-        logging.FileHandler("/var/log/peerstash/peerstash.log"),
-        logging.StreamHandler(),
-    ],
-)
-logger = logging.getLogger(__name__)
 
 
 class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
@@ -132,7 +117,7 @@ def main():
     with socketserver.UnixStreamServer(SOCKET_PATH, PeerstashDaemonHandler) as server:
         # open socket to users
         os.chmod(SOCKET_PATH, 0o666)
-        logging.info("Peerstash Daemon listening on", SOCKET_PATH)
+        print("Peerstash Daemon listening on", SOCKET_PATH)
         server.serve_forever()
 
 
