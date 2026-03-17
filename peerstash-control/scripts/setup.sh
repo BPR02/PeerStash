@@ -68,10 +68,8 @@ chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 # set up logging
 mkdir -p /var/log/peerstash
 touch /var/log/peerstash/supervisord.log
-touch /var/log/peerstash/cron.log
-touch /var/log/peerstash/cron_err.log
 touch /var/log/peerstash/sshd.log
-touch /var/log/peerstash/sshd_err.log
+touch /var/log/peerstash/peerstash.log
 
 # prevent indexing FUSE mounts
 touch /tmp/peerstash_mnt/.nomedia
