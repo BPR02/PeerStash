@@ -18,7 +18,6 @@ import typer
 
 from peerstash.cli.utils import check_setup
 from peerstash.core.backup import mount_task
-from peerstash.core.utils import logger
 
 app = typer.Typer()
 
@@ -42,10 +41,8 @@ def mount(
             fg=typer.colors.YELLOW,
         )
     except ValueError as e:
-        logger.error(f"[{name}] Error: {e}")
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
     except Exception as e:
-        logger.error(f"[{name}] System Error: {e}")
         typer.secho(f"System Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)

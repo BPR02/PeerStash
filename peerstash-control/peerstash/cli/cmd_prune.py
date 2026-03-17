@@ -18,7 +18,6 @@ import typer
 
 from peerstash.cli.utils import check_setup
 from peerstash.core.backup import prune_repo
-from peerstash.core.utils import logger
 
 app = typer.Typer()
 
@@ -34,16 +33,13 @@ def prune(
     check_setup()
     try:
         prune_repo(name, offset=offset)
-        logger.info(f"[{name}] Repository has been pruned")
         typer.secho(
             f"Repository for task '{name}' has been pruned.",
             fg=typer.colors.GREEN,
         )
     except ValueError as e:
-        logger.error(f"[{name}] Error: {e}")
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
     except Exception as e:
-        logger.error(f"[{name}] System Error: {e}")
         typer.secho(f"System Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1)
