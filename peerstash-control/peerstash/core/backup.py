@@ -343,9 +343,11 @@ def prune_repo(
 
     if repack:
         release_lock(_lock)
+        logger.info(f"[{name} Prune successful.")
         db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
         return
 
+    logger.warning(f"[{name}] Pruning repo with max-repack-size of 0")
     try:
         # resticpy does not have support for the prune command, call it directly
         db_update_task(task.name, TaskUpdate(status="pruning_strict"))
@@ -358,6 +360,7 @@ def prune_repo(
         raise RuntimeError(f"Failed to prune for task '{task.name}' ({e})")
 
     release_lock(_lock)
+    logger.info(f"[{name}] Prune successful.")
     db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
 
 
