@@ -1,3 +1,10 @@
+## [0.15.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.15.0...peerstash-v0.15.1) (2026-03-17)
+
+
+### Bug Fixes
+
+* **control:** make --version a top-level command option ([#50](https://github.com/BPR02/PeerStash/issues/50)) ([b6bbfee](https://github.com/BPR02/PeerStash/commit/b6bbfeec1d7c981ac9dd14a3d4d05bfc11b0bdf7))
+
 # [0.15.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.14.1...peerstash-v0.15.0) (2026-03-17)
 
 
