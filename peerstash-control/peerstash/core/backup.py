@@ -392,6 +392,8 @@ def remove_schedule(name: str) -> None:
     task = db_get_task(name)
     if not task:
         raise ValueError(f"Task '{name}' not found")
+    
+    logger.info(f"[{name}] Removing task...")
 
     # remove from crontab
     try:
@@ -408,7 +410,10 @@ def remove_schedule(name: str) -> None:
 
     # remove from sftp server
     if task.status != "new":
+        logger.info(f"[{name}] Removing folder '{task.name}' from {task.hostname}...")
         _sftp_recursive_remove(task.hostname, task.name)
+
+    logger.info(f"[{name}] Removed task.")
 
 
 def restore_snapshot(
