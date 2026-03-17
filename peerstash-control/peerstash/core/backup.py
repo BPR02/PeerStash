@@ -190,8 +190,6 @@ def run_backup(
         logger.warning(f"Attempted backup task for '{name}' but not found in database.")
         raise ValueError(f"Task '{name}' not found")
 
-    logger.info(f"[{name}] Starting backup task...")
-
     # parse include and exclude delimited strings
     paths = task.include.split("|")
     exclude_patterns = task.exclude.split("|") if task.exclude else None
@@ -211,6 +209,8 @@ def run_backup(
     except Exception as e:
         logger.warning(f"Attempted backup task for '{name}' but could not acquire lock.")
         raise RuntimeError(e)
+
+    logger.info(f"[{name}] Starting backup task...")
 
     # initialize repo
     init = False
