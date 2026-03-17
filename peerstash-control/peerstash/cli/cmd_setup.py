@@ -88,7 +88,7 @@ def setup(
         raise typer.Exit(code=1)
 
     try:
-        gen_restic_pass(USER, admin_pass)
+        gen_restic_pass(user, admin_pass)
     except Exception as e:
         logger.error(f"[Peerstash Setup] Failed to generate restic password: {e}")
         typer.secho(
