@@ -290,6 +290,10 @@ def update_crontab(task_name: str, new_jobs: Optional[list] = None) -> tuple[boo
 
     Returns a tuple with the success status and status message (e.g. reason for failure).
     """
+    if new_jobs is None:
+        logger.info(f"Removing task '{task_name}' from crontab...")
+    else:
+        logger.info(f"Adding tasks '{task_name}' to crontab...")
     try:
         # get current crontab
         result = subprocess.run(["crontab", "-l"], capture_output=True, text=True)
@@ -310,8 +314,13 @@ def update_crontab(task_name: str, new_jobs: Optional[list] = None) -> tuple[boo
         # write back to crontab
         new_cron_content = "\n".join(lines) + "\n"
         subprocess.run(["crontab", "-"], input=new_cron_content, text=True, check=True)
+        if new_jobs is None:
+            logger.info(f"Removed task '{task_name}' from crontab.")
+        else:
+            logger.info(f"Added tasks '{task_name}' to crontab.")
         return (True, "Success")
     except subprocess.CalledProcessError as e:
+        logger.error(f"Attempted to update crontab, but failed: {str(e)}")
         return (False, f"Crontab update failed: {str(e)}")
 
 
