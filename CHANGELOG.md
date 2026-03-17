@@ -1,3 +1,10 @@
+## [0.14.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.14.0...peerstash-v0.14.1) (2026-03-17)
+
+
+### Bug Fixes
+
+* **control:** create tests and set up automatic workflow ([#44](https://github.com/BPR02/PeerStash/issues/44)) ([40d31dd](https://github.com/BPR02/PeerStash/commit/40d31dd6bee8d2ab31ba184645e558b88d4f2431))
+
 # [0.14.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.8...peerstash-v0.14.0) (2026-03-16)
 
 
