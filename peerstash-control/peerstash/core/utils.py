@@ -25,7 +25,7 @@ import subprocess
 from enum import StrEnum
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 from cron_validator import CronValidator
 from pydantic import BaseModel, model_validator
@@ -45,6 +45,20 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+
+def log(msg: str, level: Literal["info", "warning", "error"] = "info"):
+    print(msg)
+    match level:
+        case "info":
+            logger.info(msg)
+            return
+        case "warning":
+            logger.warning(msg)
+            return
+        case "error":
+            logger.error(msg)
+            return
 
 
 def get_disk_usage(user, hostname: str, port: int) -> tuple[int, int, int]:
