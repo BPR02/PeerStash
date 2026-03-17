@@ -19,10 +19,24 @@
 
 SSH_FOLDER="/var/lib/peerstash"
 
-# Set up logging directory
+# set up logging
 LOG_DIR="/var/log/peerstash"
 mkdir -p "$LOG_DIR"
+
+BIND_LOG_DIR="/var/lib/peerstash/logs"
+mkdir -p "$BIND_LOG_DIR"
+
+if [ ! -L "$LOG_DIR" ]; then
+    # symlink logs to bind mount
+    rm -rf "$LOG_DIR"
+    ln -s "$BIND_LOG_DIR" "$LOG_DIR"
+fi
+
 LOG_FILE="$LOG_DIR/peerstash.log"
+
+touch "$LOG_DIR/supervisord.log"
+touch "$LOG_DIR/sshd.log"
+touch "$LOG_FILE"
 
 # Prepend timestamp and log to both stdout and the log file
 exec 3>&1 4>&2
@@ -66,11 +80,6 @@ fi
 echo "" > /home/"$USERNAME"/.ssh/known_hosts
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 
-# set up logging
-mkdir -p /var/log/peerstash
-touch /var/log/peerstash/supervisord.log
-touch /var/log/peerstash/sshd.log
-touch /var/log/peerstash/peerstash.log
 
 # prevent indexing FUSE mounts
 touch /tmp/peerstash_mnt/.nomedia
