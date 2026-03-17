@@ -1,3 +1,10 @@
+# [0.15.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.14.1...peerstash-v0.15.0) (2026-03-17)
+
+
+### Features
+
+* **control:** implement logging ([#48](https://github.com/BPR02/PeerStash/issues/48)) ([47de903](https://github.com/BPR02/PeerStash/commit/47de9039f7e53511393073c17fb190a7fd22281e))
+
 ## [0.14.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.14.0...peerstash-v0.14.1) (2026-03-17)
 
 
