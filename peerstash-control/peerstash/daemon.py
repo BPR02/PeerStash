@@ -95,6 +95,7 @@ class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
             f"{prune_schedule} {PEERSTASH_BIN} prune {task_name} 10 >> {CRON_LOG} 2>&1"
         )
 
+        logger.info(f"Creating recurring tasks for '{task_name}': backup={schedule} prune={prune_schedule}")
         success, msg = update_crontab(task_name, [backup_job, prune_job])
         return {"status": "success" if success else "error", "message": msg}
 
@@ -102,6 +103,7 @@ class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
         if name_error := validate_task_name(task_name):
             return {"status": "error", "message": f"Invalid task name ({name_error})."}
 
+        logger.info(f"Removing recurring tasks for '{task_name}'")
         success, msg = update_crontab(task_name)
         return {"status": "success" if success else "error", "message": msg}
 
@@ -112,13 +114,17 @@ class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
         dest_file = "/root/.ssh/known_hosts"
 
         if not os.path.exists(source_file):
+            logger.warning("Attempted to sync known_hosts from user to root, but user known_hosts does not exist")
             return {"status": "error", "message": "Source known_hosts does not exist."}
 
+        logger.info("Syncing known_hosts from user to root")
         try:
             shutil.copy2(source_file, dest_file)
             os.chown(dest_file, 0, 0)
+            logger.info(f"Synced known_hosts from user to root")
             return {"status": "success", "message": "Hosts synced successfully."}
         except Exception as e:
+            logger.info(f"Attempted to sync known_hosts from user to root, but failed: {str(e)}")
             return {"status": "error", "message": str(e)}
 
 
