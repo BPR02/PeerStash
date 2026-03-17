@@ -18,9 +18,11 @@ import sqlite3
 from contextlib import closing
 from typing import Any, Optional
 
+import os
 from peerstash.core.db_schemas import *
 
-DB_PATH = "/var/lib/peerstash/peerstash.db"
+DEFAULT_DB_PATH = "/var/lib/peerstash/peerstash.db"
+DB_PATH = os.getenv("PEERSTASH_DB_PATH", DEFAULT_DB_PATH)
 
 
 def db_add_host(hostname: str, public_key: str) -> None:
