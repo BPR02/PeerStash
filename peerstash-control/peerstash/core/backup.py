@@ -32,7 +32,7 @@ from peerstash.core.db import (db_add_task, db_delete_task, db_get_task,
                                db_update_task)
 from peerstash.core.db_schemas import TaskUpdate
 from peerstash.core.utils import (Retention, acquire_task_lock, generate_sha1,
-                                  get_disk_usage, log, release_lock,
+                                  get_disk_usage, log, logger, release_lock,
                                   send_to_daemon, validate_paths,
                                   validate_retention, validate_schedule,
                                   validate_task_name)
@@ -487,6 +487,8 @@ def mount_task(name: str) -> None:
     if not task:
         raise ValueError(f"Task '{name}' not found")
 
+    logger.info(f"[{name}] Mounting repo...")
+
     # create folder name based on task name
     mount_point = f"/tmp/peerstash_mnt/{name}"
     if not os.path.exists(mount_point):
@@ -517,11 +519,14 @@ def mount_task(name: str) -> None:
     except Exception as e:
         raise RuntimeError(f"Failed to mount repo for task '{task.name}' ({e})")
 
+    logger.info(f"[{name}] Mounted repo.")
+
 
 def unmount_task(name: str) -> None:
     """
     Unmounts the repo for a task.
     """
+    logger.info(f"[{name}] Unmounting repo...")
     mount_point = f"/tmp/peerstash_mnt/{name}"
 
     # lazy unmount, errors do not need to be caught
@@ -530,3 +535,5 @@ def unmount_task(name: str) -> None:
     # delete the file if exists
     if os.path.exists(mount_point):
         shutil.rmtree(mount_point)
+
+    logger.info(f"[{name}] Unmounted repo.")
