@@ -33,10 +33,10 @@ def version_callback(value: bool):
 
 
 # Create the main cli app
-app = typer.Typer(help="PeerStash CLI Tool")
+app = typer.Typer(help="PeerStash CLI Tool",no_args_is_help=True)
 
 
-@app.command()
+@app.callback()
 def cli(
     version: Annotated[
         bool | None,
@@ -48,7 +48,11 @@ def cli(
         ),
     ] = None,
 ):
-    print("Use 'peerstash --help' for available commands")
+    """
+    PeerStash CLI Tool
+    """
+    pass
+
 
 
 # create subcommands for the main cli app
