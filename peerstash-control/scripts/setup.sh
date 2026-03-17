@@ -37,6 +37,7 @@ LOG_FILE="$LOG_DIR/peerstash.log"
 touch "$LOG_DIR/supervisord.log"
 touch "$LOG_DIR/sshd.log"
 touch "$LOG_FILE"
+chmod 666 "$LOG_FILE"
 
 # Prepend timestamp and log to both stdout and the log file
 exec 3>&1 4>&2
