@@ -138,6 +138,8 @@ def schedule_backup(
             f"Retention '{retention}' invalid: {retention_error}. E.g. '1y2m3w4d5h6r'"
         )
 
+    logger.info(f"[{name}] Creating scheduled task: include={include}, exclude={exclude}, hostname={hostname}, schedule={schedule}, retention={retention}, prune_schedule={prune_schedule}")
+
     # insert into db
     if db_task_exists(name):
         db_update_task(
@@ -165,6 +167,7 @@ def schedule_backup(
     except RuntimeError as e:
         raise RuntimeError(f"Failed to create backup task ({e})")
 
+    logger.info(f"[{name}] Scheduled task.")
     # return name
     return name
 
