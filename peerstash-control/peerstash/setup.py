@@ -29,7 +29,7 @@ USERNAME = os.getenv("USERNAME", "")
 PASSWORD = os.getenv("PASSWORD", "")
 DEFAULT_QUOTA_GB = os.getenv("DEFAULT_QUOTA_GB", "10")
 PEERSTASH_BIN = "/usr/local/bin/peerstash"
-CRON_LOG = "/var/log/peerstash-cron.log"
+CRON_LOG = "/var/log/peerstash/peerstash.log"
 DB_PATH = "/var/lib/peerstash/peerstash.db"
 SFTPGO_URL = "http://localhost:8080/api/v2"
 
