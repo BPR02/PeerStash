@@ -17,6 +17,7 @@
 import fcntl
 import hashlib
 import json
+import logging
 import os
 import re
 import socket
@@ -31,6 +32,20 @@ from pydantic import BaseModel, model_validator
 
 CRON_LOG = "/var/log/peerstash/peerstash.log"
 SOCKET_PATH = "/var/run/peerstash.sock"
+
+
+# configure logging
+os.makedirs("/var/log/peerstash", exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[
+        logging.FileHandler("/var/log/peerstash/peerstash.log"),
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
 
 
 def get_disk_usage(user, hostname: str, port: int) -> tuple[int, int, int]:
