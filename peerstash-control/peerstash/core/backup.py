@@ -181,7 +181,7 @@ def run_backup(
     # randomly wait up to <offset> minutes
     wait = random.randint(0, offset * 60)
     if wait > 0:
-        log(f"[{name}] Starting task in {wait}s")
+        log(f"[{name}] Starting backup in {wait}s")
     time.sleep(wait)
 
     # pull info from DB
@@ -307,7 +307,7 @@ def prune_repo(
     # randomly wait up to <offset> minutes
     wait = random.randint(0, offset * 60)
     if wait > 0:
-        log(f"[{name}] starting prune in {wait}s")
+        log(f"[{name}] Starting prune in {wait}s")
     time.sleep(wait)
 
     # pull info from DB
@@ -358,7 +358,7 @@ def prune_repo(
 
     if repack:
         release_lock(_lock)
-        logger.info(f"[{name} Prune successful.")
+        logger.info(f"[{name}] Prune successful.")
         db_update_task(task.name, TaskUpdate(last_exit_code=0, status="idle"))
         return
 

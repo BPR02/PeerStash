@@ -117,11 +117,11 @@ class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
             logger.warning("Attempted to sync known_hosts from user to root, but user known_hosts does not exist")
             return {"status": "error", "message": "Source known_hosts does not exist."}
 
-        logger.info("Syncing known_hosts from user to root")
+        logger.info("Syncing known_hosts from user to root...")
         try:
             shutil.copy2(source_file, dest_file)
             os.chown(dest_file, 0, 0)
-            logger.info(f"Synced known_hosts from user to root")
+            logger.info(f"Synced known_hosts from user to root.")
             return {"status": "success", "message": "Hosts synced successfully."}
         except Exception as e:
             logger.info(f"Attempted to sync known_hosts from user to root, but failed: {str(e)}")
