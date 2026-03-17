@@ -29,7 +29,7 @@ from typing import Optional
 from cron_validator import CronValidator
 from pydantic import BaseModel, model_validator
 
-CRON_LOG = "/var/log/peerstash/scheduled_tasks.log"
+CRON_LOG = "/var/log/peerstash/peerstash.log"
 SOCKET_PATH = "/var/run/peerstash.sock"
 
 
