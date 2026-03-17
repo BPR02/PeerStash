@@ -42,7 +42,6 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[
         logging.FileHandler("/var/log/peerstash/peerstash.log"),
-        logging.StreamHandler(),
     ],
 )
 logger = logging.getLogger(__name__)
