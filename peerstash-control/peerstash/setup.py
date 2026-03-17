@@ -24,6 +24,7 @@ from typing import Any
 import requests
 
 from peerstash.core.utils import update_crontab
+from peerstash.cli import __version__
 
 USERNAME = os.getenv("USERNAME", "")
 PASSWORD = os.getenv("PASSWORD", "")
@@ -164,6 +165,7 @@ def main():
         print("PASSWORD not set in environment")
         sys.exit(1)
 
+    print(f"PeerStash {__version__}")
     init_db_and_restore()
     wait_for_sftpgo()
     api_key = setup_sftpgo()
