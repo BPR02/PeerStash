@@ -422,6 +422,8 @@ def restore_snapshot(
     if not task:
         raise ValueError(f"Task '{name}' not found")
 
+    logger.info(f"[{name}] Restoring snapshot {snapshot}...")
+
     # create folder name based on snapshot and task name
     t = (
         task.last_run.strftime("%Y-%m-%d_%H-%M-%S")
@@ -440,6 +442,7 @@ def restore_snapshot(
     restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
     try:
+        logger.info(f"[{name}] Restoring snapshot {snapshot} to {temp_folder}...")
         restic.restore(
             snapshot_id=snapshot,
             include=include,
@@ -447,6 +450,7 @@ def restore_snapshot(
             target_dir=temp_folder,
         )
         # move the actual backed up items to the folder
+        logger.info(f"[{name}] Moving restored files to {final_folder}...")
         if os.path.exists(final_folder):
             final_folder = (
                 f"{final_folder}_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}"
@@ -457,6 +461,7 @@ def restore_snapshot(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
         )
 
+    logger.info(f"[{name}] Restored snapshot {snapshot} in {folder}")
     return folder
 
 
