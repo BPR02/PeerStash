@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Peerstash
 # Copyright (C) 2026 BPR02
@@ -19,6 +19,13 @@
 
 SSH_FOLDER="/var/lib/peerstash"
 
+# Set up logging directory
+LOG_DIR="/var/log/peerstash"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/peerstash.log"
+
+# Prepend timestamp and log to both stdout and the log file
+exec > >(while IFS= read -r line; do echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"; done | tee -a "$LOG_FILE") 2>&1
 
 # Generate SSH host keys
 mkdir -p /var/run/sshd
