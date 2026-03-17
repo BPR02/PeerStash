@@ -1,3 +1,5 @@
+import logging
+import os
 from pathlib import Path
 
 import pytest
@@ -18,6 +20,15 @@ pytest_plugins = [
     "tests.mocks.subprocess_mock",
     "tests.mocks.db_mock",
 ]
+
+# prevent logging from running in unit tests
+logging.FileHandler = logging.NullHandler  # type: ignore
+_original_makedirs = os.makedirs
+def _mock_makedirs(name, mode=0o777, exist_ok=False):
+    if str(name).startswith("/var/log/peerstash"):
+        return
+    _original_makedirs(name, mode, exist_ok)
+os.makedirs = _mock_makedirs
 
 
 @pytest.fixture(autouse=True)
