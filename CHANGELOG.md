@@ -1,3 +1,24 @@
+# [0.14.0](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.8...peerstash-v0.14.0) (2026-03-16)
+
+
+### Features
+
+* **control:** add --version cli option ([#47](https://github.com/BPR02/PeerStash/issues/47)) ([38a101e](https://github.com/BPR02/PeerStash/commit/38a101e01aee93b4dd97524e71e6834b9f80923b))
+
+## [0.13.8](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.7...peerstash-v0.13.8) (2026-03-16)
+
+
+### Bug Fixes
+
+* **control:** use versioning via CI ([#46](https://github.com/BPR02/PeerStash/issues/46)) ([d943d99](https://github.com/BPR02/PeerStash/commit/d943d99b8aca94fb7142d002c3901db7a830ec5f))
+
+## [0.13.7](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.6...peerstash-v0.13.7) (2026-03-15)
+
+
+### Bug Fixes
+
+* **compose:** initial folder creation ([#45](https://github.com/BPR02/PeerStash/issues/45)) ([d80aaf2](https://github.com/BPR02/PeerStash/commit/d80aaf26b216d1e315ec4eb09adda9fe91cd6501))
+
 ## [0.13.6](https://github.com/BPR02/PeerStash/compare/peerstash-v0.13.5...peerstash-v0.13.6) (2026-03-14)
 
 

@@ -1,7 +1,22 @@
 name: peerstash
 x-meta:
-  compose_version: 0.9.0
+  compose_version: 0.9.1
 services:
+  init-perms:
+    image: alpine:latest
+    container_name: peerstash-init-perms
+    command: sh -c "chown -R 1000:1000 /srv/sftpgo/data /var/lib/sftpgo"
+    volumes:
+      - type: bind
+        source: ${PEERSTASH_SFTP}/data
+        target: /srv/sftpgo/data
+        bind:
+          create_host_path: true
+      - type: bind
+        source: ${PEERSTASH_SFTP}/config
+        target: /var/lib/sftpgo
+        bind:
+          create_host_path: true
   storage:
     image: drakkan/sftpgo:v2-alpine-slim
     container_name: peerstash-sftp
@@ -53,13 +68,15 @@ services:
         source: ${PEERSTASH_SFTP}/config
         target: /var/lib/sftpgo
         read_only: true
+        bind:
+          create_host_path: true
       - type: bind
         source: ${PEERSTASH_CONTROL}/data
         target: /srv/peerstash/data
         bind:
           create_host_path: true
       - type: bind
-        source: PEERSTASH_RESTORE_FOLDER
+        source: ${PEERSTASH_RESTORE_FOLDER}
         target: /mnt/peerstash_restore
         bind:
           create_host_path: true
@@ -99,3 +116,6 @@ services:
     cap_add:
       - sys_admin
       - net_admin
+    depends_on:
+      init-perms:
+        condition: service_completed_successfully

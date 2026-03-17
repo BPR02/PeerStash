@@ -14,6 +14,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+__version__ = "0.9.0"
+
+from typing import Annotated
+
 import typer
 
 from peerstash.cli import (cmd_backup, cmd_cancel, cmd_evict, cmd_id, cmd_list,
@@ -21,8 +25,33 @@ from peerstash.cli import (cmd_backup, cmd_cancel, cmd_evict, cmd_id, cmd_list,
                            cmd_restore, cmd_schedule, cmd_setup, cmd_snapshots,
                            cmd_unmount)
 
+
+def version_callback(value: bool):
+    if value:
+        print(f"PeerStash {__version__}")
+        raise typer.Exit()
+
+
 # Create the main cli app
 app = typer.Typer(help="PeerStash CLI Tool")
+
+
+@app.command()
+def cli(
+    version: Annotated[
+        bool | None,
+        typer.Option(
+            "--version",
+            callback=version_callback,
+            is_eager=True,
+            help="Show the version and exit.",
+        ),
+    ] = None,
+):
+    print("Use 'peerstash --help' for available commands")
+
+
+# create subcommands for the main cli app
 app.command(name="setup")(cmd_setup.setup)
 app.command(name="id")(cmd_id.print_id)
 app.command(name="register")(cmd_register.register_peer)
