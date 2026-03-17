@@ -36,7 +36,6 @@ from peerstash.core.utils import (Retention, acquire_task_lock, generate_sha1,
                                   validate_paths, validate_retention,
                                   validate_schedule, validate_task_name)
 
-USER = db_get_user()
 SFTP_PORT = 2022
 
 
@@ -50,7 +49,7 @@ def _verify_backup_size(name: str) -> tuple[int, int]:
         raise ValueError(f"Task with name '{name}' not in DB")
 
     # get free space in SFTP server
-    free_bytes = get_disk_usage(USER, task.hostname, SFTP_PORT)[2]
+    free_bytes = get_disk_usage(db_get_user(), task.hostname, SFTP_PORT)[2]
 
     # get added bytes
     res = run_backup(name, True)
@@ -72,7 +71,7 @@ def _init_repo(name: str) -> None:
         raise ValueError(f"Task with name '{name}' not in DB")
 
     # initialize repo
-    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
     restic.init()
 
@@ -189,7 +188,7 @@ def run_backup(
     # if dry run, just return the added bytes
     if dry_run:
         print(f"Calculating added bytes for backup task '{task.name}'...")
-        restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+        restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
         restic.password_file = "/var/lib/peerstash/restic_password"
         res = restic.backup(
             paths=paths, exclude_patterns=exclude_patterns, dry_run=True
@@ -249,7 +248,7 @@ def run_backup(
     # run backup
     print(f"Running backup task '{task.name}'...")
     db_update_task(task.name, TaskUpdate(status="running"))
-    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
     res = None
     try:
@@ -314,7 +313,7 @@ def prune_repo(
         task.name,
         TaskUpdate(last_run=datetime.now(), last_exit_code=-1, status="pruning"),
     )
-    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
     try:
         restic.forget(
@@ -364,13 +363,14 @@ def _sftp_recursive_remove(hostname: str, path: str):
 
         sftp.rmdir(path)
 
-    if not USER:
+    user = db_get_user()
+    if not user:
         raise ValueError("Unknown USER")
 
     ssh = paramiko.SSHClient()
-    ssh.load_host_keys(f"/home/{USER}/.ssh/known_hosts")
+    ssh.load_host_keys(f"/home/{user}/.ssh/known_hosts")
     ssh.connect(
-        hostname, port=2022, username=USER, key_filename=f"/home/{USER}/.ssh/id_ed25519"
+        hostname, port=2022, username=user, key_filename=f"/home/{user}/.ssh/id_ed25519"
     )
     sftp = ssh.open_sftp()
 
@@ -430,7 +430,7 @@ def restore_snapshot(
         shutil.rmtree(temp_folder)
 
     # restore to the temp folder, copy to the final folder
-    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
     try:
         restic.restore(
@@ -460,7 +460,7 @@ def get_snapshots(name: str, snapshot: Optional[str] = None) -> list[dict[Any, A
         raise ValueError(f"Task with name '{name}' not in DB")
 
     # get snapshots
-    restic.repository = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic.repository = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic.password_file = "/var/lib/peerstash/restic_password"
     try:
         return restic.snapshots(snapshot_id=snapshot)
@@ -486,7 +486,7 @@ def mount_task(name: str) -> None:
         os.mkdir(mount_point)
 
     # mount the repo
-    restic_repo = f"sftp://{USER}@{task.hostname}:{SFTP_PORT}/{task.name}"
+    restic_repo = f"sftp://{db_get_user()}@{task.hostname}:{SFTP_PORT}/{task.name}"
     restic_password_file = "/var/lib/peerstash/restic_password"
     try:
         # resticpy does not have support for the mount command, call it directly (in the background)

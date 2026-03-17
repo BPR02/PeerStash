@@ -20,7 +20,6 @@ import json
 from peerstash.core.db import db_get_invite_code, db_get_user
 from peerstash.core.utils import get_file_content
 
-USER = db_get_user()
 
 
 def _generate_identity_payload() -> str:
@@ -29,7 +28,7 @@ def _generate_identity_payload() -> str:
     """
     server_pub_key = get_file_content("/var/lib/sftpgo/id_ed25519.pub")
     client_pub_key = get_file_content("~/.ssh/id_ed25519.pub")
-    username = USER
+    username = db_get_user()
     invite_code = db_get_invite_code()
 
     if not username:
@@ -53,7 +52,7 @@ def _generate_identity_payload() -> str:
 
 
 def generate_share_key() -> str:
-    username = USER
+    username = db_get_user()
     payload = _generate_identity_payload()
 
     return f"peerstash.{username}#{payload}"

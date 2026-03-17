@@ -27,8 +27,6 @@ from peerstash.core.utils import (update_crontab, validate_schedule,
 SOCKET_PATH = "/var/run/peerstash.sock"
 CRON_LOG = "/var/log/peerstash-cron.log"
 PEERSTASH_BIN = "/usr/local/bin/peerstash"
-USER = db_get_user()
-
 
 class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
     def handle(self):
@@ -91,9 +89,10 @@ class PeerstashDaemonHandler(socketserver.BaseRequestHandler):
         return {"status": "success" if success else "error", "message": msg}
 
     def sync_hosts(self) -> dict[str, str]:
-        if not USER:
+        user = db_get_user()
+        if not user:
             raise ValueError("Unknown USER")
-        source_file = os.path.join("/home", USER, ".ssh", "known_hosts")
+        source_file = os.path.join("/home", user, ".ssh", "known_hosts")
         dest_file = "/root/.ssh/known_hosts"
 
         if not os.path.exists(source_file):
