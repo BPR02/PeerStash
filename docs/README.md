@@ -30,7 +30,7 @@ Understand the underlying architecture and security models.
 
 ## Quick Start
 
-If you are looking to get up and running immediately, please refer to the **[Getting Started section of the README](https://github.com/BPR02/PeerStash/tree/main?tab=readme-ov-file#-getting-started)** for installation steps using Docker Compose.
+If you are looking to get up and running immediately, please refer to the **[Getting Started section of the README](https://github.com/BPR02/PeerStash/tree/readme-prod?tab=readme-ov-file#-getting-started)** for installation steps using Docker Compose.
 
 Once your containers are deployed and you are SSH'd into the control container, your first step will be to run:
 
