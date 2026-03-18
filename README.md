@@ -44,7 +44,7 @@ This project uses Docker to support a wide variety of operating systems and prov
 
 ## 🛠️ CLI Usage
 
-PeerStash provides a comprehensive CLI built with Python and Typer.
+PeerStash provides a comprehensive CLI built with Python and Typer. For in-depth documentation, visit the [docs](https://github.com/BPR02/PeerStash/blob/main/docs/README.md).
 
 ### Core Commands
 
