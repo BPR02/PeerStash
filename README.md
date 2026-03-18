@@ -12,11 +12,11 @@ PeerStash is a plug-and-play solution for securely sending backups between semi-
 * **Privacy-First:** Self-hosted with no telemetry, no central API, and zero-trust encryption.
 
 ## 🏗️ Architecture
-This project uses Docker to support a wide variety of operating systems. It consists of 2 docker containers: a storage container, and a control container. 
+This project uses Docker to support a wide variety of operating systems and provide isolation from the host machine.
 
-* **Storage:** [SFTPGo](https://sftpgo.com) is used as a fully featured SFTP server that has a built in user manager with configurable quotas. 
+* **Storage:** [SFTPGo](https://sftpgo.com) is used as a fully featured SFTP server that has a built in user manager with configurable quotas. It ensures users uploading to your machine can only see their files and cannot exceed a hard quota storage limit.
 
-* **Control:** The control container is what is being developed. It will create and send the backups. A lightweight docker container will be created that will provide a simple CLI tool to schedule backups created using [restic](https://restic.net). [Tailscale](https://tailscale.com) is embedded in this container and used to connect each device to each other, creating a unified and secure network. 
+* **Control:** The "brain" of PeerStash. A CLI tool schedules backups using [restic](https://restic.net). [Tailscale](https://tailscale.com) is embedded to connect each device to each other, creating a unified and secure network. 
 
 
 ## 🚀 Current Development Status
