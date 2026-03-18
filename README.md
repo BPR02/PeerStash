@@ -18,22 +18,39 @@ This project uses Docker to support a wide variety of operating systems and prov
 
 * **Control:** The "brain" of PeerStash. A CLI tool schedules backups using [restic](https://restic.net). [Tailscale](https://tailscale.com) is embedded to connect each device to each other, creating a unified and secure network. 
 
+## 🚀 Getting Started
+1.  **Prerequisites:** Ensure you have [Docker](https://www.docker.com/) and [Tailscale](https://tailscale.com/) installed with a Tailscale account created.
+2.  **Configuration:** Copy the `docker-compose.yml`, and the `example.env` to `.env` from the [peerstash-compose](https://github.com/BPR02/PeerStash/tree/main/peerstash-compose) folder to a local folder. Configure your credentials and storage paths in the `.env` file.
+3.  **Deploy:** Navigate to the folder and deploy with docker compose.
+    ```bash
+    docker compose up -d
+    ```
+4.  **Log Into the Container:** SSH into the container using the port, username and password set in the `.env` file.
+    ```bash
+    ssh -p <port> <username>@<NAS_IP>
+    ```
+5.  **Use the PeerStash CLI:** You can now use the PeerStash CLI inside the container. The `setup` command should be used to set up tailscale.
+    ```bash
+    peerstash setup
+    ```
 
-## 🚀 Current Development Status
-PeerStash is currently in active development. The design specifications can be found [here](https://docs.google.com/document/d/12tKH2wguz-OzgiXsKYCllzRssa6628woeOXamTWgD_4/edit?usp=sharing).
+## 🛠️ CLI Usage
 
-**Infrastructure:** A `docker-compose.yml` and example `.env` file is provided to connect the storage and control containers.
+PeerStash provides a comprehensive CLI built with Python and Typer.
 
-**CI/CD Pipeline:** GitHub Actions workflows are implemented to automatically build the Docker image for the control container. Commits to `main` trigger a stable build, while commits to `dev` trigger a development build for easy pushing and testing on local NAS devices. Development is done on the `dev` branch and tested before pushing to `main`. 
+### Core Commands
 
-**CLI Tooling:** A custom Typer-based CLI has been built in Python. Below are the most important commands.
-* `peerstash setup`: Sets up the necessary tailscale configurations from a short-lived API access token.
-* `peerstash id`: Encodes the username and public key into a single base64 string for easy sharing. 
-* `peerstash register`: Decodes the base64 string and registers the connection by interfacing with the SFTPGo API and the local SQLite database. 
-* `peerstash schedule`: Schedules a backup to be run continuously.
+  * `peerstash id`: Generates your unique share key for peers.
+  * `peerstash register`: Adds a friend's share key to establish a connection.
+  * `peerstash schedule`: Creates a recurring backup task with custom cron schedules and retention policies.
+  * `peerstash list`: Displays all scheduled backup tasks and their current status.
 
-**Next Steps:** Set up automated testing and proper PR workflows (i.e. get rid of the dev branch sequential change necessity and switch to creating temporary docker builds for each new PR).
+### Management & Recovery
 
-**Future Plans:** Web UI and Erasure Coding
+  * `peerstash snapshots`: Lists all available backup snapshots for a specific task.
+  * `peerstash restore`: Restores files from a specific snapshot.
+  * `peerstash mount`: Mounts a remote repository to `/tmp/peerstash_mnt` for easy file browsing.
+  * `peerstash peers`: Lists all registered peers and displays their disk usage/quotas.
+## 📝 Future Plans
 * A simple Web UI is planned for better UX than the CLI
 * A "mesh" like system is planned so a group of users can set up storage with erasure coding, similar to RAID, but across the mesh.
