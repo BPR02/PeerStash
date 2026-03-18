@@ -1,31 +1,70 @@
-# PeerStash: A NAS P2P Backup Tool
-Peerstash is a user-friendly project to securely send backups between friends (i.e. semi-trusted machines). 
+# PeerStash: The P2P NAS Backup Tool
+[![GHCR Pulls](https://ghcr-badge.elias.eu.org/shield/BPR02/PeerStash/peerstash-control?label=pulls&color=blue)](https://github.com/BPR02/PeerStash/pkgs/container/peerstash-control)
 
-This project exists as a solution to backups between friends. While some tools exist to send backups to cloud providers or fully trusted remote NAS machines, there is currently no plug-and-play tool to handle sending backups to semi-trusted machines.
+[![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/BPR02/PeerStash?label=version)](https://github.com/BPR02/PeerStash/tags)
+[![Docker Image Version (latest semver)](https://img.shields.io/github/v/tag/BPR02/PeerStash?filter=peerstash-control-v*&label=ghcr&color=blue&logo=github)](https://github.com/BPR02/PeerStash/pkgs/container/peerstash-control)
+[![Open Issues](https://img.shields.io/github/issues/BPR02/PeerStash?color=orange)](https://github.com/BPR02/PeerStash/issues)
+[![tests](https://github.com/BPR02/PeerStash/actions/workflows/tests.yml/badge.svg)](https://github.com/BPR02/PeerStash/actions/workflows/tests.yml)
+[![license: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
+**Secure decentralized backups between friends**
+
+PeerStash is a plug-and-play solution for securely sending backups between semi-trusted machines (e.g., your NAS and a friend's NAS). While existing tools exist to back up to cloud providers or fully trusted remote machines, PeerStash fills the gap for peer-to-peer storage with zero-config networking.
+
+## ⚙️ Key Features
+* **Zero-Config Networking:** Uses Tailscale to create a secure, encrypted mesh network between peers without port forwarding.
+* **Automated Backups:** Leverages restic for efficient, deduplicated, and encrypted backups.
+* **Isolated Storage:** Creates separate users within SFTPGo for isolated access and strict quotas.
+* **Granular Control:** Manage schedules, retention policies, and pruning via a simple CLI.
+* **Direct Access:** Mount remote repositories locally to browse and restore files instantly.
+* **Privacy-First:** Self-hosted with no telemetry, no central API, and zero-trust encryption.
 
 ## 🏗️ Architecture
-This project uses Docker to support a wide variety of operating systems. It consists of 2 docker containers: a storage container, and a control container. 
+This project uses Docker to support a wide variety of operating systems and provide isolation from the host machine.
 
-* **Storage:** [SFTPGo](https://sftpgo.com) is used as a fully featured SFTP server that has a built in user manager with configurable quotas. 
+* **Storage:** [SFTPGo](https://sftpgo.com) is used as a fully featured SFTP server that has a built in user manager with configurable quotas. It ensures users uploading to your machine can only see their files and cannot exceed a hard quota storage limit.
 
-* **Control:** The control container is what is being developed. It will create and send the backups. A lightweight docker container will be created that will provide a simple CLI tool to schedule backups created using [restic](https://restic.net). [Tailscale](https://tailscale.com) is embedded in this container and used to connect each device to each other, creating a unified and secure network. 
+* **Control:** The "brain" of PeerStash. A CLI tool schedules backups using [restic](https://restic.net). [Tailscale](https://tailscale.com) is embedded to connect each device to each other, creating a unified and secure network. 
 
+## 🚀 Getting Started
+1.  **Prerequisites:** Ensure you have [Docker](https://www.docker.com/) and [Tailscale](https://tailscale.com/) installed with a Tailscale account created.
+2.  **Configuration:** Copy the `docker-compose.yml`, and the `example.env` to `.env` from the [peerstash-compose](https://github.com/BPR02/PeerStash/tree/main/peerstash-compose) folder to a local folder. Configure your credentials and storage paths in the `.env` file.
+3.  **Deploy:** Navigate to the folder and deploy with docker compose.
+    ```bash
+    docker compose up -d
+    ```
+4.  **Log Into the Container:** SSH into the container using the port, username and password set in the `.env` file.
+    ```bash
+    ssh -p <port> <username>@<NAS_IP>
+    ```
+5.  **Use the PeerStash CLI:** You can now use the PeerStash CLI inside the container. The `setup` command should be used to set up tailscale.
+    ```bash
+    peerstash setup
+    ```
 
-## 🚀 Current Development Status
-PeerStash is currently in active development. The design specifications can be found [here](https://docs.google.com/document/d/12tKH2wguz-OzgiXsKYCllzRssa6628woeOXamTWgD_4/edit?usp=sharing).
+## 🛠️ CLI Usage
 
-**Infrastructure:** A `docker-compose.yml` and example `.env` file is provided to connect the storage and control containers.
+PeerStash provides a comprehensive CLI built with Python and Typer. For in-depth documentation, visit the [docs](https://github.com/BPR02/PeerStash/blob/main/docs/README.md).
 
-**CI/CD Pipeline:** GitHub Actions workflows are implemented to automatically build the Docker image for the control container. Commits to `main` trigger a stable build, while commits to `dev` trigger a development build for easy pushing and testing on local NAS devices. Development is done on the `dev` branch and tested before pushing to `main`. 
+### Core Commands
 
-**CLI Tooling:** A custom Typer-based CLI has been built in Python. Below are the most important commands.
-* `peerstash setup`: Sets up the necessary tailscale configurations from a short-lived API access token.
-* `peerstash id`: Encodes the username and public key into a single base64 string for easy sharing. 
-* `peerstash register`: Decodes the base64 string and registers the connection by interfacing with the SFTPGo API and the local SQLite database. 
-* `peerstash schedule`: Schedules a backup to be run continuously.
+  * `peerstash id`: Generates your unique share key for peers.
+  * `peerstash register`: Adds a friend's share key to establish a connection.
+  * `peerstash schedule`: Creates a recurring backup task with custom cron schedules and retention policies.
+  * `peerstash list`: Displays all scheduled backup tasks and their current status.
 
-**Next Steps:** Set up automated testing and proper PR workflows (i.e. get rid of the dev branch sequential change necessity and switch to creating temporary docker builds for each new PR).
+### Management & Recovery
 
-**Future Plans:** Web UI and Erasure Coding
+  * `peerstash snapshots`: Lists all available backup snapshots for a specific task.
+  * `peerstash restore`: Restores files from a specific snapshot.
+  * `peerstash mount`: Mounts a remote repository to `/tmp/peerstash_mnt` for easy file browsing.
+  * `peerstash peers`: Lists all registered peers and displays their disk usage/quotas.
+
+## 🤖 AI Transparency
+PeerStash was developed with the assistance of Google Gemini, used primarily as a productivity tool for boilerplate code, debugging, some ideation, and a majority of the test suite.
+
+The core system architecture (Tailscale/SFTPGo/restic) was designed by BPR, and all high-level architectural decisions were made by BPR. Every line of code was manually reviewed, edited, and verified. AI was never granted direct repository access; all contributions were manually integrated and committed.
+
+## 📝 Future Plans
 * A simple Web UI is planned for better UX than the CLI
 * A "mesh" like system is planned so a group of users can set up storage with erasure coding, similar to RAID, but across the mesh.

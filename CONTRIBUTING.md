@@ -16,20 +16,20 @@ NodeJS can be installed for all systems from [their website](https://nodejs.org/
 ### Install Dependencies
 Once nodejs is installed, the workflow dependencies can be installed with the following command
 ```bash
-$ npm install
+npm install
 ```
 This command should be run in all folders that have a `package.json` file. Each folder prepended with `peerstash-` is essentially a subproject.
 
 Once uv is installed, the development dependencies can be installed in the `peerstash-control` folder using the following command
 ```bash
-$ uv sync
+uv sync
 ```
 
 ## Development Deployment
 To deploy this project, use the `docker-compose-dev.yml` file. A `.env` file must be created to fill out certain fields. An example environment file can be found in the `peerstash-compose` folder. If environment variables aren't working, the fields can be manually replaced in the docker compose file.
 
 ```bash
-$ docker compose -f peerstash-compose/docker-compose-dev.yml up
+docker compose -f peerstash-compose/docker-compose-dev.yml up
 ```
 
 ### Tailscale Tunnel
@@ -41,32 +41,32 @@ There are dev tools available in the `peerstash-control` folder to check the cod
 ### Python
 `pyright` is used to check for errors in Python files.
 ```bash
-$ cd peerstash-control
-$ uv run pyright
+cd peerstash-control
+uv run pyright
 ```
 
 `black` and `isort` are used for formatting to keep files consistent.
 ```bash
-$ cd peerstash-control
-$ uv run black
-$ uv run isort
+cd peerstash-control
+uv run black
+uv run isort
 ```
 
 `pytest` can be used within the `peerstash-control` folder to run unit tests. 
 ```bash
-$ cd peerstash-control
-$ pytest
+cd peerstash-control
+pytest
 ```
 There are two scripts in the top-level `scripts` folder that runs tests in a docker container. `run_docker_tests.sh` runs integration tests. `run_all_tests.sh` runs all tests in a docker container and generates a coverage report in `peerstash-control/htmlcov`.
 ```bash
-$ bash scripts/run_docker_tests.sh
+bash scripts/run_docker_tests.sh
 ```
 
 ### Shell Checks
 The `shellcheck` node module is used to check for POSIX compliance in shell scripts. Running the command below should output nothing to the terminal if all scripts are compliant with POSIX.
 ```bash
-$ cd peerstash-control
-$ npx shellcheck scripts/*.sh
+cd peerstash-control
+npx shellcheck scripts/*.sh
 ```
 
 ## Commits
