@@ -1,7 +1,7 @@
-# PeerStash: A NAS P2P Backup Tool
-Peerstash is a user-friendly project to securely send backups between friends (i.e. semi-trusted machines). 
+# PeerStash: The P2P NAS Backup Tool
+**Secure decentralized backups between friends**
 
-This project exists as a solution to backups between friends. While some tools exist to send backups to cloud providers or fully trusted remote NAS machines, there is currently no plug-and-play tool to handle sending backups to semi-trusted machines.
+PeerStash is a plug-and-play solution for securely sending backups between semi-trusted machines (e.g., your NAS and a friend's NAS). While existing tools exist to back up to cloud providers or fully trusted remote machines, PeerStash fills the gap for peer-to-peer storage with zero-config networking.
 
 ## 🏗️ Architecture
 This project uses Docker to support a wide variety of operating systems. It consists of 2 docker containers: a storage container, and a control container. 
