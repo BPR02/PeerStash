@@ -1,4 +1,12 @@
 # PeerStash: The P2P NAS Backup Tool
+[![GHCR Pulls](https://ghcr-badge.elias.eu.org/shield/BPR02/PeerStash/peerstash-control?label=pulls&color=blue)](https://github.com/BPR02/PeerStash/pkgs/container/peerstash-control)
+
+[![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/BPR02/PeerStash?label=version)](https://github.com/BPR02/PeerStash/tags)
+[![Docker Image Version (latest semver)](https://img.shields.io/github/v/tag/BPR02/PeerStash?filter=peerstash-control-v*&label=ghcr&color=blue&logo=github)](https://github.com/BPR02/PeerStash/pkgs/container/peerstash-control)
+[![Open Issues](https://img.shields.io/github/issues/BPR02/PeerStash?color=orange)](https://github.com/BPR02/PeerStash/issues)
+[![tests](https://github.com/BPR02/PeerStash/actions/workflows/tests.yml/badge.svg)](https://github.com/BPR02/PeerStash/actions/workflows/tests.yml)
+[![license: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
 **Secure decentralized backups between friends**
 
 PeerStash is a plug-and-play solution for securely sending backups between semi-trusted machines (e.g., your NAS and a friend's NAS). While existing tools exist to back up to cloud providers or fully trusted remote machines, PeerStash fills the gap for peer-to-peer storage with zero-config networking.
