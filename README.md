@@ -3,6 +3,14 @@
 
 PeerStash is a plug-and-play solution for securely sending backups between semi-trusted machines (e.g., your NAS and a friend's NAS). While existing tools exist to back up to cloud providers or fully trusted remote machines, PeerStash fills the gap for peer-to-peer storage with zero-config networking.
 
+## ⚙️ Key Features
+* **Zero-Config Networking:** Uses Tailscale to create a secure, encrypted mesh network between peers without port forwarding.
+* **Automated Backups:** Leverages restic for efficient, deduplicated, and encrypted backups.
+* **Isolated Storage:** Creates separate users within SFTPGo for isolated access and strict quotas.
+* **Granular Control:** Manage schedules, retention policies, and pruning via a simple CLI.
+* **Direct Access:** Mount remote repositories locally to browse and restore files instantly.
+* **Privacy-First:** Self-hosted with no telemetry, no central API, and zero-trust encryption.
+
 ## 🏗️ Architecture
 This project uses Docker to support a wide variety of operating systems. It consists of 2 docker containers: a storage container, and a control container. 
 
