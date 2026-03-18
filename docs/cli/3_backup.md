@@ -14,7 +14,7 @@ Configures a new recurring backup task. If the task name already exists, you wil
 * `--exclude`: Regex patterns to ignore (can be used multiple times to set multiple exclusions).
 * `--schedule`: A cron expression for backups. Defaults to `0 3 * * *` (3 AM daily).
 * `--prune-schedule`: A cron expression for pruning. Defaults to `0 4 * * 0` (4 AM Sundays).
-* `--retention`: The retention policy (e.g., `1y2m3w4d5h6r`). Defaults to `4w3d`. A full explanation of the syntax can be found in the [`architecture/backup` page](https://github.com/BPR02/PeerStash/blob/readme-prod/docs/architecture/3_backups.md).
+* `--retention`: The retention policy (e.g., `1y2m3w4d5h6r`). Defaults to `4w3d`. A full explanation of the syntax can be found in the [`architecture/backup` page](https://github.com/BPR02/PeerStash/blob/main/docs/architecture/3_backups.md).
 * `--update`, `-u`: Update an existing task without prompting.
 
 ## `peerstash backup`

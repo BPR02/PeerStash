@@ -15,22 +15,22 @@ Explore the various sections of our documentation to get the most out of PeerSta
 
 Comprehensive guides for every command available in the PeerStash CLI.
 
-  * **[Node Setup](https://github.com/BPR02/PeerStash/blob/readme-prod/docs/cli/1_setup.md)**: Authenticate with Tailscale and initialize your security credentials.
-  * **[Identity & Peers](https://github.com/BPR02/PeerStash/blob/readme-prod/docs/cli/2_peers.md)**: Manage your Share Key and connect with friends.
-  * **[Backup Management](https://github.com/BPR02/PeerStash/blob/readme-prod/docs/cli/3_backup.md)**: Schedule, trigger, and manage automated backup tasks.
-  * **[Recovery & Browsing](https://github.com/BPR02/PeerStash/blob/readme-prod/docs/cli/4_recovery.md)**: Browse snapshots, mount remote repos, and restore your data.
+  * **[Node Setup](https://github.com/BPR02/PeerStash/blob/main/docs/cli/1_setup.md)**: Authenticate with Tailscale and initialize your security credentials.
+  * **[Identity & Peers](https://github.com/BPR02/PeerStash/blob/main/docs/cli/2_peers.md)**: Manage your Share Key and connect with friends.
+  * **[Backup Management](https://github.com/BPR02/PeerStash/blob/main/docs/cli/3_backup.md)**: Schedule, trigger, and manage automated backup tasks.
+  * **[Recovery & Browsing](https://github.com/BPR02/PeerStash/blob/main/docs/cli/4_recovery.md)**: Browse snapshots, mount remote repos, and restore your data.
 
 ### 🏗️ Architecture
 
 Understand the underlying architecture and security models.
 
-  * **[Networking: Secure P2P with Tailscale](https://github.com/BPR02/PeerStash/blob/readme-prod/docs/architecture/1_networking.md)**: How Tailscale is used to build a secure P2P mesh.
-  * **[Storage: The Semi-Trusted Model](https://github.com/BPR02/PeerStash/blob/readme-prod/docs/architecture/2_storage.md)**: How SFTPGo and encryption keep your data private in shared environments.
-  * **[Backups: Restic & Retention Logic](https://github.com/BPR02/PeerStash/blob/readme-prod/docs/architecture/3_backups.md)**: How restic is used for deduplication zero-trust encryption.
+  * **[Networking: Secure P2P with Tailscale](https://github.com/BPR02/PeerStash/blob/main/docs/architecture/1_networking.md)**: How Tailscale is used to build a secure P2P mesh.
+  * **[Storage: The Semi-Trusted Model](https://github.com/BPR02/PeerStash/blob/main/docs/architecture/2_storage.md)**: How SFTPGo and encryption keep your data private in shared environments.
+  * **[Backups: Restic & Retention Logic](https://github.com/BPR02/PeerStash/blob/main/docs/architecture/3_backups.md)**: How restic is used for deduplication zero-trust encryption.
 
 ## Quick Start
 
-If you are looking to get up and running immediately, please refer to the **[Getting Started section of the README](https://github.com/BPR02/PeerStash/tree/readme-prod?tab=readme-ov-file#-getting-started)** for installation steps using Docker Compose.
+If you are looking to get up and running immediately, please refer to the **[Getting Started section of the README](https://github.com/BPR02/PeerStash/tree/main?tab=readme-ov-file#-getting-started)** for installation steps using Docker Compose.
 
 Once your containers are deployed and you are SSH'd into the control container, your first step will be to run:
 
