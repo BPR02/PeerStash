@@ -51,6 +51,12 @@ PeerStash provides a comprehensive CLI built with Python and Typer.
   * `peerstash restore`: Restores files from a specific snapshot.
   * `peerstash mount`: Mounts a remote repository to `/tmp/peerstash_mnt` for easy file browsing.
   * `peerstash peers`: Lists all registered peers and displays their disk usage/quotas.
+
+## 🤖 AI Transparency
+PeerStash was developed with the assistance of Google Gemini, used primarily as a productivity tool for boilerplate code, debugging, some ideation, and a majority of the test suite.
+
+The core system architecture (Tailscale/SFTPGo/restic) was designed by BPR, and all high-level architectural decisions were made by BPR. Every line of code was manually reviewed, edited, and verified. AI was never granted direct repository access; all contributions were manually integrated and committed.
+
 ## 📝 Future Plans
 * A simple Web UI is planned for better UX than the CLI
 * A "mesh" like system is planned so a group of users can set up storage with erasure coding, similar to RAID, but across the mesh.
