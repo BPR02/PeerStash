@@ -18,7 +18,7 @@
 
 
 PEERSTASH_CONFIG="/var/lib/peerstash"
-chown "$USERNAME":"$USERNAME" "$PEERSTASH_CONFIG"
+chown "$USERNAME":"$USERNAME" $PEERSTASH_CONFIG
 
 # set up logging
 LOG_DIR="/var/log/peerstash"
