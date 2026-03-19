@@ -18,7 +18,6 @@
 
 
 PEERSTASH_CONFIG="/var/lib/peerstash"
-chown "$USERNAME":"$USERNAME" $PEERSTASH_CONFIG
 
 # set up logging
 LOG_DIR="/var/log/peerstash"
@@ -81,6 +80,7 @@ fi
 } > /home/"$USERNAME"/.ssh/config
 echo "" > /home/"$USERNAME"/.ssh/known_hosts
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
+chown "$USERNAME":"$USERNAME" "$PEERSTASH_CONFIG"
 
 
 # prevent indexing FUSE mounts
