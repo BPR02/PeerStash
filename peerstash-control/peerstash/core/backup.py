@@ -585,6 +585,10 @@ def unmount_task(name: str) -> None:
             log(f"[{name}] Failed to remove repo folders. No permissions for {mount_point}", "warning")
             raise RuntimeError(f"No permissions. Use sudo if mounted as root.")
         else:
+            logger.error(f"[{name}] Failed to unmount repo: {e}")
             raise OSError(e)
+    except Exception as e:
+        logger.error(f"[{name}] Failed to unmount repo: {e}")
+        raise Exception(e)
 
     logger.info(f"[{name}] Unmounted repo.")
