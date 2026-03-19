@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import errno
 import os
 import random
 import shutil
@@ -579,8 +580,11 @@ def unmount_task(name: str) -> None:
     try:
         if os.path.exists(mount_point):
             shutil.rmtree(mount_point)
-    except PermissionError:
-        log(f"[{name}] Failed to remove repo folders. No permissions for {mount_point}", "warning")
-        raise RuntimeError(f"No permissions. Use sudo if mounted as root.")
+    except OSError as e:
+        if e.errno == errno.EROFS:
+            log(f"[{name}] Failed to remove repo folders. No permissions for {mount_point}", "warning")
+            raise RuntimeError(f"No permissions. Use sudo if mounted as root.")
+        else:
+            raise OSError(e)
 
     logger.info(f"[{name}] Unmounted repo.")
