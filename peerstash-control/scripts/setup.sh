@@ -17,13 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-SSH_FOLDER="/var/lib/peerstash"
+PEERSTASH_CONFIG="/var/lib/peerstash"
+chown "$USERNAME":"$USERNAME" "$PEERSTASH_CONFIG"
 
 # set up logging
 LOG_DIR="/var/log/peerstash"
 mkdir -p "$LOG_DIR"
 
-BIND_LOG_DIR="/var/lib/peerstash/logs"
+BIND_LOG_DIR="$PEERSTASH_CONFIG/logs"
 mkdir -p "$BIND_LOG_DIR"
 
 if [ ! -L "$LOG_DIR" ]; then
@@ -46,13 +47,13 @@ exec > >(while IFS= read -r line; do echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"
 # Generate SSH host keys
 mkdir -p /var/run/sshd
 
-if [ ! -f "$SSH_FOLDER"/ssh_host_rsa_key ]; then
+if [ ! -f "$PEERSTASH_CONFIG"/ssh_host_rsa_key ]; then
     echo "Generating SSH host keys..."
     ssh-keygen -A
-    cp /etc/ssh/ssh_host_* "$SSH_FOLDER"/
+    cp /etc/ssh/ssh_host_* "$PEERSTASH_CONFIG"/
 else
     echo "Using existing SSH host keys..."
-    cp "$SSH_FOLDER"/ssh_host_* /etc/ssh/
+    cp "$PEERSTASH_CONFIG"/ssh_host_* /etc/ssh/
 fi
 
 # create admin user
@@ -63,15 +64,15 @@ adduser "$USERNAME" sudo
 # Generate SSH user keys
 mkdir -p /home/"$USERNAME"/.ssh
 
-if [ ! -f "$SSH_FOLDER"/id_ed25519 ]; then
+if [ ! -f "$PEERSTASH_CONFIG"/id_ed25519 ]; then
     echo "Generating SSH user keys..." >&2
     if [ ! -f /home/"$USERNAME"/.ssh/id_ed25519 ]; then
         ssh-keygen -t ed25519 -N "" -f /home/"$USERNAME"/.ssh/id_ed25519 -C "$USERNAME"
     fi
-    cp /home/"$USERNAME"/.ssh/id_* $SSH_FOLDER/
+    cp /home/"$USERNAME"/.ssh/id_* $PEERSTASH_CONFIG/
 else
     echo "Using existing SSH user keys..." >&2
-    cp $SSH_FOLDER/id_* /home/"$USERNAME"/.ssh/
+    cp $PEERSTASH_CONFIG/id_* /home/"$USERNAME"/.ssh/
 fi
 {
     echo "" 
