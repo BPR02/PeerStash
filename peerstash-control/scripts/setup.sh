@@ -80,7 +80,10 @@ fi
 } > /home/"$USERNAME"/.ssh/config
 echo "" > /home/"$USERNAME"/.ssh/known_hosts
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
+
+# set up filesystem perms
 chown "$USERNAME":"$USERNAME" "$PEERSTASH_CONFIG"
+chmod 777 /tmp/peerstash_mnt
 
 
 # prevent indexing FUSE mounts
