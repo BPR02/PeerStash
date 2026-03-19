@@ -16,13 +16,10 @@
 
 import json
 import subprocess
-import time
 from typing import Optional
 
 import commentjson
 import requests
-
-from peerstash.core.utils import logger
 
 TAILSCALE_API = "https://api.tailscale.com/api/v2"
 
@@ -165,21 +162,8 @@ def generate_device_invite(api_token: str) -> Optional[str]:
     device_id = _get_local_device_id()
     url = f"{TAILSCALE_API}/device/{device_id}/device-invites"
     payload = [{"multiUse": True}]
-    # Retry loop to wait for MagicDNS to stabilize
-    max_retries = 5
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(url, auth=(api_token, ""), json=payload)
-            response.raise_for_status()
+    response = requests.post(url, auth=(api_token, ""), json=payload)
+    response.raise_for_status()
 
-            full_url: Optional[str] = response.json()[0].get("inviteUrl")
-            return full_url.split("/")[-1] if full_url else None
-
-        except requests.exceptions.ConnectionError as e:
-            if attempt < max_retries - 1:
-                logger.warning(
-                    f"Tailscale URL failed to resolve ({attempt}). Retrying in 2 seconds..."
-                )
-                time.sleep(2)  # Wait 2 seconds and try again
-                continue
-            raise RuntimeError(f"DNS failed to stabilize after Tailscale up: {e}")
+    full_url: Optional[str] = response.json()[0].get("inviteUrl")
+    return full_url.split("/")[-1] if full_url else None
