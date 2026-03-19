@@ -576,7 +576,11 @@ def unmount_task(name: str) -> None:
     subprocess.run(["fusermount", "-uz", mount_point], capture_output=True)
 
     # delete the file if exists
-    if os.path.exists(mount_point):
-        shutil.rmtree(mount_point)
+    try:
+        if os.path.exists(mount_point):
+            shutil.rmtree(mount_point)
+    except PermissionError:
+        log(f"[{name}] Failed to remove repo folders. No permissions for {mount_point}", "warning")
+        raise RuntimeError(f"No permissions. Use sudo if mounted as root.")
 
     logger.info(f"[{name}] Unmounted repo.")
