@@ -48,6 +48,9 @@ services:
     build: ../peerstash-control
     container_name: peerstash-control
     network_mode: bridge
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     hostname: peerstash-${ADMIN_USERNAME}
     environment:
       - USERNAME=${ADMIN_USERNAME}
