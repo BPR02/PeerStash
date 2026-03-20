@@ -84,7 +84,7 @@ chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 # set up filesystem perms
 chown "$USERNAME":"$USERNAME" "$PEERSTASH_CONFIG"
 chmod 777 /tmp/peerstash_mnt
-
+chmod 777 /mnt/peerstash_restore
 
 # prevent indexing FUSE mounts
 touch /tmp/peerstash_mnt/.nomedia
