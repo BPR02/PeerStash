@@ -34,6 +34,9 @@ services:
     build: ../peerstash-control
     container_name: peerstash-control-test
     network_mode: bridge
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     hostname: peerstash-test-admin
     environment:
       - USERNAME=admin
