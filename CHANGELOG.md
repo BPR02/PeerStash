@@ -1,3 +1,10 @@
+## [0.15.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.15.1...peerstash-v0.15.2) (2026-03-20)
+
+
+### Bug Fixes
+
+* **control:** fix filesystem permissions for non-root execution of commands ([#52](https://github.com/BPR02/PeerStash/issues/52)) ([88b6e6b](https://github.com/BPR02/PeerStash/commit/88b6e6be4d729f37ade78a07e3f0718b8312afea))
+
 ## [0.15.1](https://github.com/BPR02/PeerStash/compare/peerstash-v0.15.0...peerstash-v0.15.1) (2026-03-17)
 
 
