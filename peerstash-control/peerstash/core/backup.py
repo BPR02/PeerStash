@@ -497,6 +497,9 @@ def restore_snapshot(
         raise Exception(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
         )
+    finally:
+        if os.path.exists(temp_folder):
+            shutil.rmtree(temp_folder)
 
     logger.info(f"[{name}] Restored snapshot {snapshot} in {folder}")
     return folder
