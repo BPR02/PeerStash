@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import errno
 import os
 import random
 import shutil
@@ -496,6 +497,9 @@ def restore_snapshot(
         raise Exception(
             f"Failed to restore snapshot '{snapshot}' for task '{name}' ({e})"
         )
+    finally:
+        if os.path.exists(temp_folder):
+            shutil.rmtree(temp_folder)
 
     logger.info(f"[{name}] Restored snapshot {snapshot} in {folder}")
     return folder
@@ -576,7 +580,18 @@ def unmount_task(name: str) -> None:
     subprocess.run(["fusermount", "-uz", mount_point], capture_output=True)
 
     # delete the file if exists
-    if os.path.exists(mount_point):
-        shutil.rmtree(mount_point)
+    try:
+        if os.path.exists(mount_point):
+            shutil.rmtree(mount_point)
+    except OSError as e:
+        if e.errno == errno.EROFS:
+            log(f"[{name}] Failed to remove repo folders. No permissions for {mount_point}", "warning")
+            raise RuntimeError(f"No permissions. Use sudo if mounted as root.")
+        else:
+            logger.error(f"[{name}] Failed to unmount repo: {e}")
+            raise OSError(e)
+    except Exception as e:
+        logger.error(f"[{name}] Failed to unmount repo: {e}")
+        raise Exception(e)
 
     logger.info(f"[{name}] Unmounted repo.")

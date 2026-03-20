@@ -23,6 +23,7 @@ from typing import Any
 
 import requests
 
+from peerstash.core.backup import unmount_task
 from peerstash.core.utils import update_crontab
 from peerstash.cli import __version__
 
@@ -60,6 +61,8 @@ def init_db_and_restore():
                 f"{prune_schedule} {PEERSTASH_BIN} prune {name} 10"
             )
             update_crontab(name, [backup_job, prune_job])
+            # force unmount stale repos
+            unmount_task(name)
 
     else:
         print("No database found. Creating a new empty database...")
