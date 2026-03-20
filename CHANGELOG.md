@@ -1,3 +1,10 @@
+## [0.15.3](https://github.com/BPR02/PeerStash/compare/peerstash-v0.15.2...peerstash-v0.15.3) (2026-03-20)
+
+
+### Bug Fixes
+
+* **compose:** add dns routes to bypass host machine dns ([#55](https://github.com/BPR02/PeerStash/issues/55)) ([775c290](https://github.com/BPR02/PeerStash/commit/775c290579fc3f101dae7fbc76928557fd695bef))
+
 ## [0.15.2](https://github.com/BPR02/PeerStash/compare/peerstash-v0.15.1...peerstash-v0.15.2) (2026-03-20)
 
 
