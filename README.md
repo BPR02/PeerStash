@@ -27,7 +27,7 @@ This project uses Docker to support a wide variety of operating systems and prov
 * **Control:** The "brain" of PeerStash. A CLI tool schedules backups using [restic](https://restic.net). [Tailscale](https://tailscale.com) is embedded to connect each device to each other, creating a unified and secure network. 
 
 ## 🚀 Getting Started
-1.  **Prerequisites:** Ensure you have [Docker](https://www.docker.com/) and [Tailscale](https://tailscale.com/) installed with a Tailscale account created.
+1.  **Prerequisites:** Ensure you have [Docker](https://www.docker.com/) installed and have a [Tailscale](https://tailscale.com/) account.
 2.  **Configuration:** Copy the `docker-compose.yml`, and the `example.env` to `.env` from the [peerstash-compose](https://github.com/BPR02/PeerStash/tree/main/peerstash-compose) folder to a local folder. Configure your credentials and storage paths in the `.env` file.
 3.  **Deploy:** Navigate to the folder and deploy with docker compose.
     ```bash
