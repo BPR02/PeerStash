@@ -73,12 +73,19 @@ else
     echo "Using existing SSH user keys..." >&2
     cp $PEERSTASH_CONFIG/id_* /home/"$USERNAME"/.ssh/
 fi
+
+# update SSH config files
 {
     echo "" 
     echo "Host *" 
     echo "	IdentityFile /home/$USERNAME/.ssh/id_ed25519"
 } > /home/"$USERNAME"/.ssh/config
 echo "" > /home/"$USERNAME"/.ssh/known_hosts
+if [ ! -L "/home/$USERNAME/.ssh/authorized_keys" ]; then
+    rm -f "/home/$USERNAME/.ssh/authorized_keys"
+    touch "$PEERSTASH_CONFIG/authorized_keys"
+    ln -s "$PEERSTASH_CONFIG/authorized_keys" "/home/$USERNAME/.ssh/authorized_keys"
+fi
 chown -R "$USERNAME":"$USERNAME" /home/"$USERNAME"/.ssh
 
 # set up filesystem perms
